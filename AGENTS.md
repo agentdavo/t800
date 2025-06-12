@@ -1,116 +1,116 @@
-# AGENTS.md
+# Contributor Guide (AGENTS.md)
 
-*Project play‑book for Codex‑powered agents collaborating on the **Transputer T800 core** implemented in SpinalHDL.*
-
----
-
-## 0  Purpose
-
-Centralise the **division of labour, workflow rules, coding standards and CI gates** that every AI or human contributor must follow while turning `ims‑t800‑core.scala` from a skeleton into a cycle‑accurate core.
+This file gives every contributor—human or automated—the shared context needed to work on this repository. Keep it up-to-date; tooling will read it automatically before changing code.
 
 ---
 
-## 1  Milestone roadmap
+## 1 Repository overview
 
-| Phase                    | Exit criteria                                                        | Lead agent   |
-| ------------------------ | -------------------------------------------------------------------- | ------------ |
-| **M‑0 Bootstrap**        | Skeleton passes CI (`sbt clean test`); Verilog generated             | **Arch‑Bot** |
-| **M‑1 Integer‑Lite**     | Primary integer opcode range 0×00‑0×6F implemented; self‑tests green | **ALU‑Bot**  |
-| **M‑2 Memory + Process** | `LDNL/STNL/LDNLP`, scheduler (`STARTP/ENDP/TIMESLICE`), timer wait   | **Flow‑Bot** |
-| **M‑3 Channels**         | Four‑link engine sustains ≥1 Mword/s in loop‑back sim                | **Link‑Bot** |
-| **M‑4 Full FPU**         | `FPADD/SUB/MUL/DIV`, conversions, flags; latency ≤ spec              | **FPU‑Bot**  |
-| **M‑5 Transcendentals**  | `FPSIN/√/LN/EXP` reach ≤1 ulp; iterative pipes verified              | **Math‑Bot** |
-| **M‑6 Compliance**       | IMS T800 validation suite & Occam tool‑chain boot on FPGA            | **QA‑Bot**   |
-| **M‑7 Optimise**         | Meets 50 MHz @ ECP5; area < 40 k LUT                                 | **PPA‑Bot**  |
+| Path | What lives here |
+|------|-----------------|
+| `/src/ims-t800-core.scala` | Monolithic SpinalHDL core skeleton |
+| `/test/` | ScalaTest + SpinalSim benches |
+| `/doc/` | Architecture notes, opcode sheets, ADRs |
+| `/synthesis/` | FPGA scripts & timing reports |
+| `.github/workflows/` | CI (lint, test, synth) |
+| `README.md` | Quick-start & Ubuntu setup |
+| `AGENTS.md` | *this guide* |
 
-*Any phase may spin sub‑tasks, but may not declare "done" until **QA‑Bot** signs off.*
-
----
-
-## 2  Agent roles & boundaries
-
-| Agent        | Touches                      | Forbidden                              | Reviewer |
-| ------------ | ---------------------------- | -------------------------------------- | -------- |
-| **Arch‑Bot** | `/src`, `/doc/arch`          | `/src/fpu`, `/src/sched`               | QA‑Bot   |
-| **ALU‑Bot**  | `/src/execute`               | `/src/fpu`                             | Arch‑Bot |
-| **Flow‑Bot** | `/src/sched`, `/src/timer`   | `/src/fpu`                             | Arch‑Bot |
-| **Link‑Bot** | `/src/channel`               | `/src/fpu`, `/src/sched`               | QA‑Bot   |
-| **FPU‑Bot**  | `/src/fpu`                   | scheduler code                         | QA‑Bot   |
-| **Math‑Bot** | `/src/fpu` (transcendentals) | process control                        | FPU‑Bot  |
-| **QA‑Bot**   | `/test`, `.github`           | behaviour code (read‑only unless mock) | All      |
-| **PPA‑Bot**  | `/src`, `/synthesis`         | change visible behaviour               | Arch‑Bot |
-
-> Cross‑domain edits **must** be submitted as *draft* PRs and tag the owning agent for review.
+If sub-folders add their own `AGENTS.md`, the most-nested file relevant to the edit wins.
 
 ---
 
-## 3  Coding conventions
+## 2 Development environment
 
-1. **SpinalHDL ≥ 1.9**, Scala 2.13 source level.
-2. One statement per line; no wildcard imports except `spinal.core._`.
-3. Replacing a `// TODO` in `ExecuteUnit` **requires deleting the marker** in the same commit.
-4. CamelCase for regs/wires; **UPPER\_SNAKE** for constants.
-5. Public bundles extend `IMasterSlave` if they use `valid/ready` flow control.
-6. Every non‑obvious state transition carries an inline `// why:` comment.
-7. PR blocked if **coverage < 80 %** for files you changed.
+### 2.1 Ubuntu setup  
+Follow the **“Ubuntu setup”** section in `README.md`.
 
-### 3.1  SpinalHDL ≠ “Normal” Scala  ‑ quick mental model
+### 2.2 Handy commands
 
-| Concept             | Plain Scala mental model       | **SpinalHDL semantics**                                                                                                                                                   |
-| ------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Statement order     | Sequential execution           | *Irrelevant*: every `:=` adds a concurrent hardware rule; order is resolved by *last‑assignment‑wins* during elaboration.                                                 |
-| Variables           | Hold a single value at runtime | A `UInt/Bits/Bool` *wire* represents a network whose value is the result of **all** assignments that survive the `when/switch` tree.                                      |
-| Objects & functions | Execute at run‑time            | Execute **only once, at elaboration**. Loops & higher‑order functions are unrolled into RTL.                                                                              |
-| Mutation            | `x = x + 1` updates in place   | Registers mutate only via `Reg()` and clock edges; combinational `\=` gives immediate (single‑line) update but forbidden on regs.                                         |
-| Concurrency         | via threads/Futures            | *Always concurrent*. Each RTL clock‑edge updates every `Reg`.                                                                                                             |
-| Pipeline‑API        | n/a                            | The `spinal.lib.misc.pipeline` DSL builds nodes/links at elaboration→ generates auto‑staged streams with valid/ready and optional flush/throw, relieving manual retiming. |
+```bash
+# Build & run all tests
+sbt test
 
-> **Rule of thumb:** write hardware *declaratively*: “what must be true every cycle”, **not** “do X then Y”. When in doubt spell out the waveforms in a unit‑test.
+# Generate Verilog
+sbt "runMain T800CoreVerilog"
+
+# Tiny sim with waves
+sbt test:runMain T800CoreSim
+````
 
 ---
 
-## 4  Task / issue template
+## 3 Code-style & contribution rules
+
+1. **SpinalHDL ≥ 1.9**, Scala 2.13. Only `spinal.core._` may be wildcard-imported.
+2. One hardware statement per line; block comments explain intent.
+3. When you replace a `// TODO` in `ExecuteUnit`, **delete** the marker.
+4. CamelCase for wires/regs; **UPPER\_SNAKE** for constants. Public bundles end in `_IO`.
+5. Bundles that use `valid/ready` extend `IMasterSlave`.
+6. Add or update unit tests in `/test` for each new opcode/feature.
+7. Run `sbt scalafmtCheckAll`; CI blocks mis-formatted code.
+8. Remember: **SpinalHDL ≠ ordinary Scala** (see cheat-sheet below).
+
+---
+
+## 4 Validation checklist
+
+| Command                         | What it checks      |
+| ------------------------------- | ------------------- |
+| `sbt scalafmtCheckAll`          | Source style        |
+| `sbt test`                      | Unit + Sim benches  |
+| `sbt "runMain T800CoreVerilog"` | Verilog elaboration |
+| `nextpnr-ecp5` (nightly)        | Meets 50 MHz timing |
+
+Coverage of touched files should stay ≥ 80 %.
+
+---
+
+## 5 Module ownership & boundaries
+
+| Area                | Typical files                           | Maintainers       |
+| ------------------- | --------------------------------------- | ----------------- |
+| Core architecture   | `/src/ims-t800-core.scala`, `/doc/arch` | Architecture team |
+| Integer ALU & OPR   | execute section                         | ALU team          |
+| Scheduler & Timer   | `/src/sched`, `/src/timer`              | Flow team         |
+| Floating-point unit | `/src/fpu`                              | FPU team          |
+| Transcendental math | `/src/fpu` (extra pipes)                | Math team         |
+| Channel links       | `/src/channel`                          | Links team        |
+| Tests & CI          | `/test`, `.github`                      | QA/CI team        |
+| Timing / area       | `/synthesis`, core tweaks               | PPA team          |
+
+Cross-team changes → open a **draft PR** and tag the relevant team.
+
+---
+
+## 6 Pull-request template
 
 ```markdown
-### Opcode / Feature
-`0x8A LDPI`
+### What & Why
+* Implemented opcode 0x30 (OPR-REV)
+* Added unit test `OprRevSpec`
 
-### Acceptance tests
-- [ ] Unit‑test loads π ≈ 3.141592654f into A‑reg
-- [ ] No extra bubbles in pipeline; still single‑cycle
+### Validation
+- [x] `sbt scalafmtCheckAll`
+- [x] `sbt test` (all green)
 
-### Files to change
-- `ims‑t800‑core.scala` (ExecuteUnit case 0x8A)
-- `/test/opcodes/FPUFloatSpec.scala`
+Closes #42
 ```
+
+Branch name: `feat/<topic>` – e.g. `feat/alu-opr-add`.
+Delete any `// TODO` lines you replace.
 
 ---
 
-## 5  CI pipeline (GitHub Actions)
+## 7 SpinalHDL ≠ normal Scala (quick cheat-sheet)
 
-1. **Setup** – cache SBT & Spinal tool‑chain.
-2. **Lint** – `scalafmt --test`; custom rules via **Lint‑Bot**.
-3. **Unit tests** – `sbt +test`; attach failed wave dumps.
-4. **RTL gen** – `sbt "runMain T800CoreVerilog"`
-5. **Nightly FPGA synth** – Lattice ECP5 via `nextpnr`; timing & area diff posted as comment.
-
----
-
-## 6  Documentation tree
-
-```
-/doc/arch          high‑level architecture notes
-/doc/opcodes       1‑pager per opcode (state diagram, corner‑cases)
-/doc/decisions     ADR decision records (Arch‑Bot owner)
-```
-
----
-
-## 7  Branches and merge policy
-
-* `main` always green.
-* Feature branches → `feat/<agent>/<topic>`.
-* Squash‑merge, commit title in **imperative mood**.
-* After merge, **QA‑Bot** auto‑closes linked issue and posts coverage delta.
+| Scala concept             | Hardware reality (Spinal rules)                                   |
+| ------------------------- | ----------------------------------------------------------------- |
+| Statement order           | Unordered; each `:=` adds a rule. **Last wins.**                  |
+| Loops / functions         | Run once at elaboration, unrolled into RTL.                       |
+| `Reg(UInt())`             | Flip-flop updated on clock edge.                                  |
+| `when/elsewhen/otherwise` | Generates a mux; only active branch drives.                       |
+| `\\=`                     | Immediate wire update (combinational only).                       |
+| Pipeline DSL              | Declare nodes/links; builder auto-stages and handles ready/valid. |
 
 ---
