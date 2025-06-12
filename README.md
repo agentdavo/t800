@@ -1,50 +1,109 @@
-# Transputer-T800 Core (SpinalHDL)
+# Transputer-T800 Core
 
-A cycle-accurate, open-source implementation of the **INMOS T800 Transputer** written in **SpinalHDL ≥ 1.9**.  
-The core re-creates the original integer pipeline, floating-point unit, hardware scheduler and four serial links while remaining FPGA-friendly.
+*(rev 2025-06-12 – includes plugin & pipeline details)*
 
 ---
 
-## Features (road-map)
+SpinalHDL ≥ 1.9 • Plugin architecture • Pipeline DSL • Fiber tasks
 
-| Phase | Status |
-|-------|--------|
-| Skeleton compile & Verilog export | ✅ Done |
-| Primary integer opcodes (0x00-0x6F) | 🚧 WIP |
-| Scheduler + Timer + memory ops | ✈️ queued |
-| Four-link channel engine | ✈️ queued |
-| Full IEEE-754 FPU | ✈️ queued |
-| Transcendental FP ops | ✈️ queued |
-| T800 compliance & Occam boot | ✈️ queued |
-| Timing/area optimisation | ✈️ queued |
+This project re-implements the INMOS T800/T9000 CPU in modern SpinalHDL.
 
-See **AGENTS.md** for contribution workflow details.
+* **Plugins** – every subsystem (FPU, Scheduler …) is a hot-swappable `FiberPlugin`.
+* **Pipeline DSL** – build safe, stall/flush-aware pipelines with one-liners.
+* **Fibers** – allow out-of-order elaboration so plugins can depend on each other.
+
+---
+
+## Feature matrix & milestone plan
+
+| Milestone | Deliverable | Primary DSL objects | Status |
+|-----------|-------------|---------------------|--------|
+| **M-1** | OPR `REV ADD SUB AND XOR` | `StageCtrlPipeline`, `haltIt` | ⏳ |
+| **M-2** | Literal builder + `LDL 0-15` | same | ⏳ |
+| **M-3** | RAM `STL/LDL`, on-chip stack | `S2MLink` | ⏳ |
+| **M-4** | Two-queue scheduler, `STARTP/ENDP` | `ForkLink` | ⏳ |
+| **M-5** | 64-bit timer + `TIMERWAIT` | `JoinLink` | ⏳ |
+| **M-6** | Two-cycle FP adder (plugin) | plugin swap | ⏳ |
+
+Detailed specs live in **AGENTS.md §5**.
+
+---
+
+## Plugin host vs Pipeline DSL
+
+| Layer | Purpose | Key classes |
+|-------|---------|-------------|
+| **Plugin host** | Compose or swap whole subsystems. | `PluginHost`, `FiberPlugin`, `Plugin[T]` |
+| **Pipeline DSL** | Build pipelines without manual `valid/ready` wiring. | `Node`, `StageLink`, `CtrlLink`, `CtrlLaneApi` |
+
+Why the DSL helps:
+
+* Insert or remove a register: swap `DirectLink` → `StageLink`.
+* Stalls & flushes: `haltIt()`, `throwIt()` – no custom FSM.
+* Skid buffers, broadcast, join – pre-built (`S2M`, `Fork`, `Join`).
+
+Quick cheat-sheet in **AGENTS.md §8**.
+
+---
+
+## Repository layout
+
+```
+
+transputer-t800/
+├─ build.sbt
+├─ src/
+│  ├─ main/scala/t800/
+│  │  ├─ Top.scala              # creates PluginHost + selects plugins
+│  │  └─ plugins/               # ⇐ one FiberPlugin per subsystem
+│  │     ├─ FpuPlugin.scala
+│  │     ├─ SchedulerPlugin.scala
+│  │     └─ ...
+│  └─ test/scala/t800/
+│      ├─ T800CoreSim.scala
+│      └─ ...
+├─ ext/
+│  └─ SpinalHDL/                # git sub-module (optional)
+├─ README.md
+└─ AGENTS.md
+
+````
 
 ---
 
 ## Ubuntu setup
 
+Save as `setup-t800.sh`, then `sudo bash setup-t800.sh`.
+
 ```bash
-# Optional: green prompt so you can spot your dev container
-echo 'RESET="\[$(tput sgr0)\]"'  >> ~/.bashrc
-echo 'GREEN="\[$(tput setaf 2)\]"' >> ~/.bashrc
-echo 'export PS1="${GREEN}\u:\W${RESET} $ "' >> ~/.bashrc
+#!/usr/bin/env bash
+set -euo pipefail
 
-# Java 8 (required by SpinalHDL 1.9)
-sudo add-apt-repository -y ppa:openjdk-r/ppa
-sudo apt-get update
-sudo apt-get install -y openjdk-8-jdk
-sudo update-alternatives --set java  $(update-alternatives --list java  | grep java-8-openjdk)
-sudo update-alternatives --set javac $(update-alternatives --list javac | grep java-8-openjdk)
+echo "=== Installing T800 build environment ==="
+apt-get update
+apt-get install -y software-properties-common curl gnupg2
 
-# sbt & tools
-echo "deb https://repo.scala-sbt.org/scalasbt/debian all main" | \
-  sudo tee /etc/apt/sources.list.d/sbt.list
-curl -sL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x2EE0EA64E40A89B84B2DF73499E82A75642AC823" | sudo apt-key add -
-sudo apt-get update
-sudo apt-get install -y sbt verilator git make g++ flex bison autoconf \
-                       pkg-config libtool shtool libusb-1.0-0-dev libyaml-dev \
-                       cpio bc unzip rsync mercurial
+add-apt-repository -y ppa:openjdk-r/ppa
+apt-get update
+
+curl -fsSL https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x2EE0EA64E40A89B84B2DF73499E82A75642AC823 \
+  | gpg --dearmor -o /usr/share/keyrings/sbt.gpg
+echo "deb [signed-by=/usr/share/keyrings/sbt.gpg] https://repo.scala-sbt.org/scalasbt/debian all main" \
+  > /etc/apt/sources.list.d/sbt.list
+
+apt-get update
+apt-get install -y \
+  openjdk-21-jdk sbt gtkwave git make autoconf g++ flex bison \
+  help2man device-tree-compiler libboost-all-dev wget
+
+tmp=/tmp/verilator
+git clone --depth 1 https://github.com/verilator/verilator.git "$tmp"
+cd "$tmp" && autoconf && ./configure && make -j$(nproc) && make install
+rm -rf "$tmp"
+
+java  -version | head -n1
+sbt   --script-version
+verilator --version
 ````
 
 ---
@@ -52,45 +111,29 @@ sudo apt-get install -y sbt verilator git make g++ flex bison autoconf \
 ## Quick start
 
 ```bash
-# clone with the SpinalHDL sub-module
-git clone --recursive https://github.com/your-org/transputer-t800.git
+git clone --recursive https://github.com/agentdavo/t800.git
 cd transputer-t800
 
-# build & run unit tests
+# Default plugin set
 sbt test
+sbt "runMain t800.TopVerilog"
 
-# generate synthesizable Verilog
-sbt "runMain t800.T800CoreVerilog"
-
-# minimal behavioural sim (wave dumps to ./simWorkspace)
-sbt test:runMain t800.T800CoreSim
-```
-
-> **Optional:** export `SPINALHDL_FROM_SOURCE=0` to pull pre-built jars instead of the sub-module code.
-
----
-
-## Repository layout
-
-```
-transputer-t800/
-├── build.sbt
-├── SpinalHDL/            # ← Git sub-module (if building Spinal from source)
-├── src/
-│   ├── main/scala/t800/T800Core.scala
-│   └── test/scala/t800/T800CoreSim.scala
-├── doc/ …
-├── synthesis/ …
-├── README.md
-└── AGENTS.md
+# Integer-only build (nofpu)
+sbt "runMain t800.TopVerilog --variant=min"
 ```
 
 ---
 
 ## Contributing
 
-1. Read **AGENTS.md** for branch naming, style and CI gates.
-2. Pick an open issue (or raise one) and assign yourself.
-3. Implement the RTL, add/extend tests, run `sbt test`, and keep CI green.
+1. Pick a milestone from **AGENTS.md §5**.
+2. Work **inside** `src/main/scala/t800/plugins/`.
+3. Keep CI green:
+
+```bash
+sbt test
+```
+
+PR title `[M-n] <topic>` – e.g. `[M-1] ALU ADD`.
 
 ---

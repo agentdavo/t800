@@ -1,86 +1,75 @@
 # Contributor Guide
 
-This file gives every contributor the shared context needed to work in this repository.  
-If deeper folders add their own `AGENTS.md`, the most nested copy applies.
+*(rev 2025-06-12 – includes plugin & pipeline details)*
 
 ---
 
-## 1 Repository overview
+## 1 Project map
 
-| Path | Purpose |
-|------|---------|
-| `src/main/scala/t800/T800Core.scala` | Monolithic SpinalHDL core skeleton |
-| `src/test/scala/t800/` | Unit tests & SpinalSim benches |
-| `SpinalHDL/` | **Git sub-module** – local SpinalHDL sources (used when `SPINALHDL_FROM_SOURCE=1`) |
-| `doc/` | Architecture notes, opcode sheets, ADRs |
-| `synthesis/` | FPGA scripts & timing reports |
-| `.github/workflows/` | CI (lint → test → Verilog → nightly synth) |
-| `README.md` | User-facing quick-start |
-| `AGENTS.md` | *this guide* |
+| Path | Description |
+|------|-------------|
+| `src/main/scala/t800/plugins/` | Each file is a `FiberPlugin` subsystem |
+| `pipeline/cheatsheet/` | Mini runnable DSL examples |
+| `src/main/scala/t800/Top.scala` | Builds `PluginHost`, selects plugin list with `--variant=` |
+| `src/test/scala/t800/` | ScalaTest units + SpinalSim benches |
+| `ext/SpinalHDL/` | Upstream library as git sub-module |
 
 ---
 
-## 2 Dev environment
-
-### 2.1 Clone with sub-module
+## 2 Development quick-ref
 
 ```bash
-git clone --recursive https://github.com/agentdavo/t800.git
-git submodule update --init --recursive   # run again whenever the sub-module pointer changes
+# default (full) variant
+sbt test
+sbt "runMain t800.TopVerilog"
+
+# integer-only variant
+sbt "runMain t800.TopVerilog --variant=min"
 ````
 
-If you prefer published binaries, set:
+---
 
-```bash
-export SPINALHDL_FROM_SOURCE=0   # sbt will ignore the SpinalHDL/ folder
-```
+## 3 Style & rules
 
-### 2.2 Every-day commands
+* **One plugin per file** under `src/main/scala/t800/plugins/`.
+  Filename: `<Subsystem>Plugin.scala`.
 
-```bash
-sbt scalafmtCheckAll   # style
-sbt test               # unit + sim benches
-sbt "runMain t800.T800CoreVerilog"   # Verilog
-```
+* Plugins expose IO via tiny *service* wrappers:
+
+  ```scala
+  case class LinkPins(bundle: Bundle)
+  addService(LinkPins(io.links))
+  ```
+
+* Dataflow inside a plugin **must** use Pipeline DSL (`Node`, `StageLink`, `CtrlLink`), not ad-hoc `RegNext`.
+
+* Each new opcode requires a unit test that drives bytes through fetch and checks A/B/C or memory.
 
 ---
 
-## 3 Style & contribution rules
+## 4 CI validation
 
-* **SpinalHDL ≥ 1.9**, Scala 2.13.
-* One RTL statement per line; delete any `// TODO` you resolve.
-* CamelCase for regs/wires; `UPPER_SNAKE` for constants.
-* New hand-shake bundles extend `IMasterSlave`.
-* Keep coverage of touched files ≥ 80 %.
-* Remember: **SpinalHDL semantics differ from normal Scala** (last-assignment-wins, elaboration unrolls loops, etc.).
-
----
-
-## 4 Validation checklist
-
-| Step             | Command                              |
-| ---------------- | ------------------------------------ |
-| Style            | `sbt scalafmtCheckAll`               |
-| Tests            | `sbt test`                           |
-| Verilog          | `sbt "runMain t800.T800CoreVerilog"` |
-| Timing (nightly) | `nextpnr-ecp5 …`                     |
+| Stage                   | Command                                                            |
+| ----------------------- | ------------------------------------------------------------------ |
+| Style                   | `sbt scalafmtCheckAll`                                             |
+| Tests (full variant)    | `sbt test`                                                         |
+| Verilog (both variants) | `sbt "runMain t800.TopVerilog --variant=min"` and `--variant=full` |
+| Nightly timing          | see `.github/workflows/ci.yml`                                     |
 
 ---
 
-## 5 Ownership matrix
+## 5 Milestones
 
-| Area              | Maintainers       |
-| ----------------- | ----------------- |
-| Core architecture | Architecture team |
-| Integer ALU       | ALU team          |
-| Scheduler & Timer | Flow team         |
-| FPU               | FPU team          |
-| Transcendentals   | Math team         |
-| Link engines      | Links team        |
-| Tests & CI        | QA team           |
-| PPA               | PPA team          |
+| ID      | Goal                             | Plugin(s) touched | DSL highlight                 |
+| ------- | -------------------------------- | ----------------- | ----------------------------- |
+| **M-1** | ALU-Lite (`REV ADD SUB AND XOR`) | `ExecutePlugin`   | `StageCtrlPipeline`, `haltIt` |
+| **M-2** | PFIX/NFIX + `LDL`                | `ExecutePlugin`   | same                          |
+| **M-3** | RAM `STL/LDL` + stack            | `MemoryPlugin`    | `S2MLink`                     |
+| **M-4** | Two-queue scheduler              | `SchedulerPlugin` | `ForkLink`                    |
+| **M-5** | 64-bit timer + wait              | `SchedulerPlugin` | `JoinLink`                    |
+| **M-6** | FP adder pipeline                | `FpuPlugin`       | plugin swap                   |
 
-Cross-area edits → draft PR, tag relevant team.
+Open **one** milestone per PR branch (`feat/m1-alu`, etc.).
 
 ---
 
@@ -88,29 +77,95 @@ Cross-area edits → draft PR, tag relevant team.
 
 ```markdown
 ### What & Why
-* Implement opcode 0x30 (OPR-REV)
-* Added spec `OprRevSpec`
+* Implement opcode 0x94 (OPR-ADD)
+* Added `AluAddSpec`
 
 ### Validation
-- [x] scalafmtCheckAll
-- [x] sbt test
+- [x] scalafmt
+- [x] `sbt test` (full + min variants)
 
 Closes #42
 ```
 
-Branch name: `feat/<topic>` (e.g. `feat/alu-opr-add`).
+---
+
+## 7 Writing a plugin
+
+```scala
+package t800.plugins                // mandatory package!
+
+import spinal.lib.misc.plugin._
+import spinal.lib.misc.pipeline._
+
+/** Example: free-running timer service. */
+trait TimerSrv { def now: UInt }
+
+class TimerPlugin extends FiberPlugin {
+  val cnt = Reg(UInt(64 bits)) init(0)
+  during.setup { cnt := cnt + 1 }
+
+  addService(new TimerSrv { def now = cnt })
+}
+```
+
+Use the service elsewhere:
+
+```scala
+val timer = Plugin[TimerSrv]
+when(ctrl.isValid) { Areg := timer.now(31 downto 0) }
+```
+
+For strict ordering:
+
+```scala
+val lock = Lock()
+buildBefore(lock)   // ensure this plugin finishes first
+```
 
 ---
 
-## 7 SpinalHDL ≠ normal Scala (cheat-sheet)
+## 8 Pipeline DSL cheat-sheet
 
-| Scala view                        | Hardware reality                             |
-| --------------------------------- | -------------------------------------------- |
-| Statement order                   | Unordered; each `:=` adds a rule (last wins) |
-| Loops / functions                 | Elaborated once, unrolled                    |
-| `Reg(UInt())`                     | Flip-flop                                    |
-| `when` / `elsewhen` / `otherwise` | Generates mux                                |
-| `\\=`                             | Immediate combinational update               |
-| Pipeline DSL                      | Nodes/Links + auto staging                   |
+| Need             | One-liner                         |
+| ---------------- | --------------------------------- |
+| Register slice   | `StageLink(n0, n1)`               |
+| Skid buffer      | `S2MLink(up, down)`               |
+| Broadcast 1→N    | `ForkLink(src, Seq(a,b))`         |
+| Join N→1         | `JoinLink(Seq(a,b), dst)`         |
+| Stall stage      | `ctrl.haltWhen(cond)`             |
+| Flush stage      | `ctrl.throwIt(usingReady = true)` |
+| Duplicate        | `ctrl.duplicateIt()`              |
+| Multi-issue lane | extend `CtrlLaneApi`              |
+
+Golden rules:
+
+1. Insert each `Payload` once with `insert()`.
+2. Other stages only *read* it (`node(payload)`); no secondary writes.
+3. Use DSL requests (`haltIt`, `terminateIt`, …) rather than setting `ready/valid` directly.
+
+---
+
+## 9 Troubleshooting
+
+| Symptom                       | Explanation & fix                                                               |
+| ----------------------------- | ------------------------------------------------------------------------------- |
+| `ctrl.forgetOne unsupported`  | Using `DirectLink`; switch to `StageLink` or enable `.ctrl.forgetOneSupported`. |
+| Combinational loop on Payload | Same signal driven in two stages – keep single `insert()`.                      |
+| Fiber deadlock                | Circular dependency → break with `buildBefore(lock)`.                           |
+
+---
+
+## 10 Ownership matrix
+
+| Plugin          | Maintainers |
+| --------------- | ----------- |
+| FetchPlugin     | Front-end   |
+| ExecutePlugin   | ALU team    |
+| FpuPlugin       | FPU team    |
+| SchedulerPlugin | Flow team   |
+| MemoryPlugin    | Mem/cache   |
+| ChannelPlugin   | Links       |
+| TrapPlugin      | Safety      |
+| DebugPlugin     | QA          |
 
 ---
