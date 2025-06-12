@@ -5,16 +5,17 @@
 // ------------------------------------------------------------------
 // 1.  Global versions
 // ------------------------------------------------------------------
-val spinalVersion   = "dev"                 // or a pinned tag (e.g. "1.9.4")
+val spinalVersion   = "1.9.4"                 // or a pinned tag (e.g. "1.9.4")
 val scalaVer        = "2.13.14"             // first compiler in Spinal matrix
 val junitVersion    = "3.2.17"              // ScalaTest
 
 // ------------------------------------------------------------------
 // 2.  Optional: build SpinalHDL from source
 // ------------------------------------------------------------------
-val buildSpinalFromSource = sys.env.getOrElse("SPINALHDL_FROM_SOURCE", "1") == "1"
+// Use pre-built SpinalHDL by default. Set SPINALHDL_FROM_SOURCE=1 to override.
+val buildSpinalFromSource = sys.env.getOrElse("SPINALHDL_FROM_SOURCE", "0") == "1"
 val spinalSrcPathEnabled  = sys.env.contains("SPINALHDL_PATH")
-val spinalSrcPath         = sys.env.getOrElse("SPINALHDL_PATH", "./SpinalHDL")
+val spinalSrcPath         = sys.env.getOrElse("SPINALHDL_PATH", "./ext/SpinalHDL")
 
 // ------------------------------------------------------------------
 // 3.  Root project definition
@@ -28,11 +29,11 @@ lazy val root = (project in file("."))
     crossScalaVersions  := Seq(scalaVer),
     fork                := true,              // runMain needs its own JVM
     // ----------------------- compiler plugin -----------------------
-    scalacOptions ++= Seq(
-      "-language:reflectiveCalls",            // Spinal requirement
-      s"-Xplugin:${pluginPath.value}",
-      "-Xplugin-require:idsl-plugin"
-    ),
+    scalacOptions ++=
+      Seq("-language:reflectiveCalls") ++
+      (if (buildSpinalFromSource)
+         Seq(s"-Xplugin:${pluginPath.value}", "-Xplugin-require:idsl-plugin")
+       else Seq.empty),
     // ----------------------- dependencies --------------------------
     libraryDependencies ++=
       (if (buildSpinalFromSource) Nil
@@ -47,16 +48,16 @@ lazy val root = (project in file("."))
     Test / parallelExecution := false
   )
   .dependsOn(
-    if (buildSpinalFromSource) Seq(
+    (if (buildSpinalFromSource) Seq(
       spinalIdslPlugin, spinalCore, spinalLib, spinalSim
-    ) else Seq.empty: _*
+    ).map(_ % "compile->compile") else Seq.empty): _*
   )
 
 // ------------------------------------------------------------------
 // 4.  Helper: compute plugin jar path when built from source
 // ------------------------------------------------------------------
 def pluginPath = Def.setting {
-  val base      = if (spinalSrcPathEnabled) file(spinalSrcPath) else baseDirectory.value / "SpinalHDL"
+  val base      = if (spinalSrcPathEnabled) file(spinalSrcPath) else baseDirectory.value / "ext" / "SpinalHDL"
   val binDir    = base / "idslplugin" / "target" / s"scala-${scalaVersion.value.split('.').init.mkString(".")}"
   val jarName   = s"spinalhdl-idsl-plugin_${scalaVersion.value.split('.').init.mkString(".")}-$spinalVersion.jar"
   (binDir / jarName).getAbsolutePath
