@@ -1,72 +1,76 @@
-//---------------------------------------------
-// build.sbt  —  Transputer-T800 core project
-//---------------------------------------------
+//------------------------------------------------------------
+// build.sbt  —  lean & dual-mode
+//------------------------------------------------------------
+ThisBuild / organization := "org.example"
+ThisBuild / version      := "1.0.0"
+ThisBuild / scalaVersion := "2.13.14"
 
-// ------------------------------------------------------------------
-// 1.  Global versions
-// ------------------------------------------------------------------
-val spinalVersion   = "1.9.4"                 // or a pinned tag (e.g. "1.9.4")
-val scalaVer        = "2.13.14"             // first compiler in Spinal matrix
-val junitVersion    = "3.2.17"              // ScalaTest
+//------------------------------------------------------------
+// 1 ▪ SpinalHDL version & binary deps
+//------------------------------------------------------------
+val spinalVersion = "1.12.2"         // change to "dev" only when you build from source
 
-// ------------------------------------------------------------------
-// 2.  Optional: build SpinalHDL from source
-// ------------------------------------------------------------------
-// Use pre-built SpinalHDL by default. Set SPINALHDL_FROM_SOURCE=1 to override.
-val buildSpinalFromSource = sys.env.getOrElse("SPINALHDL_FROM_SOURCE", "0") == "1"
-val spinalSrcPathEnabled  = sys.env.contains("SPINALHDL_PATH")
-val spinalSrcPath         = sys.env.getOrElse("SPINALHDL_PATH", "./ext/SpinalHDL")
+lazy val spinalCoreDep  = "com.github.spinalhdl" %% "spinalhdl-core"  % spinalVersion
+lazy val spinalLibDep   = "com.github.spinalhdl" %% "spinalhdl-lib"   % spinalVersion
+lazy val spinalPlugDep  = compilerPlugin("com.github.spinalhdl" %% "spinalhdl-idsl-plugin" % spinalVersion)
 
-// ------------------------------------------------------------------
-// 3.  Root project definition
-// ------------------------------------------------------------------
-lazy val root = (project in file("."))
+//------------------------------------------------------------
+// 2 ▪ Source-build switch
+//------------------------------------------------------------
+val buildFromSrc  = sys.env.getOrElse("SPINALHDL_FROM_SOURCE", "0") == "1"
+val spinalSrcPath = sys.env.getOrElse("SPINALHDL_PATH", "./ext/SpinalHDL")
+
+//------------------------------------------------------------
+// 3 ▪ Root project
+//------------------------------------------------------------
+lazy val t800 = (project in file("."))
   .settings(
-    name                := "transputer-t800",
-    organization        := "org.transputer",
-    version             := "0.1.0-SNAPSHOT",
-    scalaVersion        := scalaVer,
-    crossScalaVersions  := Seq(scalaVer),
-    fork                := true,              // runMain needs its own JVM
-    // ----------------------- compiler plugin -----------------------
-    scalacOptions ++=
-      Seq("-language:reflectiveCalls") ++
-      (if (buildSpinalFromSource)
-         Seq(s"-Xplugin:${pluginPath.value}", "-Xplugin-require:idsl-plugin")
-       else Seq.empty),
-    // ----------------------- dependencies --------------------------
+    name := "t800",
+
+    Compile / scalaSource := baseDirectory.value / "src" / "main" / "scala",
+    Test    / scalaSource := baseDirectory.value / "src" / "test" / "scala",
+
+    //--------------------------------------------------------
+    // libraries
+    //--------------------------------------------------------
     libraryDependencies ++=
-      (if (buildSpinalFromSource) Nil
-       else Seq(
-         "com.github.spinalhdl" %% "spinalhdl-core"        % spinalVersion,
-         "com.github.spinalhdl" %% "spinalhdl-lib"         % spinalVersion,
-         compilerPlugin("com.github.spinalhdl" %% "spinalhdl-idsl-plugin" % spinalVersion)
-       )) ++ Seq(
-        "org.scalatest" %% "scalatest" % junitVersion % Test
-       ),
-    // ----------------------- test config ---------------------------
-    Test / parallelExecution := false
+      Seq("org.scalatest" %% "scalatest" % "3.2.17" % Test) ++
+      (if (buildFromSrc) Nil else Seq(spinalCoreDep, spinalLibDep, spinalPlugDep)),
+
+    //--------------------------------------------------------
+    // scalac flags
+    //--------------------------------------------------------
+    scalacOptions ++= {
+      val base = Seq("-language:reflectiveCalls")
+      if (buildFromSrc) {
+        // locate freshly-built idsl-plugin jar on the class-path
+        val jar = (Compile / fullClasspath).value
+          .files
+          .find(_.getName.startsWith("spinalhdl-idsl-plugin"))
+          .getOrElse(sys.error("idsl-plugin jar not found (did sub-module build?)"))
+        base ++ Seq(s"-Xplugin:${jar.getAbsolutePath}", "-Xplugin-require:idsl-plugin")
+      } else {
+        base :+ "-Xplugin-require:idsl-plugin"
+      }
+    },
+
+    fork := true                               // own JVM for runMain / tests
   )
+  //----------------------------------------------------------
+  // 4 ▪ Attach local SpinalHDL sub-projects when requested
+  //----------------------------------------------------------
   .dependsOn(
-    (if (buildSpinalFromSource) Seq(
-      spinalIdslPlugin, spinalCore, spinalLib, spinalSim
-    ).map(_ % "compile->compile") else Seq.empty): _*
+    (if (buildFromSrc)
+       Seq(
+         ProjectRef(file(spinalSrcPath), "core")       % "compile->compile",
+         ProjectRef(file(spinalSrcPath), "lib")        % "compile->compile",
+         ProjectRef(file(spinalSrcPath), "sim")        % "compile->compile",
+         ProjectRef(file(spinalSrcPath), "idslplugin") % "compile->compile"
+       )
+     else Seq.empty): _*
   )
 
-// ------------------------------------------------------------------
-// 4.  Helper: compute plugin jar path when built from source
-// ------------------------------------------------------------------
-def pluginPath = Def.setting {
-  val base      = if (spinalSrcPathEnabled) file(spinalSrcPath) else baseDirectory.value / "ext" / "SpinalHDL"
-  val binDir    = base / "idslplugin" / "target" / s"scala-${scalaVersion.value.split('.').init.mkString(".")}"
-  val jarName   = s"spinalhdl-idsl-plugin_${scalaVersion.value.split('.').init.mkString(".")}-$spinalVersion.jar"
-  (binDir / jarName).getAbsolutePath
-}
-
-// ------------------------------------------------------------------
-// 5.  Spinal sub-projects (only used when building from source)
-// ------------------------------------------------------------------
-lazy val spinalIdslPlugin = ProjectRef(file(spinalSrcPath), "idslplugin")
-lazy val spinalCore       = ProjectRef(file(spinalSrcPath), "core")
-lazy val spinalLib        = ProjectRef(file(spinalSrcPath), "lib")
-lazy val spinalSim        = ProjectRef(file(spinalSrcPath), "sim")
+//------------------------------------------------------------
+// 5 ▪ One-liner to emit Verilog
+//------------------------------------------------------------
+addCommandAlias("coreVerilog", ";clean; runMain t800.TopVerilog")
