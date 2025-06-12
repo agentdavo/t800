@@ -50,7 +50,7 @@ Quick cheat-sheet in **AGENTS.md §8**.
 
 ```
 
-transputer-t800/
+t800/
 ├─ build.sbt
 ├─ src/
 │  ├─ main/scala/t800/
@@ -64,6 +64,8 @@ transputer-t800/
 │      └─ ...
 ├─ ext/
 │  └─ SpinalHDL/                # git sub-module (optional)
+├─ doc/
+│  └─ spinalHDL.html            # SpinalSim + SpinalHDL reference documentation
 ├─ README.md
 └─ AGENTS.md
 
@@ -72,8 +74,6 @@ transputer-t800/
 ---
 
 ## Ubuntu setup
-
-Save as `setup-t800.sh`, then `sudo bash setup-t800.sh`.
 
 ```bash
 #!/usr/bin/env bash
@@ -112,7 +112,7 @@ verilator --version
 
 ```bash
 git clone --recursive https://github.com/agentdavo/t800.git
-cd transputer-t800
+cd t800
 
 # Default plugin set
 sbt test

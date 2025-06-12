@@ -9,10 +9,10 @@
 | Path | Description |
 |------|-------------|
 | `src/main/scala/t800/plugins/` | Each file is a `FiberPlugin` subsystem |
-| `pipeline/cheatsheet/` | Mini runnable DSL examples |
 | `src/main/scala/t800/Top.scala` | Builds `PluginHost`, selects plugin list with `--variant=` |
 | `src/test/scala/t800/` | ScalaTest units + SpinalSim benches |
 | `ext/SpinalHDL/` | Upstream library as git sub-module |
+| `doc/spinalHDL.html` | SpinalSim + SpinalHDL documentation |
 
 ---
 
