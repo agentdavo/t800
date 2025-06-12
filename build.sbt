@@ -1,76 +1,60 @@
 //------------------------------------------------------------
-// build.sbt  —  lean & dual-mode
+// build.sbt  —  works with published jars OR git submodule
 //------------------------------------------------------------
+
+// --- 0 ▪ Mode & Scala version ---------------------------------------------
+val sourceBuild    = sys.env.getOrElse("SPINALHDL_FROM_SOURCE", "0") == "1"
+val spinalSrcPath  = sys.env.getOrElse("SPINALHDL_PATH", "./ext/SpinalHDL")
+
 ThisBuild / organization := "org.example"
 ThisBuild / version      := "1.0.0"
-ThisBuild / scalaVersion := "2.13.14"
+ThisBuild / scalaVersion := (if (sourceBuild) "2.12.18" else "2.13.14")
 
-//------------------------------------------------------------
-// 1 ▪ SpinalHDL version & binary deps
-//------------------------------------------------------------
-val spinalVersion = "1.12.2"         // change to "dev" only when you build from source
+// --- 1 ▪ Published dependencies -------------------------------------------
+val spinalVersion   = if (sourceBuild) "dev" else "1.12.2"
+val spinalCoreDep   = "com.github.spinalhdl" %% "spinalhdl-core"  % spinalVersion
+val spinalLibDep    = "com.github.spinalhdl" %% "spinalhdl-lib"   % spinalVersion
+val spinalPlugDep   = compilerPlugin("com.github.spinalhdl" %% "spinalhdl-idsl-plugin" % spinalVersion)
 
-lazy val spinalCoreDep  = "com.github.spinalhdl" %% "spinalhdl-core"  % spinalVersion
-lazy val spinalLibDep   = "com.github.spinalhdl" %% "spinalhdl-lib"   % spinalVersion
-lazy val spinalPlugDep  = compilerPlugin("com.github.spinalhdl" %% "spinalhdl-idsl-plugin" % spinalVersion)
+// Add Sonatype snapshot resolver if needed
+resolvers ++= {
+  if (!sourceBuild && spinalVersion == "dev")
+    Seq("Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/public")
+  else Nil
+}
 
-//------------------------------------------------------------
-// 2 ▪ Source-build switch
-//------------------------------------------------------------
-val buildFromSrc  = sys.env.getOrElse("SPINALHDL_FROM_SOURCE", "0") == "1"
-val spinalSrcPath = sys.env.getOrElse("SPINALHDL_PATH", "./ext/SpinalHDL")
+// --- 2 ▪ Submodule deps if source-building -------------------------------
+val extraProjects =
+  if (sourceBuild)
+    Seq("core", "lib", "sim", "idslplugin").map(p => ProjectRef(file(spinalSrcPath), p))
+  else Nil
 
-//------------------------------------------------------------
-// 3 ▪ Root project
-//------------------------------------------------------------
+// --- 3 ▪ Root project ----------------------------------------------------
 lazy val t800 = (project in file("."))
   .settings(
     name := "t800",
-
     Compile / scalaSource := baseDirectory.value / "src" / "main" / "scala",
     Test    / scalaSource := baseDirectory.value / "src" / "test" / "scala",
 
-    //--------------------------------------------------------
-    // libraries
-    //--------------------------------------------------------
     libraryDependencies ++=
       Seq("org.scalatest" %% "scalatest" % "3.2.17" % Test) ++
-      (if (buildFromSrc) Nil else Seq(spinalCoreDep, spinalLibDep, spinalPlugDep)),
+      (if (sourceBuild) Nil else Seq(spinalCoreDep, spinalLibDep, spinalPlugDep)),
 
-    //--------------------------------------------------------
-    // scalac flags
-    //--------------------------------------------------------
-    scalacOptions ++= {
-      val base = Seq("-language:reflectiveCalls")
-      if (buildFromSrc) {
-        // locate freshly-built idsl-plugin jar on the class-path
-        val jar = (Compile / fullClasspath).value
-          .files
-          .find(_.getName.startsWith("spinalhdl-idsl-plugin"))
-          .getOrElse(sys.error("idsl-plugin jar not found (did sub-module build?)"))
-        base ++ Seq(s"-Xplugin:${jar.getAbsolutePath}", "-Xplugin-require:idsl-plugin")
-      } else {
-        base :+ "-Xplugin-require:idsl-plugin"
-      }
-    },
+    scalacOptions ++= Seq("-language:reflectiveCalls"),
 
-    fork := true                               // own JVM for runMain / tests
+    scalacOptions ++= Def.taskDyn {
+      if (sourceBuild) {
+        val idsl = ProjectRef(file(spinalSrcPath), "idslplugin")
+        Def.task {
+          val jar = (idsl / Compile / packageBin).value
+          Seq("-Xplugin-require:idsl-plugin", s"-Xplugin:${jar.getAbsolutePath}")
+        }
+      } else Def.task(Seq("-Xplugin-require:idsl-plugin"))
+    }.value,
+
+    fork := true
   )
-  //----------------------------------------------------------
-  // 4 ▪ Attach local SpinalHDL sub-projects when requested
-  //----------------------------------------------------------
-  .dependsOn(
-    (if (buildFromSrc)
-       Seq(
-         ProjectRef(file(spinalSrcPath), "core")       % "compile->compile",
-         ProjectRef(file(spinalSrcPath), "lib")        % "compile->compile",
-         ProjectRef(file(spinalSrcPath), "sim")        % "compile->compile",
-         ProjectRef(file(spinalSrcPath), "idslplugin") % "compile->compile"
-       )
-     else Seq.empty): _*
-  )
+  .dependsOn(extraProjects.map(_ % "compile->compile"): _*)
 
-//------------------------------------------------------------
-// 5 ▪ One-liner to emit Verilog
-//------------------------------------------------------------
+// --- 4 ▪ Aliases ---------------------------------------------------------
 addCommandAlias("coreVerilog", ";clean; runMain t800.TopVerilog")
