@@ -18,11 +18,11 @@ The core re-creates the original integer pipeline, floating-point unit, hardware
 | T800 compliance & Occam boot | ✈️ queued |
 | Timing/area optimisation | ✈️ queued |
 
-See **AGENTS.md** for ownership and workflow details.
+See **AGENTS.md** for contribution workflow details.
 
 ---
 
-## Ubuntu setup (tested on 20.04 / 22.04)
+## Ubuntu setup
 
 ```bash
 # Optional: green prompt so you can spot your dev container
@@ -34,16 +34,13 @@ echo 'export PS1="${GREEN}\u:\W${RESET} $ "' >> ~/.bashrc
 sudo add-apt-repository -y ppa:openjdk-r/ppa
 sudo apt-get update
 sudo apt-get install -y openjdk-8-jdk
-
-# Make JDK 8 the default
 sudo update-alternatives --set java  $(update-alternatives --list java  | grep java-8-openjdk)
 sudo update-alternatives --set javac $(update-alternatives --list javac | grep java-8-openjdk)
 
-# sbt & Verilator repos
+# sbt & tools
 echo "deb https://repo.scala-sbt.org/scalasbt/debian all main" | \
   sudo tee /etc/apt/sources.list.d/sbt.list
 curl -sL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x2EE0EA64E40A89B84B2DF73499E82A75642AC823" | sudo apt-key add -
-
 sudo apt-get update
 sudo apt-get install -y sbt verilator git make g++ flex bison autoconf \
                        pkg-config libtool shtool libusb-1.0-0-dev libyaml-dev \
@@ -55,31 +52,37 @@ sudo apt-get install -y sbt verilator git make g++ flex bison autoconf \
 ## Quick start
 
 ```bash
+# clone with the SpinalHDL sub-module
+git clone --recursive https://github.com/your-org/transputer-t800.git
+cd transputer-t800
+
 # build & run unit tests
 sbt test
 
 # generate synthesizable Verilog
-sbt "runMain T800CoreVerilog"
+sbt "runMain t800.T800CoreVerilog"
 
 # minimal behavioural sim (wave dumps to ./simWorkspace)
-sbt test:runMain T800CoreSim
+sbt test:runMain t800.T800CoreSim
 ```
 
-> **Prerequisites:** JDK 8, sbt 1.9+, SpinalHDL 1.9+, Verilator (optional), GTKWave for viewing waves.
+> **Optional:** export `SPINALHDL_FROM_SOURCE=0` to pull pre-built jars instead of the sub-module code.
 
 ---
 
 ## Repository layout
 
 ```
-├── src/                # Hardware source (single-file core for now)
-│   └── ims-t800-core.scala
-├── test/               # ScalaTest / SpinalSim benches
-├── doc/                # Architecture notes, opcode one-pagers, ADRs
-├── synthesis/          # FPGA scripts and timing reports
-├── .github/workflows/  # CI (lint, test, synth)
-├── README.md           # This file
-└── AGENTS.md           # Contributor guide
+transputer-t800/
+├── build.sbt
+├── SpinalHDL/            # ← Git sub-module (if building Spinal from source)
+├── src/
+│   ├── main/scala/t800/T800Core.scala
+│   └── test/scala/t800/T800CoreSim.scala
+├── doc/ …
+├── synthesis/ …
+├── README.md
+└── AGENTS.md
 ```
 
 ---
@@ -88,19 +91,6 @@ sbt test:runMain T800CoreSim
 
 1. Read **AGENTS.md** for branch naming, style and CI gates.
 2. Pick an open issue (or raise one) and assign yourself.
-3. Replace `// TODO` stubs with RTL; add/extend unit tests in `/test`.
-4. Run `sbt scalafmtCheckAll` and `sbt test`; make sure CI is green before merging.
-
-### Code-style snippet
-
-```scala
-// Register
-val Areg = Reg(UInt(32 bits)) init(0)
-// Wire
-val calc = UInt(32 bits)
-calc := Areg + 1    // last-assignment-wins rule
-```
-
-Use **SpinalHDL’s pipeline DSL** (`spinal.lib.misc.pipeline`) for new multi-stage blocks.
+3. Implement the RTL, add/extend tests, run `sbt test`, and keep CI green.
 
 ---
