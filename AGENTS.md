@@ -51,7 +51,7 @@ sbt "runMain t800.TopVerilog --variant=min"
 
 | Stage                   | Command                                                            |
 | ----------------------- | ------------------------------------------------------------------ |
-| Style                   | `sbt scalafmtCheckAll`                                             |
+| Style                   | `sbt scalafmtAll`                                                  |
 | Tests (full variant)    | `sbt test`                                                         |
 | Verilog (both variants) | `sbt "runMain t800.TopVerilog --variant=min"` and `--variant=full` |
 | Nightly timing          | see `.github/workflows/ci.yml`                                     |
@@ -81,7 +81,7 @@ Open **one** milestone per PR branch (`feat/m1-alu`, etc.).
 * Added `AluAddSpec`
 
 ### Validation
-- [x] scalafmt
+- [x] sbt scalafmtAll
 - [x] `sbt test` (full + min variants)
 
 Closes #42

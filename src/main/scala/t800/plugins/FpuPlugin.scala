@@ -17,7 +17,7 @@ class FpCmd(opBits: Int = 3) extends Bundle {
       case "FPSUB" => op := B"3'b001"
       case "FPMUL" => op := B"3'b010"
       case "FPDIV" => op := B"3'b011"
-      case _       => op := B"3'b111"
+      case _ => op := B"3'b111"
     }
     opa := a
     opb := b
