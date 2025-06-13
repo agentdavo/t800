@@ -10,18 +10,18 @@ class HelloWorldSpec extends AnyFunSuite {
   ignore("ROM program prints hello world") {
     SimConfig
       .compile {
-        PluginHost.on {
-          val host = new PluginHost
-          val plugins = Seq(
-            new StackPlugin,
-            new PipelinePlugin,
-            new MemoryPlugin,
-            new FetchPlugin,
-            new ExecutePlugin,
-            new ChannelPlugin,
-            new SchedulerPlugin,
-            new TimerPlugin
-          )
+        val host = new PluginHost
+        val plugins = Seq(
+          new StackPlugin,
+          new PipelinePlugin,
+          new MemoryPlugin,
+          new FetchPlugin,
+          new ExecutePlugin,
+          new ChannelPlugin,
+          new SchedulerPlugin,
+          new TimerPlugin
+        )
+        PluginHost(host).on {
           new T800(host, plugins)
         }
       }

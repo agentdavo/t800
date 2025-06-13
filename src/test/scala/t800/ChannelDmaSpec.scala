@@ -15,19 +15,19 @@ class ChannelDmaSpec extends AnyFunSuite {
 
     SimConfig
       .compile {
-        PluginHost.on {
-          val host = new PluginHost
-          val p = Seq(
-            new StackPlugin,
-            new PipelinePlugin,
-            new MemoryPlugin(base),
-            new FetchPlugin,
-            new ChannelPlugin,
-            new DummyTimerPlugin,
-            new DummyFpuPlugin,
-            new ExecutePlugin,
-            new SchedulerPlugin
-          )
+        val host = new PluginHost
+        val p = Seq(
+          new StackPlugin,
+          new PipelinePlugin,
+          new MemoryPlugin(base),
+          new FetchPlugin,
+          new ChannelPlugin,
+          new DummyTimerPlugin,
+          new DummyFpuPlugin,
+          new ExecutePlugin,
+          new SchedulerPlugin
+        )
+        PluginHost(host).on {
           new T800(host, p)
         }
       }

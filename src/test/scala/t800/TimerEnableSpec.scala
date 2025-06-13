@@ -31,9 +31,9 @@ class TimerEnableSpec extends AnyFunSuite {
   test("counters pause and resume") {
     SimConfig
       .compile {
-        PluginHost.on {
-          val host = new PluginHost
-          val plugins = Seq(new TimerPlugin, new TimerProbePlugin)
+        val host = new PluginHost
+        val plugins = Seq(new TimerPlugin, new TimerProbePlugin)
+        PluginHost(host).on {
           new T800(host, plugins)
         }
       }
