@@ -4,6 +4,7 @@ import spinal.core._
 import spinal.lib._
 import spinal.lib.misc.plugin.{FiberPlugin, Plugin, PluginHost}
 import spinal.core.fiber.Retainer
+import spinal.lib.misc.pipeline._
 import t800.{MemReadCmd, MemWriteCmd, TConsts, Global}
 import t800.plugins.{LinkBusSrv, LinkBusArbiterSrv}
 
@@ -50,7 +51,6 @@ class ChannelPlugin extends FiberPlugin {
     val arb = Plugin[LinkBusArbiterSrv]
 
     arb.chanRd.valid := False
-    arb.chanRd.payload.addr := U(0)
     arb.chanWr.valid := False
     arb.chanWr.payload.addr := U(0)
     arb.chanWr.payload.data := B(0, TConsts.WordBits bits)
@@ -64,42 +64,56 @@ class ChannelPlugin extends FiberPlugin {
       pins.out(i) << txArb
     }
 
-    cmdStream.ready := !busyVec.reduce(_ || _)
+    val CMD_ADDR = Payload(UInt(Global.ADDR_BITS bits))
+    val CMD_LEN = Payload(UInt(Global.ADDR_BITS bits))
+    val CMD_LINK = Payload(UInt(log2Up(Global.LINK_COUNT) bits))
+
+    val dmaCmd = CtrlLink()
+    val dmaDo = CtrlLink()
+    val dmaStage = StageLink(dmaCmd.down, dmaDo.up)
+    dmaCmd.up.driveFrom(cmdStream) { (n, p) =>
+      n(CMD_ADDR) := p.addr
+      n(CMD_LEN) := p.length
+      n(CMD_LINK) := p.link
+    }
+    dmaCmd.haltWhen(busyVec.reduce(_ || _))
+
     val ptr = Reg(UInt(Global.ADDR_BITS bits)) init 0
     val remaining = Reg(UInt(Global.ADDR_BITS bits)) init 0
     val linkIdx = Reg(UInt(log2Up(Global.LINK_COUNT) bits)) init 0
     val haveByte = Reg(Bool()) init False
     val byteReg = Reg(Bits(8 bits)) init 0
 
-    when(!busyVec.reduce(_ || _) && cmdStream.valid) {
-      ptr := cmdStream.payload.addr
-      remaining := cmdStream.payload.length
-      linkIdx := cmdStream.payload.link
+    when(dmaCmd.down.isFiring) {
+      ptr := dmaCmd(CMD_ADDR)
+      remaining := dmaCmd(CMD_LEN)
+      linkIdx := dmaCmd(CMD_LINK)
       busyVec.foreach(_ := False)
-      busyVec(cmdStream.payload.link) := True
+      busyVec(dmaCmd(CMD_LINK)) := True
     }
 
-    when(busyVec.reduce(_ || _)) {
-      when(!haveByte) {
-        arb.chanRd.valid := True
-        arb.chanRd.payload.addr := ptr
-        when(mem.rdRsp.valid) {
-          val shift = ptr(1 downto 0) * 8
-          byteReg := (mem.rdRsp.payload >> shift)(7 downto 0)
-          haveByte := True
-          ptr := ptr + 1
-          remaining := remaining - 1
-        }
-      } otherwise {
-        memTx(linkIdx).valid := True
-        memTx(linkIdx).payload := byteReg.resized
-        when(memTx(linkIdx).ready) {
-          haveByte := False
-          when(remaining === 0) {
-            busyVec(linkIdx) := False
-          }
-        }
+    arb.chanRd.valid := dmaDo.isValid && !haveByte
+    arb.chanRd.payload.addr := ptr
+    dmaDo.haltWhen(!haveByte && !mem.rdRsp.valid)
+    when(dmaDo.isValid && !haveByte && mem.rdRsp.valid) {
+      val shift = ptr(1 downto 0) * 8
+      byteReg := (mem.rdRsp.payload >> shift)(7 downto 0)
+      haveByte := True
+      ptr := ptr + 1
+      remaining := remaining - 1
+    }
+
+    memTx(linkIdx).valid := dmaDo.isValid && haveByte
+    memTx(linkIdx).payload := byteReg.resized
+    dmaDo.haltWhen(haveByte && !memTx(linkIdx).ready)
+    when(dmaDo.isValid && haveByte && memTx(linkIdx).ready) {
+      haveByte := False
+      when(remaining === 0) {
+        busyVec(linkIdx) := False
+        dmaDo.throwIt(usingReady = true)
       }
     }
+
+    Builder(dmaStage)
   }
 }
