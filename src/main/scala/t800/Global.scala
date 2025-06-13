@@ -12,15 +12,17 @@ object Global extends AreaObject {
   val ADDR_BITS = Database.blocking[Int]
   val PC_BITS = Database.blocking[Int]
   val INSTR_BITS = Database.blocking[Int]
+  val IPTR_BITS = Database.blocking[Int]
+  val OPCODE_BITS = Database.blocking[Int]
   val ROM_WORDS = Database.blocking[Int]
   val RAM_WORDS = Database.blocking[Int]
   val LINK_COUNT = Database.blocking[Int]
   val FPU_PRECISION = Database.blocking[Int]
   val SCHED_QUEUE_DEPTH = Database.blocking[Int]
-  val RESET_PC = Database.blocking[Long]
+  val RESET_IPTR = Database.blocking[Long]
 
-  def PC: Payload[UInt] = Payload(UInt(PC_BITS bits))
-  def INSTR: Payload[Bits] = Payload(Bits(INSTR_BITS bits))
+  def IPTR: Payload[UInt] = Payload(UInt(IPTR_BITS bits))
+  def OPCODE: Payload[Bits] = Payload(Bits(OPCODE_BITS bits))
   def MEM_ADDR: Payload[UInt] = Payload(UInt(ADDR_BITS bits))
   def MEM_DATA: Payload[Bits] = Payload(Bits(WORD_BITS bits))
 }

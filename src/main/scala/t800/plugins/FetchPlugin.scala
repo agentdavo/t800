@@ -18,8 +18,8 @@ class FetchPlugin extends FiberPlugin {
     imem.cmd.payload.addr := (addr >> 2).resized
     pipe.fetch.haltWhen(!imem.rsp.valid)
     when(pipe.fetch.down.isFiring) { stack.IPtr := stack.IPtr + 1 }
-    val shift = addr(1 downto 0) * U(Global.INSTR_BITS)
-    pipe.fetch(Global.PC) := addr
-    pipe.fetch(Global.INSTR) := (imem.rsp.payload >> shift)(Global.INSTR_BITS - 1 downto 0)
+    val shift = addr(1 downto 0) * U(Global.OPCODE_BITS)
+    pipe.fetch(Global.IPTR) := addr
+    pipe.fetch(Global.OPCODE) := (imem.rsp.payload >> shift)(Global.OPCODE_BITS - 1 downto 0)
   }
 }

@@ -21,7 +21,7 @@ class StackPlugin extends FiberPlugin {
     regC = Reg(UInt(Global.WORD_BITS bits)) init 0
     regO = Reg(UInt(Global.WORD_BITS bits)) init 0
     regWPtr = Reg(UInt(Global.ADDR_BITS bits)) init 0
-    regIPtr = Reg(UInt(Global.PC_BITS bits)) init U(Global.RESET_PC)
+    regIPtr = Reg(UInt(Global.IPTR_BITS bits)) init U(Global.RESET_IPTR)
     workspace = Mem(UInt(Global.WORD_BITS bits), Global.RAM_WORDS)
 
     addService(new StackSrv {

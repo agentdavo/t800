@@ -13,8 +13,8 @@ trait PipelineSrv {
   def execute: CtrlLink
   def memory: CtrlLink
   def writeBack: CtrlLink
-  def INSTR: Payload[Bits]
-  def PC: Payload[UInt]
+  def OPCODE: Payload[Bits]
+  def IPTR: Payload[UInt]
   def MEM_ADDR: Payload[UInt]
   def MEM_DATA: Payload[Bits]
 }
@@ -39,8 +39,8 @@ class PipelinePlugin extends FiberPlugin {
     Seq(fetchReg, decodeReg, executeReg, memoryReg, writeBackReg).foreach(_.down.isFiring)
     // Pre-create the global payloads across stages
     Seq(fetchReg, decodeReg, executeReg, memoryReg, writeBackReg).foreach { stage =>
-      stage(Global.INSTR)
-      stage(Global.PC)
+      stage(Global.OPCODE)
+      stage(Global.IPTR)
       stage(Global.MEM_ADDR)
       stage(Global.MEM_DATA)
     }
@@ -51,8 +51,8 @@ class PipelinePlugin extends FiberPlugin {
   def execute: CtrlLink = executeReg
   def memory: CtrlLink = memoryReg
   def writeBack: CtrlLink = writeBackReg
-  def INSTR: Payload[Bits] = Global.INSTR
-  def PC: Payload[UInt] = Global.PC
+  def OPCODE: Payload[Bits] = Global.OPCODE
+  def IPTR: Payload[UInt] = Global.IPTR
   def MEM_ADDR: Payload[UInt] = Global.MEM_ADDR
   def MEM_DATA: Payload[Bits] = Global.MEM_DATA
 
@@ -65,8 +65,8 @@ class PipelinePlugin extends FiberPlugin {
       override def execute = executeReg
       override def memory = memoryReg
       override def writeBack = writeBackReg
-      override def INSTR = Global.INSTR
-      override def PC = Global.PC
+      override def OPCODE = Global.OPCODE
+      override def IPTR = Global.IPTR
       override def MEM_ADDR = Global.MEM_ADDR
       override def MEM_DATA = Global.MEM_DATA
     })
