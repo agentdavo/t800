@@ -3,8 +3,8 @@ package t800.plugins
 import spinal.core._
 import spinal.lib._
 import spinal.lib.misc.pipeline._
-import t800.{Opcodes, TConsts}
-import t800.plugins.{ChannelSrv, DataBusSrv, SchedSrv, ChannelTxCmd, ChannelDmaSrv}
+import t800.{Opcodes, Global}
+import t800.plugins.{ChannelSrv, SchedSrv, ChannelTxCmd, LinkBusSrv, LinkBusArbiterSrv}
 import scala.util.Try
 
 /** Implements basic ALU instructions and connects to the global pipeline. */
@@ -16,17 +16,18 @@ class ExecutePlugin extends FiberPlugin {
   override def setup(): Unit = {
     errReg = Reg(Bool()) init (False)
     haltErr = Reg(Bool()) init (False)
-    hiFPtr = Reg(UInt(TConsts.WordBits bits)) init (0)
-    hiBPtr = Reg(UInt(TConsts.WordBits bits)) init (0)
-    loFPtr = Reg(UInt(TConsts.WordBits bits)) init (0)
-    loBPtr = Reg(UInt(TConsts.WordBits bits)) init (0)
+    hiFPtr = Reg(UInt(Global.WORD_BITS() bits)) init (0)
+    hiBPtr = Reg(UInt(Global.WORD_BITS() bits)) init (0)
+    loFPtr = Reg(UInt(Global.WORD_BITS() bits)) init (0)
+    loBPtr = Reg(UInt(Global.WORD_BITS() bits)) init (0)
   }
 
   override def build(): Unit = {
     implicit val h: PluginHost = host
     val stack = Plugin[StackSrv]
     val pipe = Plugin[PipelineSrv]
-    val mem = Plugin[DataBusSrv]
+    val mem = Plugin[LinkBusSrv]
+    val arb = Plugin[LinkBusArbiterSrv]
     val timer = Plugin[TimerSrv]
     val fpu = Plugin[FpuSrv]
     val linksOpt = Try(Plugin[ChannelSrv]).toOption
@@ -35,7 +36,7 @@ class ExecutePlugin extends FiberPlugin {
       override def txReady(link: UInt): Bool = False
       override def push(link: UInt, data: Bits): Bool = False
       override def rxValid(link: UInt): Bool = False
-      override def rxPayload(link: UInt): Bits = B(0, TConsts.WordBits bits)
+      override def rxPayload(link: UInt): Bits = B(0, Global.WORD_BITS() bits)
       override def rxAck(link: UInt): Unit = {}
     }
     val links = linksOpt.getOrElse(dummy)
@@ -48,11 +49,11 @@ class ExecutePlugin extends FiberPlugin {
     val accumulated = stack.O | nibble.resized
     val primary = inst(7 downto 4)
 
-    mem.rdCmd.valid := False
-    mem.rdCmd.payload.addr := U(0)
-    mem.wrCmd.valid := False
-    mem.wrCmd.payload.addr := U(0)
-    mem.wrCmd.payload.data := B(0, TConsts.WordBits bits)
+    arb.exeRd.valid := False
+    arb.exeRd.payload.addr := U(0)
+    arb.exeWr.valid := False
+    arb.exeWr.payload.addr := U(0)
+    arb.exeWr.payload.data := B(0, Global.WORD_BITS() bits)
     sched.newProc.valid := False
     sched.newProc.payload.ptr := U(0)
     sched.newProc.payload.high := False
@@ -219,13 +220,13 @@ class ExecutePlugin extends FiberPlugin {
           }
           is(Opcodes.Secondary.LB) {
             val addr = stack.A
-            mem.rdCmd.valid := True
-            mem.rdCmd.payload.addr := (addr >> 2).resized
+            arb.exeRd.valid := True
+            arb.exeRd.payload.addr := (addr >> 2).resized
             pipe.execute.haltWhen(!mem.rdRsp.valid)
             when(pipe.execute.down.isFiring) {
               val shift = addr(1 downto 0) * 8
               val byte = (mem.rdRsp.payload >> shift).resize(8)
-              stack.A := byte.asUInt.resize(TConsts.WordBits)
+              stack.A := byte.asUInt.resize(Global.WORD_BITS())
             }
           }
           is(Opcodes.Secondary.OUTBYTE) {
@@ -351,8 +352,8 @@ class ExecutePlugin extends FiberPlugin {
       }
       is(Opcodes.Primary.LDNL) {
         val addr = stack.A + accumulated
-        mem.rdCmd.valid := True
-        mem.rdCmd.payload.addr := addr.resized
+        arb.exeRd.valid := True
+        arb.exeRd.payload.addr := addr.resized
         pipe.execute.haltWhen(!mem.rdRsp.valid)
         when(pipe.execute.down.isFiring) {
           stack.A := mem.rdRsp.payload.asUInt
@@ -361,9 +362,9 @@ class ExecutePlugin extends FiberPlugin {
       }
       is(Opcodes.Primary.STNL) {
         val addr = stack.A + accumulated
-        mem.wrCmd.valid := True
-        mem.wrCmd.payload.addr := addr.resized
-        mem.wrCmd.payload.data := stack.B.asBits
+        arb.exeWr.valid := True
+        arb.exeWr.payload.addr := addr.resized
+        arb.exeWr.payload.data := stack.B.asBits
         when(pipe.execute.down.isFiring) {
           stack.A := stack.C
           stack.O := 0

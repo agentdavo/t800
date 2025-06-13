@@ -16,7 +16,10 @@ class FpuDut extends Component {
   }
   val host = new PluginHost
   val plugin = new FpuPlugin
-  host.asHostOf(Seq(plugin))
+  val db = T800.defaultDatabase()
+  Database(db).on {
+    host.asHostOf(Seq(plugin))
+  }
   val srv = host.service[FpuSrv]
   srv.pipe.valid := io.cmdValid
   srv.pipe.payload.op := io.op

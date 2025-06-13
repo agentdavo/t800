@@ -3,7 +3,7 @@ package t800.plugins
 import spinal.core._
 import spinal.lib._
 import spinal.core.sim._
-import t800.TConsts
+import t800.Global
 
 /** Simple high/low priority timers. High increments every cycle; low every 64 cycles. */
 class TimerPlugin extends FiberPlugin {
@@ -16,11 +16,11 @@ class TimerPlugin extends FiberPlugin {
   private var loEn: Bool = null
 
   override def setup(): Unit = {
-    hiTimer = Reg(UInt(TConsts.WordBits bits)) init (0)
-    loTimer = Reg(UInt(TConsts.WordBits bits)) init (0)
+    hiTimer = Reg(UInt(Global.WORD_BITS() bits)) init (0)
+    loTimer = Reg(UInt(Global.WORD_BITS() bits)) init (0)
     loCnt = Reg(UInt(6 bits)) init (0)
     loadReq = Reg(Bool()) init (False)
-    loadVal = Reg(UInt(TConsts.WordBits bits)) init (0)
+    loadVal = Reg(UInt(Global.WORD_BITS() bits)) init (0)
     hiEn = Reg(Bool()) init (True)
     loEn = Reg(Bool()) init (True)
     hiTimer.simPublic()
