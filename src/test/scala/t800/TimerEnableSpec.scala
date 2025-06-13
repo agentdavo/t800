@@ -4,14 +4,17 @@ import spinal.core._
 import spinal.core.sim._
 import org.scalatest.funsuite.AnyFunSuite
 import t800.plugins._
+import t800.Global
+
+trait TimerProbeSrv { def hi: UInt; def lo: UInt }
 
 class TimerProbePlugin extends FiberPlugin {
   var hiOut: UInt = null
   var loOut: UInt = null
 
   override def setup(): Unit = {
-    hiOut = out UInt (TConsts.WordBits bits)
-    loOut = out UInt (TConsts.WordBits bits)
+    hiOut = out UInt (Global.WORD_BITS() bits)
+    loOut = out UInt (Global.WORD_BITS() bits)
   }
 
   override def build(): Unit = {
@@ -19,6 +22,7 @@ class TimerProbePlugin extends FiberPlugin {
     val timer = Plugin[TimerSrv]
     hiOut := timer.hi
     loOut := timer.lo
+    addService(new TimerProbeSrv { def hi = hiOut; def lo = loOut })
   }
 }
 

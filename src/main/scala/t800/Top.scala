@@ -18,6 +18,7 @@ object TopVerilog {
       new TimerPlugin
     )
 
-    SpinalVerilog(new T800(plugins))
+    val db = T800.defaultDatabase()
+    SpinalVerilog(new T800(plugins, db))
   }
 }

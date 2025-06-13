@@ -2,7 +2,7 @@ package t800.plugins
 
 import spinal.core._
 import spinal.lib._
-import t800.TConsts
+import t800.Global
 
 /** Provides transputer link interfaces with simple FIFO synchronizers. */
 class ChannelPlugin extends FiberPlugin {
@@ -14,14 +14,14 @@ class ChannelPlugin extends FiberPlugin {
   private var memTx: Vec[Stream[Bits]] = null
 
   override def setup(): Unit = {
-    pins = ChannelPins(TConsts.LinkCount)
-    rxVec = Vec.fill(TConsts.LinkCount)(Stream(Bits(TConsts.WordBits bits)))
-    txVec = Vec.fill(TConsts.LinkCount)(Stream(Bits(TConsts.WordBits bits)))
+    pins = ChannelPins(Global.LINK_COUNT())
+    rxVec = Vec.fill(Global.LINK_COUNT())(Stream(Bits(Global.WORD_BITS() bits)))
+    txVec = Vec.fill(Global.LINK_COUNT())(Stream(Bits(Global.WORD_BITS() bits)))
     rxVec.foreach(_.setIdle())
     txVec.foreach(_.setIdle())
     rxVec.foreach(_.ready := False)
     cmdStream = Stream(ChannelTxCmd()).setIdle()
-    busyVec = Vec.fill(TConsts.LinkCount)(Reg(Bool()) init False)
+    busyVec = Vec.fill(Global.LINK_COUNT())(Reg(Bool()) init False)
     addService(new ChannelSrv {
       override def txReady(link: UInt): Bool = txVec(link).ready
       override def push(link: UInt, data: Bits): Bool = {
@@ -40,19 +40,19 @@ class ChannelPlugin extends FiberPlugin {
     implicit val h: PluginHost = host
     val mem = Plugin[LinkBusSrv]
 
-    memTx = Vec.fill(TConsts.LinkCount)(Stream(Bits(TConsts.WordBits bits)))
+    memTx = Vec.fill(Global.LINK_COUNT())(Stream(Bits(Global.WORD_BITS() bits)))
     memTx.foreach(_.setIdle())
 
-    for (i <- 0 until TConsts.LinkCount) {
+    for (i <- 0 until Global.LINK_COUNT()) {
       rxVec(i) << pins.in(i)
       val arb = StreamArbiterFactory.lowerFirst.onArgs(txVec(i), memTx(i))
       pins.out(i) << arb
     }
 
     cmdStream.ready := !busyVec.reduce(_ || _)
-    val ptr = Reg(UInt(TConsts.AddrBits bits)) init 0
-    val remaining = Reg(UInt(TConsts.AddrBits bits)) init 0
-    val linkIdx = Reg(UInt(log2Up(TConsts.LinkCount) bits)) init 0
+    val ptr = Reg(UInt(Global.ADDR_BITS() bits)) init 0
+    val remaining = Reg(UInt(Global.ADDR_BITS() bits)) init 0
+    val linkIdx = Reg(UInt(log2Up(Global.LINK_COUNT()) bits)) init 0
     val haveByte = Reg(Bool()) init False
     val byteReg = Reg(Bits(8 bits)) init 0
 

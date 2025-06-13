@@ -3,7 +3,6 @@ package t800.plugins
 import spinal.core._
 import spinal.lib._
 import t800.plugins._
-import t800.TConsts
 
 class DecodeExecutePlugin extends FiberPlugin {
   val ctrl = Flow(UInt(8 bits))
