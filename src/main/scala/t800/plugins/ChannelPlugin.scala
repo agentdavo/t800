@@ -34,6 +34,7 @@ class ChannelPlugin extends FiberPlugin {
       override def rxAck(link: UInt): Unit = { rxVec(link).ready := True }
     })
     addService(new ChannelPinsSrv { def pins = ChannelPlugin.this.pins })
+    addService(new ChannelDmaSrv { def cmd = ChannelPlugin.this.cmdStream })
   }
 
   override def build(): Unit = {
