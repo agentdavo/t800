@@ -3,8 +3,8 @@ package t800.plugins
 import spinal.core._
 import spinal.lib._
 import spinal.lib.misc.pipeline._
-import t800.{Opcodes, TConsts}
-import t800.plugins.{ChannelSrv, DataBusSrv, SchedSrv, ChannelTxCmd}
+import t800.{Opcodes, Global}
+import t800.plugins.{ChannelSrv, DataBusSrv, SchedSrv, ChannelTxCmd, ChannelDmaSrv}
 import scala.util.Try
 
 /** Implements basic ALU instructions and connects to the global pipeline. */
@@ -16,10 +16,10 @@ class ExecutePlugin extends FiberPlugin {
   override def setup(): Unit = {
     errReg = Reg(Bool()) init (False)
     haltErr = Reg(Bool()) init (False)
-    hiFPtr = Reg(UInt(TConsts.WordBits bits)) init (0)
-    hiBPtr = Reg(UInt(TConsts.WordBits bits)) init (0)
-    loFPtr = Reg(UInt(TConsts.WordBits bits)) init (0)
-    loBPtr = Reg(UInt(TConsts.WordBits bits)) init (0)
+    hiFPtr = Reg(UInt(Global.WORD_BITS() bits)) init (0)
+    hiBPtr = Reg(UInt(Global.WORD_BITS() bits)) init (0)
+    loFPtr = Reg(UInt(Global.WORD_BITS() bits)) init (0)
+    loBPtr = Reg(UInt(Global.WORD_BITS() bits)) init (0)
   }
 
   override def build(): Unit = {
@@ -30,14 +30,17 @@ class ExecutePlugin extends FiberPlugin {
     val timer = Plugin[TimerSrv]
     val fpu = Plugin[FpuSrv]
     val linksOpt = Try(Plugin[ChannelSrv]).toOption
+    val dmaOpt = Try(Plugin[ChannelDmaSrv]).toOption
     val dummy = new ChannelSrv {
       override def txReady(link: UInt): Bool = False
       override def push(link: UInt, data: Bits): Bool = False
       override def rxValid(link: UInt): Bool = False
-      override def rxPayload(link: UInt): Bits = B(0, TConsts.WordBits bits)
+      override def rxPayload(link: UInt): Bits = B(0, Global.WORD_BITS() bits)
       override def rxAck(link: UInt): Unit = {}
     }
     val links = linksOpt.getOrElse(dummy)
+    val dummyDma = new ChannelDmaSrv { def cmd = Stream(ChannelTxCmd()).setIdle() }
+    val dma = dmaOpt.getOrElse(dummyDma)
     val sched = Plugin[SchedSrv]
 
     val inst = pipe.execute(pipe.INSTR)
@@ -49,10 +52,11 @@ class ExecutePlugin extends FiberPlugin {
     mem.rdCmd.payload.addr := U(0)
     mem.wrCmd.valid := False
     mem.wrCmd.payload.addr := U(0)
-    mem.wrCmd.payload.data := B(0, TConsts.WordBits bits)
+    mem.wrCmd.payload.data := B(0, Global.WORD_BITS() bits)
     sched.newProc.valid := False
     sched.newProc.payload.ptr := U(0)
     sched.newProc.payload.high := False
+    dma.cmd.valid := False
 
     switch(primary) {
       is(Opcodes.Primary.PFIX) {
@@ -221,7 +225,7 @@ class ExecutePlugin extends FiberPlugin {
             when(pipe.execute.down.isFiring) {
               val shift = addr(1 downto 0) * 8
               val byte = (mem.rdRsp.payload >> shift).resize(8)
-              stack.A := byte.asUInt.resize(TConsts.WordBits)
+              stack.A := byte.asUInt.resize(Global.WORD_BITS())
             }
           }
           is(Opcodes.Secondary.OUTBYTE) {
@@ -237,6 +241,18 @@ class ExecutePlugin extends FiberPlugin {
             val idx = stack.B(1 downto 0)
             val ready = links.push(idx, stack.A.asBits)
             pipe.execute.haltWhen(!ready)
+            when(pipe.execute.down.isFiring) {
+              stack.A := stack.B
+              stack.B := stack.C
+            }
+          }
+          is(Opcodes.Secondary.MOVE) {
+            val dma = Plugin[ChannelDmaSrv]
+            dma.cmd.valid := True
+            dma.cmd.payload.link := stack.B(1 downto 0)
+            dma.cmd.payload.addr := stack.C
+            dma.cmd.payload.length := stack.A
+            pipe.execute.haltWhen(!dma.cmd.ready)
             when(pipe.execute.down.isFiring) {
               stack.A := stack.B
               stack.B := stack.C

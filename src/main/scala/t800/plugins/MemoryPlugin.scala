@@ -3,7 +3,7 @@ package t800.plugins
 import spinal.core._
 import spinal.lib._
 import spinal.core.sim._
-import t800.{MemReadCmd, MemWriteCmd, TConsts}
+import t800.{MemReadCmd, MemWriteCmd, TConsts, Global}
 
 /** Simple on-chip memory for instructions. */
 class MemoryPlugin(romInit: Seq[BigInt] = Seq.fill(TConsts.RomWords)(BigInt(0)))
@@ -20,18 +20,18 @@ class MemoryPlugin(romInit: Seq[BigInt] = Seq.fill(TConsts.RomWords)(BigInt(0)))
   private var linkWrCmdReg: Flow[MemWriteCmd] = null
 
   override def setup(): Unit = {
-    rom = Mem(Bits(TConsts.WordBits bits), TConsts.RomWords)
+    rom = Mem(Bits(Global.WORD_BITS() bits), Global.ROM_WORDS())
     rom.initBigInt(romInit)
-    ram = Mem(Bits(TConsts.WordBits bits), TConsts.RamWords)
+    ram = Mem(Bits(Global.WORD_BITS() bits), Global.RAM_WORDS())
     rom.simPublic()
     ram.simPublic()
     instrCmdReg = Flow(MemReadCmd()).setIdle()
-    instrRspReg = Flow(Bits(TConsts.WordBits bits)).setIdle()
+    instrRspReg = Flow(Bits(Global.WORD_BITS() bits)).setIdle()
     dataRdCmdReg = Flow(MemReadCmd()).setIdle()
-    dataRdRspReg = Flow(Bits(TConsts.WordBits bits)).setIdle()
+    dataRdRspReg = Flow(Bits(Global.WORD_BITS() bits)).setIdle()
     dataWrCmdReg = Flow(MemWriteCmd()).setIdle()
     linkRdCmdReg = Flow(MemReadCmd()).setIdle()
-    linkRdRspReg = Flow(Bits(TConsts.WordBits bits)).setIdle()
+    linkRdRspReg = Flow(Bits(Global.WORD_BITS() bits)).setIdle()
     linkWrCmdReg = Flow(MemWriteCmd()).setIdle()
     addService(new InstrBusSrv {
       override def cmd = instrCmdReg
@@ -55,26 +55,26 @@ class MemoryPlugin(romInit: Seq[BigInt] = Seq.fill(TConsts.RomWords)(BigInt(0)))
 
   override def build(): Unit = {
     instrRspReg.payload := rom.readSync(
-      instrCmdReg.payload.addr(log2Up(TConsts.RomWords) - 1 downto 0)
+      instrCmdReg.payload.addr(log2Up(Global.ROM_WORDS()) - 1 downto 0)
     )
     instrRspReg.valid := instrCmdReg.valid
     dataRdRspReg.payload := ram.readSync(
-      dataRdCmdReg.payload.addr(log2Up(TConsts.RamWords) - 1 downto 0)
+      dataRdCmdReg.payload.addr(log2Up(Global.RAM_WORDS()) - 1 downto 0)
     )
     dataRdRspReg.valid := dataRdCmdReg.valid
     linkRdRspReg.payload := ram.readSync(
-      linkRdCmdReg.payload.addr(log2Up(TConsts.RamWords) - 1 downto 0)
+      linkRdCmdReg.payload.addr(log2Up(Global.RAM_WORDS()) - 1 downto 0)
     )
     linkRdRspReg.valid := linkRdCmdReg.valid
     when(dataWrCmdReg.valid) {
       ram.write(
-        dataWrCmdReg.payload.addr(log2Up(TConsts.RamWords) - 1 downto 0),
+        dataWrCmdReg.payload.addr(log2Up(Global.RAM_WORDS()) - 1 downto 0),
         dataWrCmdReg.payload.data
       )
     }
     when(linkWrCmdReg.valid) {
       ram.write(
-        linkWrCmdReg.payload.addr(log2Up(TConsts.RamWords) - 1 downto 0),
+        linkWrCmdReg.payload.addr(log2Up(Global.RAM_WORDS()) - 1 downto 0),
         linkWrCmdReg.payload.data
       )
     }
