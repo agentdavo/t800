@@ -2,6 +2,8 @@ package t800.plugins
 
 import spinal.core._
 import spinal.lib._
+import spinal.lib.misc.plugin.FiberPlugin
+import spinal.core.fiber.Retainer
 import t800.Global
 
 /** Minimal round-robin scheduler with high/low priority queues. */
@@ -15,7 +17,9 @@ class SchedulerPlugin extends FiberPlugin {
   private var loQ: Vec[UInt] = null
   private var loHead, loTail: UInt = null
 
-  override def setup(): Unit = {
+  private val retain = Retainer()
+
+  during setup new Area {
     cmdReg = Flow(SchedCmd())
 
     hiQ = Vec.fill(Global.LINK_COUNT)(Reg(UInt(Global.ADDR_BITS bits)) init 0)
@@ -31,9 +35,11 @@ class SchedulerPlugin extends FiberPlugin {
       override def newProc: Flow[SchedCmd] = cmdReg
       override def nextProc: UInt = nextReg
     })
+    retain()
   }
 
-  override def build(): Unit = {
+  during build new Area {
+    retain.await()
     when(cmdReg.valid) {
       when(cmdReg.payload.high) {
         hiQ(hiTail) := cmdReg.payload.ptr

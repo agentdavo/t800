@@ -4,7 +4,8 @@ import spinal.core._
 import spinal.lib._
 
 import spinal.lib.misc.pipeline._
-import t800.plugins._
+import spinal.lib.misc.plugin.FiberPlugin
+import spinal.core.fiber.Retainer
 import t800.Global
 
 class FpCmd(opBits: Int = 3) extends Bundle {
@@ -28,17 +29,20 @@ class FpCmd(opBits: Int = 3) extends Bundle {
 class FpuPlugin extends FiberPlugin {
   private var pipeReg: Flow[FpCmd] = null
   private var rspReg: Flow[UInt] = null
+  private val retain = Retainer()
 
-  override def setup(): Unit = {
+  during setup new Area {
     pipeReg = Flow(new FpCmd)
     rspReg = Flow(UInt(Global.WORD_BITS bits))
     addService(new FpuSrv {
       override def pipe = pipeReg
       override def rsp = rspReg
     })
+    retain()
   }
 
-  override def build(): Unit = {
+  during build new Area {
+    retain.await()
     val pip = new StagePipeline
     val n0 = pip.node(0)
     val n1 = pip.node(1)

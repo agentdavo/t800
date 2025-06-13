@@ -2,6 +2,7 @@ package t800
 
 import spinal.core._
 import spinal.lib.misc.database.Database
+import spinal.lib.misc.plugin.{PluginHost, FiberPlugin}
 import t800.plugins._
 
 object T800 {
@@ -19,16 +20,20 @@ object T800 {
   }
 }
 
-class T800(plugins: Seq[FiberPlugin], database: Database = T800.defaultDatabase())
-    extends Component {
-  val host = new PluginHost
+class T800(
+  val host: PluginHost,
+  plugins: Seq[FiberPlugin],
+  database: Database = T800.defaultDatabase()
+) extends Component {
   Database(database).on {
     host.asHostOf(plugins)
+    plugins.foreach(_.awaitBuild())
   }
 }
 
 class T800Core
     extends T800(
+      new PluginHost,
       Seq(
         new StackPlugin,
         new PipelinePlugin,

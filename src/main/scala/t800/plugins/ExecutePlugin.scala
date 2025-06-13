@@ -3,6 +3,8 @@ package t800.plugins
 import spinal.core._
 import spinal.lib._
 import spinal.lib.misc.pipeline._
+import spinal.lib.misc.plugin.{FiberPlugin, Plugin, PluginHost}
+import spinal.core.fiber.{Retainer, Lock}
 import t800.{Opcodes, Global}
 import t800.plugins.{ChannelSrv, SchedSrv, ChannelTxCmd, LinkBusSrv, LinkBusArbiterSrv}
 import scala.util.Try
@@ -12,17 +14,20 @@ class ExecutePlugin extends FiberPlugin {
   private var errReg: Bool = null
   private var haltErr: Bool = null
   private var hiFPtr, hiBPtr, loFPtr, loBPtr: UInt = null
+  private val retain = Retainer()
 
-  override def setup(): Unit = {
+  during setup new Area {
     errReg = Reg(Bool()) init (False)
     haltErr = Reg(Bool()) init (False)
     hiFPtr = Reg(UInt(Global.WORD_BITS bits)) init (0)
     hiBPtr = Reg(UInt(Global.WORD_BITS bits)) init (0)
     loFPtr = Reg(UInt(Global.WORD_BITS bits)) init (0)
     loBPtr = Reg(UInt(Global.WORD_BITS bits)) init (0)
+    retain()
   }
 
-  override def build(): Unit = {
+  during build new Area {
+    retain.await()
     implicit val h: PluginHost = host
     val stack = Plugin[StackSrv]
     val pipe = Plugin[PipelineSrv]

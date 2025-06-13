@@ -2,6 +2,8 @@ package t800.plugins
 
 import spinal.core._
 import spinal.lib.misc.pipeline._
+import spinal.lib.misc.plugin.FiberPlugin
+import spinal.core.fiber.Retainer
 
 /** Defines the global CPU pipeline structure and exposes stage handles. */
 trait PipelineSrv {
@@ -21,8 +23,9 @@ class PipelinePlugin extends FiberPlugin {
   private var memoryReg: CtrlLink = null
   private var writeBackReg: CtrlLink = null
   private var instrPayload: Payload[Bits] = null
+  private val retain = Retainer()
 
-  override def setup(): Unit = {
+  during setup new Area {
     pipeline = new StageCtrlPipeline()
     fetchReg = pipeline.ctrl(0)
     decodeReg = pipeline.ctrl(1)
@@ -34,6 +37,7 @@ class PipelinePlugin extends FiberPlugin {
     Seq(fetchReg, decodeReg, executeReg, memoryReg, writeBackReg).foreach(_.down.isFiring)
     // Pre-create the instruction payload across stages
     Seq(fetchReg, decodeReg, executeReg, memoryReg, writeBackReg).foreach(_(instrPayload))
+    retain()
   }
   def fetch: CtrlLink = fetchReg
   def decode: CtrlLink = decodeReg
@@ -42,7 +46,8 @@ class PipelinePlugin extends FiberPlugin {
   def writeBack: CtrlLink = writeBackReg
   def INSTR: Payload[Bits] = instrPayload
 
-  override def build(): Unit = {
+  during build new Area {
+    retain.await()
     pipeline.build()
     addService(new PipelineSrv {
       override def fetch = fetchReg

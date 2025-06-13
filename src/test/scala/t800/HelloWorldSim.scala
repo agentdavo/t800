@@ -3,6 +3,7 @@ package t800
 import spinal.core._
 import spinal.core.sim._
 import t800.plugins._
+import spinal.lib.misc.plugin.PluginHost
 
 object HelloWorldSim {
 
@@ -11,32 +12,38 @@ object HelloWorldSim {
       0x24f42540L, 0x4526fe48L, 0xfe4c26feL, 0x26fe4c26L, 0x4022fe4fL, 0xfe4727feL, 0x27fe4f26L,
       0x4c26fe42L, 0xfe4426feL, 0xfe4aL, 0L, 0L, 0L, 0L, 0L, 0L
     ).map(BigInt(_))
-    val plugins = Seq(
-      new StackPlugin,
-      new PipelinePlugin,
-      new MemoryPlugin(romInit),
-      new FetchPlugin,
-      new ExecutePlugin,
-      new ChannelPlugin,
-      new SchedulerPlugin,
-      new TimerPlugin
-    )
-
-    SimConfig.withWave.compile(new T800(plugins)).doSim { dut =>
-      dut.clockDomain.forkStimulus(10)
-      val chanSrv = dut.host.service[ChannelPinsSrv].pins
-      chanSrv.out.foreach(_.ready #= true)
-      var out = List[Int]()
-      dut.clockDomain.onSamplings {
-        if (chanSrv.out(0).valid.toBoolean) {
-          out ::= chanSrv.out(0).payload.toInt & 0xff
+    SimConfig.withWave
+      .compile {
+        PluginHost.on {
+          val host = new PluginHost
+          val p = Seq(
+            new StackPlugin,
+            new PipelinePlugin,
+            new MemoryPlugin(romInit),
+            new FetchPlugin,
+            new ExecutePlugin,
+            new ChannelPlugin,
+            new SchedulerPlugin,
+            new TimerPlugin
+          )
+          new T800(host, p)
         }
       }
-      dut.clockDomain.waitSampling(200)
-      val msg = out.reverse.map(_.toChar).mkString
-      println("BYTES=" + out.reverse.map(b => f"$b%02x").mkString(" "))
-      println("OUT=" + msg)
-      assert(msg == "hello world\n")
-    }
+      .doSim { dut =>
+        dut.clockDomain.forkStimulus(10)
+        val chanSrv = dut.host[ChannelPinsSrv].pins
+        chanSrv.out.foreach(_.ready #= true)
+        var out = List[Int]()
+        dut.clockDomain.onSamplings {
+          if (chanSrv.out(0).valid.toBoolean) {
+            out ::= chanSrv.out(0).payload.toInt & 0xff
+          }
+        }
+        dut.clockDomain.waitSampling(200)
+        val msg = out.reverse.map(_.toChar).mkString
+        println("BYTES=" + out.reverse.map(b => f"$b%02x").mkString(" "))
+        println("OUT=" + msg)
+        assert(msg == "hello world\n")
+      }
   }
 }
