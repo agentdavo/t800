@@ -187,3 +187,9 @@ checks with clock boundaries. See **AGENTS.md §12** for common runtime errors.
 
 See `doc/hello_world.md` for a quick overview, and `doc/helloworld.md` for the full source listing.
 `HelloWorldSpec` is currently marked with `ignore` until the channel hardware is complete.
+
+---
+
+## License
+
+This project is released under the [MIT License](LICENSE).
