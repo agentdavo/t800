@@ -19,4 +19,13 @@ stream ID and length, followed by the string bytes.
 
 The code makes use of several of the newly implemented operations such
 as `ldpi`, `outbyte`, `outword`, `lb`, `dup` and `pop`.
-\nFor the complete source listing see `helloworld.md`.
+
+The companion unit test `HelloWorldSpec` loads the bytes into the ROM
+via `MemAccessSrv` and checks that link 0 outputs "hello world\n".
+This confirms that the fetch and channel subsystems function together
+to run small programs from ROM.
+
+See `link_architecture.md` for details on how the channel services and
+future VCP will interact with memory.
+
+For the complete source listing see `helloworld.md`.

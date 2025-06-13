@@ -33,11 +33,6 @@ class MemoryPlugin(romInit: Seq[BigInt] = Seq.fill(TConsts.RomWords)(BigInt(0)))
     linkRdCmdReg = Flow(MemReadCmd())
     linkRdRspReg = Flow(Bits(TConsts.WordBits bits))
     linkWrCmdReg = Flow(MemWriteCmd())
-    linkRdCmdReg.valid := False
-    linkRdCmdReg.payload.addr := U(0)
-    linkWrCmdReg.valid := False
-    linkWrCmdReg.payload.addr := U(0)
-    linkWrCmdReg.payload.data := B(0, TConsts.WordBits bits)
     addService(new InstrBusSrv {
       override def cmd = instrCmdReg
       override def rsp = instrRspReg

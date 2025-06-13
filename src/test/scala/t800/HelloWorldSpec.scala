@@ -6,33 +6,43 @@ import org.scalatest.funsuite.AnyFunSuite
 import t800.plugins._
 
 class HelloWorldSpec extends AnyFunSuite {
-  ignore("ROM program prints hello world") {
-    val romInit = Seq(
-      0x24f42540L, 0x4526fe48L, 0xfe4c26feL, 0x26fe4c26L, 0x4022fe4fL, 0xfe4727feL, 0x27fe4f26L,
-      0x4c26fe42L, 0xfe4426feL, 0xfe4aL, 0L, 0L, 0L, 0L, 0L, 0L
-    ).map(BigInt(_))
+  test("ROM program prints hello world") {
     val plugins = Seq(
       new StackPlugin,
       new PipelinePlugin,
-      new MemoryPlugin(romInit),
+      new MemoryPlugin,
       new FetchPlugin,
       new ExecutePlugin,
       new ChannelPlugin,
       new SchedulerPlugin,
       new TimerPlugin
     )
-    SimConfig.withWave.compile(new T800(plugins)).doSim { dut =>
+    SimConfig.compile(new T800(plugins)).doSim { dut =>
       dut.clockDomain.forkStimulus(10)
-      val pins = dut.host.service[ChannelPinsSrv].pins
-      pins.out.foreach(_.ready #= true)
+      val memSrv = dut.host.service[MemAccessSrv]
+      val chan = dut.host.service[ChannelPinsSrv].pins
+      val prog = Seq(
+        0x40, 0x25, 0xf4, 0x24, 0x48, 0xfe, 0x26, 0x45, 0xfe, 0x26, 0x4c, 0xfe, 0x26, 0x4c, 0xfe,
+        0x26, 0x4f, 0xfe, 0x22, 0x40, 0xfe, 0x27, 0x47, 0xfe, 0x26, 0x4f, 0xfe, 0x27, 0x42, 0xfe,
+        0x26, 0x4c, 0xfe, 0x26, 0x44, 0xfe, 0x4a, 0xfe, 0x00
+      )
+      // load program into ROM
+      val rom = memSrv.rom
+      for ((b, idx) <- prog.zipWithIndex) {
+        val addr = idx / 4
+        val shift = (idx % 4) * 8
+        val old = if (addr < rom.wordCount) rom.getBigInt(addr).toLong else 0L
+        val value = (old | (b & 0xffL) << shift) & 0xffffffffL
+        rom.setBigInt(addr, BigInt(value))
+      }
+      chan.out.foreach(_.ready #= true)
       var out = List[Int]()
       dut.clockDomain.onSamplings {
-        if (pins.out(0).valid.toBoolean)
-          out ::= (pins.out(0).payload.toInt & 0xff)
+        if (chan.out(0).valid.toBoolean)
+          out ::= (chan.out(0).payload.toInt & 0xff)
       }
-      dut.clockDomain.waitSampling(1000)
+      dut.clockDomain.waitSampling(200)
       val msg = out.reverse.map(_.toChar).mkString
-      println("OUT=" + msg)
       assert(msg == "hello world\n")
     }
   }

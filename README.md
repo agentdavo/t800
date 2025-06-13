@@ -186,4 +186,6 @@ Spawn helper threads with `fork { ... }` and block on events using `sleep(n)` or
 checks with clock boundaries. See **AGENTS.md §12** for common runtime errors.
 
 See `doc/hello_world.md` for a quick overview, and `doc/helloworld.md` for the full source listing.
+An overview of the link services and the upcoming VCP design lives in
+`doc/link_architecture.md`.
 `HelloWorldSpec` is currently marked with `ignore` until the channel hardware is complete.

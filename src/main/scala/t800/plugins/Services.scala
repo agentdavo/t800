@@ -38,7 +38,7 @@ trait TimerSrv {
   def lo: UInt
 
   /** Request to set the timers to a new value. */
-  def set: Flow[UInt]
+  def set(value: UInt): Unit
 }
 
 trait InstrBusSrv {
@@ -75,10 +75,21 @@ case class ChannelPins(count: Int) extends Bundle with LinkPins {
 }
 
 trait ChannelSrv {
-  def rx: Vec[Stream[Bits]]
-  def tx: Vec[Stream[Bits]]
-  def txCmd: Stream[ChannelTxCmd]
-  def busy: Vec[Bool]
+
+  /** Return true when the transmit FIFO can accept a new word. */
+  def txReady(link: UInt): Bool
+
+  /** Drive a transmit request. The returned value mirrors txReady. */
+  def push(link: UInt, data: Bits): Bool
+
+  /** True when a word is available on the receive FIFO. */
+  def rxValid(link: UInt): Bool
+
+  /** Current word from the receive FIFO. */
+  def rxPayload(link: UInt): Bits
+
+  /** Acknowledge the current word when done. */
+  def rxAck(link: UInt): Unit
 }
 
 trait ChannelPinsSrv {
