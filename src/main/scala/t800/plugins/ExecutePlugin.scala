@@ -180,6 +180,18 @@ class ExecutePlugin extends FiberPlugin {
             stack.B := stack.A
             stack.A := timer.hi
           }
+          is(Opcodes.Secondary.TIMERDISABLEH) {
+            timer.disableHi()
+          }
+          is(Opcodes.Secondary.TIMERDISABLEL) {
+            timer.disableLo()
+          }
+          is(Opcodes.Secondary.TIMERENABLEH) {
+            timer.enableHi()
+          }
+          is(Opcodes.Secondary.TIMERENABLEL) {
+            timer.enableLo()
+          }
           is(Opcodes.Secondary.CLRHALTERR) {
             haltErr := False
           }
