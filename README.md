@@ -176,11 +176,13 @@ For more advanced features, see `doc/spinalHDL.html`.
 
 ### Debugging tips
 
-Simulation artifacts live in `simWorkspace/`. Set the `SPINALSIM_WORKSPACE`
-environment variable to redirect logs and waves. `SimConfig.setTestPath("/tmp")`
-changes the per-test directory, and you can query it with `currentTestPath()`
-during execution. When chasing intermittent failures, use `DualSimTracer` to
-record only a short window before the crash.
+Simulation artifacts live in `simWorkspace/`. Waveforms and log files are
+written under the chosen workspace directory, making it easy to inspect multiple
+test runs. Set the `SPINALSIM_WORKSPACE` environment variable to redirect logs
+and waves. `SimConfig.setTestPath("/tmp")` changes the per-test directory, and
+you can query it with `currentTestPath()` during execution. When chasing
+intermittent failures, use `DualSimTracer` to record only a short window before
+the crash.
 Spawn helper threads with `fork { ... }` and block on events using `sleep(n)` or
 `waitUntil(cond)`. ClockDomain utilities such as `waitRisingEdge()` help align
 checks with clock boundaries. See **AGENTS.md §12** for common runtime errors.
