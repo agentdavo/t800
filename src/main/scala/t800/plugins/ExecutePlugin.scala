@@ -74,6 +74,31 @@ class ExecutePlugin extends FiberPlugin {
             stack.A := sum
             stack.B := stack.C
           }
+          is(Opcodes.Secondary.SUB) {
+            val diff = stack.B - stack.A
+            stack.A := diff
+            stack.B := stack.C
+          }
+          is(Opcodes.Secondary.AND) {
+            val res = stack.A & stack.B
+            stack.A := res
+            stack.B := stack.C
+          }
+          is(Opcodes.Secondary.XOR) {
+            val res = stack.A ^ stack.B
+            stack.A := res
+            stack.B := stack.C
+          }
+          is(Opcodes.Secondary.SHL) {
+            val res = stack.B |<< stack.A
+            stack.A := res
+            stack.B := stack.C
+          }
+          is(Opcodes.Secondary.SHR) {
+            val res = (stack.B.asSInt >> stack.A).asUInt
+            stack.A := res
+            stack.B := stack.C
+          }
           is(Opcodes.Secondary.IN) {
             val idx = stack.B(1 downto 0)
             val avail = links.rxValid(idx)
