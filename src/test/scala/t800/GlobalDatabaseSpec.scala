@@ -12,6 +12,8 @@ class GlobalDatabaseSpec extends AnyFunSuite {
     val db = new Database
     db(Global.WORD_BITS) = 16
     db(Global.ADDR_BITS) = TConsts.AddrBits
+    db(Global.PC_BITS) = TConsts.AddrBits
+    db(Global.INSTR_BITS) = 8
     db(Global.ROM_WORDS) = TConsts.RomWords
     db(Global.RAM_WORDS) = TConsts.RamWords
     db(Global.LINK_COUNT) = TConsts.LinkCount

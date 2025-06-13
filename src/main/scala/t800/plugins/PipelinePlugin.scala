@@ -4,6 +4,7 @@ import spinal.core._
 import spinal.lib.misc.pipeline._
 import spinal.lib.misc.plugin.FiberPlugin
 import spinal.core.fiber.Retainer
+import t800.Global
 
 /** Defines the global CPU pipeline structure and exposes stage handles. */
 trait PipelineSrv {
@@ -13,6 +14,9 @@ trait PipelineSrv {
   def memory: CtrlLink
   def writeBack: CtrlLink
   def INSTR: Payload[Bits]
+  def PC: Payload[UInt]
+  def MEM_ADDR: Payload[UInt]
+  def MEM_DATA: Payload[Bits]
 }
 
 class PipelinePlugin extends FiberPlugin {
@@ -22,7 +26,6 @@ class PipelinePlugin extends FiberPlugin {
   private var executeReg: CtrlLink = null
   private var memoryReg: CtrlLink = null
   private var writeBackReg: CtrlLink = null
-  private var instrPayload: Payload[Bits] = null
   private val retain = Retainer()
 
   during setup new Area {
@@ -32,11 +35,15 @@ class PipelinePlugin extends FiberPlugin {
     executeReg = pipeline.ctrl(2)
     memoryReg = pipeline.ctrl(3)
     writeBackReg = pipeline.ctrl(4)
-    instrPayload = Payload(Bits(8 bits))
     // Touch isFiring early so StageCtrlPipeline can drive it during build
     Seq(fetchReg, decodeReg, executeReg, memoryReg, writeBackReg).foreach(_.down.isFiring)
-    // Pre-create the instruction payload across stages
-    Seq(fetchReg, decodeReg, executeReg, memoryReg, writeBackReg).foreach(_(instrPayload))
+    // Pre-create the global payloads across stages
+    Seq(fetchReg, decodeReg, executeReg, memoryReg, writeBackReg).foreach { stage =>
+      stage(Global.INSTR)
+      stage(Global.PC)
+      stage(Global.MEM_ADDR)
+      stage(Global.MEM_DATA)
+    }
     retain()
   }
   def fetch: CtrlLink = fetchReg
@@ -44,7 +51,10 @@ class PipelinePlugin extends FiberPlugin {
   def execute: CtrlLink = executeReg
   def memory: CtrlLink = memoryReg
   def writeBack: CtrlLink = writeBackReg
-  def INSTR: Payload[Bits] = instrPayload
+  def INSTR: Payload[Bits] = Global.INSTR
+  def PC: Payload[UInt] = Global.PC
+  def MEM_ADDR: Payload[UInt] = Global.MEM_ADDR
+  def MEM_DATA: Payload[Bits] = Global.MEM_DATA
 
   during build new Area {
     retain.await()
@@ -55,7 +65,10 @@ class PipelinePlugin extends FiberPlugin {
       override def execute = executeReg
       override def memory = memoryReg
       override def writeBack = writeBackReg
-      override def INSTR = instrPayload
+      override def INSTR = Global.INSTR
+      override def PC = Global.PC
+      override def MEM_ADDR = Global.MEM_ADDR
+      override def MEM_DATA = Global.MEM_DATA
     })
   }
 }

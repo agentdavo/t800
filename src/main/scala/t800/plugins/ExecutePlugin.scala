@@ -49,7 +49,7 @@ class ExecutePlugin extends FiberPlugin {
     val dma = dmaOpt.getOrElse(dummyDma)
     val sched = Plugin[SchedSrv]
 
-    val inst = pipe.execute(pipe.INSTR)
+    val inst = pipe.execute(Global.INSTR)
     val nibble = inst(3 downto 0).asUInt
     val accumulated = stack.O | nibble.resized
     val primary = inst(7 downto 4)
