@@ -41,6 +41,8 @@ Detailed specs live in **AGENTS.md §5**.
 | **Plugin host** | Compose or swap whole subsystems. | `PluginHost`, `FiberPlugin`, `Plugin[T]` |
 | **Pipeline DSL** | Build pipelines without manual `valid/ready` wiring. | `Node`, `StageLink`, `CtrlLink`, `CtrlLaneApi` |
 
+The host now runs inside a `Database` context so plugins can share typed metadata.
+
 Why the DSL helps:
 
 * Insert or remove a register: swap `DirectLink` → `StageLink`.
@@ -59,7 +61,7 @@ t800/
 ├─ build.sbt
 ├─ src/
 │  ├─ main/scala/t800/
-│  │  ├─ Top.scala              # creates PluginHost + selects plugins
+│  │  ├─ Top.scala              # creates Database + PluginHost, selects plugins
 │  │  └─ plugins/               # ⇐ one FiberPlugin per subsystem
 │  │     ├─ FpuPlugin.scala
 │  │     ├─ SchedulerPlugin.scala

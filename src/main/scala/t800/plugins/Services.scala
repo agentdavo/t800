@@ -121,3 +121,7 @@ trait ChannelSrv {
 trait ChannelPinsSrv {
   def pins: ChannelPins
 }
+
+trait ChannelDmaSrv {
+  def cmd: Stream[ChannelTxCmd]
+}
