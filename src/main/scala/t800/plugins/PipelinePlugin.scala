@@ -29,6 +29,7 @@ class PipelinePlugin extends FiberPlugin {
   private val retain = Retainer()
 
   during setup new Area {
+    println(s"[${PipelinePlugin.this.getDisplayName()}] setup start")
     pipeline = new StageCtrlPipeline()
     fetchReg = pipeline.ctrl(0)
     decodeReg = pipeline.ctrl(1)
@@ -45,6 +46,7 @@ class PipelinePlugin extends FiberPlugin {
       stage(Global.MEM_DATA)
     }
     retain()
+    println(s"[${PipelinePlugin.this.getDisplayName()}] setup end")
   }
   def fetch: CtrlLink = fetchReg
   def decode: CtrlLink = decodeReg
@@ -57,6 +59,7 @@ class PipelinePlugin extends FiberPlugin {
   def MEM_DATA: Payload[Bits] = Global.MEM_DATA
 
   during build new Area {
+    println(s"[${PipelinePlugin.this.getDisplayName()}] build start")
     retain.await()
     pipeline.build()
     addService(new PipelineSrv {
@@ -70,5 +73,6 @@ class PipelinePlugin extends FiberPlugin {
       override def MEM_ADDR = Global.MEM_ADDR
       override def MEM_DATA = Global.MEM_DATA
     })
+    println(s"[${PipelinePlugin.this.getDisplayName()}] build end")
   }
 }

@@ -17,6 +17,7 @@ class ExecutePlugin extends FiberPlugin {
   private val retain = Retainer()
 
   during setup new Area {
+    println(s"[${ExecutePlugin.this.getDisplayName()}] setup start")
     errReg = Reg(Bool()) init (False)
     haltErr = Reg(Bool()) init (False)
     hiFPtr = Reg(UInt(Global.WORD_BITS bits)) init (0)
@@ -24,9 +25,11 @@ class ExecutePlugin extends FiberPlugin {
     loFPtr = Reg(UInt(Global.WORD_BITS bits)) init (0)
     loBPtr = Reg(UInt(Global.WORD_BITS bits)) init (0)
     retain()
+    println(s"[${ExecutePlugin.this.getDisplayName()}] setup end")
   }
 
   during build new Area {
+    println(s"[${ExecutePlugin.this.getDisplayName()}] build start")
     retain.await()
     implicit val h: PluginHost = host
     val stack = Plugin[StackSrv]
@@ -392,5 +395,6 @@ class ExecutePlugin extends FiberPlugin {
         stack.O := 0
       }
     }
+    println(s"[${ExecutePlugin.this.getDisplayName()}] build end")
   }
 }

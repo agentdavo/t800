@@ -32,6 +32,7 @@ class FpuPlugin extends FiberPlugin {
   private val retain = Retainer()
 
   during setup new Area {
+    println(s"[${FpuPlugin.this.getDisplayName()}] setup start")
     pipeReg = Flow(new FpCmd)
     pipeReg.setIdle()
     rspReg = Flow(UInt(Global.WORD_BITS bits))
@@ -41,9 +42,11 @@ class FpuPlugin extends FiberPlugin {
       override def rsp = rspReg
     })
     retain()
+    println(s"[${FpuPlugin.this.getDisplayName()}] setup end")
   }
 
   during build new Area {
+    println(s"[${FpuPlugin.this.getDisplayName()}] build start")
     retain.await()
     val pip = new StagePipeline
     val n0 = pip.node(0)
@@ -70,5 +73,6 @@ class FpuPlugin extends FiberPlugin {
     rspReg.payload := rsp.payload
 
     pip.build()
+    println(s"[${FpuPlugin.this.getDisplayName()}] build end")
   }
 }

@@ -20,6 +20,7 @@ class SchedulerPlugin extends FiberPlugin {
   private val retain = Retainer()
 
   during setup new Area {
+    println(s"[${SchedulerPlugin.this.getDisplayName()}] setup start")
     cmdReg = Flow(SchedCmd())
 
     hiQ = Vec.fill(Global.LINK_COUNT)(Reg(UInt(Global.ADDR_BITS bits)) init 0)
@@ -36,9 +37,11 @@ class SchedulerPlugin extends FiberPlugin {
       override def nextProc: UInt = nextReg
     })
     retain()
+    println(s"[${SchedulerPlugin.this.getDisplayName()}] setup end")
   }
 
   during build new Area {
+    println(s"[${SchedulerPlugin.this.getDisplayName()}] build start")
     retain.await()
     when(cmdReg.valid) {
       when(cmdReg.payload.high) {
@@ -57,5 +60,6 @@ class SchedulerPlugin extends FiberPlugin {
       nextReg := loQ(loHead)
       loHead := loHead + 1
     }
+    println(s"[${SchedulerPlugin.this.getDisplayName()}] build end")
   }
 }

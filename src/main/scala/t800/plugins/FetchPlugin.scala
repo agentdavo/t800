@@ -8,6 +8,7 @@ import t800.Global
 /** Instruction fetch unit using the pipeline framework. */
 class FetchPlugin extends FiberPlugin {
   val logic = during build new Area {
+    println(s"[${FetchPlugin.this.getDisplayName()}] build start")
     implicit val h: PluginHost = host
     val imem = Plugin[InstrFetchSrv]
     val pipe = Plugin[PipelineSrv]
@@ -21,5 +22,6 @@ class FetchPlugin extends FiberPlugin {
     val shift = addr(1 downto 0) * U(Global.OPCODE_BITS)
     pipe.fetch(Global.IPTR) := addr
     pipe.fetch(Global.OPCODE) := (imem.rsp.payload >> shift)(Global.OPCODE_BITS - 1 downto 0)
+    println(s"[${FetchPlugin.this.getDisplayName()}] build end")
   }
 }

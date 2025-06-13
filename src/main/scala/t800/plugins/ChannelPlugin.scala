@@ -20,6 +20,7 @@ class ChannelPlugin extends FiberPlugin {
   private val retain = Retainer()
 
   during setup new Area {
+    println(s"[${ChannelPlugin.this.getDisplayName()}] setup start")
     pins = ChannelPins(Global.LINK_COUNT)
     rxVec = Vec.fill(Global.LINK_COUNT)(Stream(Bits(Global.WORD_BITS bits)))
     txVec = Vec.fill(Global.LINK_COUNT)(Stream(Bits(Global.WORD_BITS bits)))
@@ -42,9 +43,11 @@ class ChannelPlugin extends FiberPlugin {
     addService(new ChannelPinsSrv { def pins = ChannelPlugin.this.pins })
     addService(new ChannelDmaSrv { def cmd = ChannelPlugin.this.cmdStream })
     retain()
+    println(s"[${ChannelPlugin.this.getDisplayName()}] setup end")
   }
 
   during build new Area {
+    println(s"[${ChannelPlugin.this.getDisplayName()}] build start")
     retain.await()
     implicit val h: PluginHost = host
     val mem = Plugin[LinkBusSrv]
@@ -115,5 +118,6 @@ class ChannelPlugin extends FiberPlugin {
     }
 
     Builder(dmaStage)
+    println(s"[${ChannelPlugin.this.getDisplayName()}] build end")
   }
 }

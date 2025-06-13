@@ -28,6 +28,7 @@ class MemoryPlugin(romInit: Seq[BigInt] = Seq.fill(TConsts.RomWords)(BigInt(0)))
   private val retain = Retainer()
 
   during setup new Area {
+    println(s"[${MemoryPlugin.this.getDisplayName()}] setup start")
     rom = Mem(Bits(Global.WORD_BITS bits), Global.ROM_WORDS)
     rom.initBigInt(romInit)
     ram = Mem(Bits(Global.WORD_BITS bits), Global.RAM_WORDS)
@@ -75,9 +76,11 @@ class MemoryPlugin(romInit: Seq[BigInt] = Seq.fill(TConsts.RomWords)(BigInt(0)))
       override def ram: Mem[Bits] = MemoryPlugin.this.ram
     })
     retain()
+    println(s"[${MemoryPlugin.this.getDisplayName()}] setup end")
   }
 
   during build new Area {
+    println(s"[${MemoryPlugin.this.getDisplayName()}] build start")
     retain.await()
     val busArb = new t800.LinkBusArbiter
     busArb.io.exeRd << exeRdCmd
@@ -180,5 +183,6 @@ class MemoryPlugin(romInit: Seq[BigInt] = Seq.fill(TConsts.RomWords)(BigInt(0)))
       dwStage,
       lwStage
     )
+    println(s"[${MemoryPlugin.this.getDisplayName()}] build end")
   }
 }
