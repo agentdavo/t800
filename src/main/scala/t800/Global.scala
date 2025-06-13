@@ -12,5 +12,7 @@ object Global extends AreaObject {
   val ROM_WORDS = Database.blocking[Int]
   val RAM_WORDS = Database.blocking[Int]
   val LINK_COUNT = Database.blocking[Int]
+  val FPU_PRECISION = Database.blocking[Int]
+  val SCHED_QUEUE_DEPTH = Database.blocking[Int]
   val RESET_PC = Database.blocking[Long]
 }

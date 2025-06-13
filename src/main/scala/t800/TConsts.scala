@@ -7,6 +7,8 @@ object TConsts {
   val RamWords = 4096
   val MicroWords = 1024
   val LinkCount = 4
+  val FpuPrecision = WordBits
+  val SchedQueueDepth = LinkCount
   val ResetPC = 0x0000_0000L
 
   // Memory layout
