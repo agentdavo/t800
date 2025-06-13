@@ -14,12 +14,14 @@ object T800 {
     db(Global.ADDR_BITS) = TConsts.AddrBits
     db(Global.PC_BITS) = TConsts.AddrBits
     db(Global.INSTR_BITS) = 8
+    db(Global.IPTR_BITS) = TConsts.AddrBits
+    db(Global.OPCODE_BITS) = 8
     db(Global.ROM_WORDS) = TConsts.RomWords
     db(Global.RAM_WORDS) = TConsts.RamWords
     db(Global.LINK_COUNT) = TConsts.LinkCount
     db(Global.FPU_PRECISION) = TConsts.FpuPrecision
     db(Global.SCHED_QUEUE_DEPTH) = TConsts.SchedQueueDepth
-    db(Global.RESET_PC) = TConsts.ResetPC
+    db(Global.RESET_IPTR) = TConsts.ResetIPtr
     db
   }
 }

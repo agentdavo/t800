@@ -9,7 +9,7 @@ object TConsts {
   val LinkCount = 4
   val FpuPrecision = WordBits
   val SchedQueueDepth = LinkCount
-  val ResetPC = 0x0000_0000L
+  val ResetIPtr = 0x0000_0000L
 
   // Memory layout
   val InternalMemStart = 0x80000000L
