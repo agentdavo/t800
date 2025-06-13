@@ -258,3 +258,18 @@ details.
   assigns a value, or add a `default` case in `switch`/`mux` constructs.
 * **NullPointerException** – referencing hardware before `val` initialization
   in Scala. Declare signals before using them.
+
+## 14 Design checks
+
+The SpinalHDL compiler rejects many unsafe constructs. Watch out for:
+
+* Assignment overlapping
+* Clock domain crossing mistakes
+* Hierarchy violations
+* Combinatorial loops
+* Latches
+* Undriven signals
+* Width mismatches
+* Unreachable switch statements
+
+Each error includes a stack trace to locate the issue.
