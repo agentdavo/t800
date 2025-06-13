@@ -58,6 +58,7 @@ t800/
 │  │  └─ plugins/               # ⇐ one FiberPlugin per subsystem
 │  │     ├─ FpuPlugin.scala
 │  │     ├─ SchedulerPlugin.scala
+│  │     ├─ TimerPlugin.scala
 │  │     └─ ...
 │  └─ test/scala/t800/
 │      ├─ T800CoreSim.scala
@@ -128,12 +129,52 @@ sbt "runMain t800.TopVerilog --variant=min"
 
 1. Pick a milestone from **AGENTS.md §5**.
 2. Work **inside** `src/main/scala/t800/plugins/`.
-3. Keep CI green:
+3. Run `sbt scalafmtAll` and keep CI green:
 
 ```bash
+sbt scalafmtAll
 sbt test
 ```
 
 PR title `[M-n] <topic>` – e.g. `[M-1] ALU ADD`.
 
 ---
+
+## Hierarchy violations
+
+SpinalHDL enforces strict ownership rules. A signal can only be read within the
+component where it is defined or from its children. Assignments are only allowed
+in that component or to outputs of children. Breaking these rules triggers a
+`Hierarchy Violation` error during elaboration. Expose required signals via
+services or bundles instead of cross-plugin references.
+
+---
+
+## Simulation with SpinalSim
+
+The `src/test/scala` directory contains ScalaTest benches that use SpinalHDL's
+simulation API. A simple template is:
+
+```scala
+import spinal.core._
+import spinal.core.sim._
+
+SimConfig
+  .withWave
+  .withConfig(SpinalConfig(defaultClockDomainFrequency = FixedFrequency(10 MHz)))
+  .compile(new TopLevel)
+  .doSim { dut =>
+    SimTimeout(1000)
+    dut.clockDomain.forkStimulus(10)
+    // Stimulus and checks here
+  }
+```
+
+`withWave` records a VCD/FST waveform under `simWorkspace/`. Use `SimTimeout`
+so long-running tests fail deterministically. Additional back‑ends like GHDL or
+Icarus can be selected via `withGhdl` or `withIVerilog`.
+
+For more advanced features, see `doc/spinalHDL.html`.
+
+See `doc/hello_world.md` for a minimal boot example that sends a
+"hello world" string over a link using newly supported instructions.
