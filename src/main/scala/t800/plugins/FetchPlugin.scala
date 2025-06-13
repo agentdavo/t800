@@ -8,7 +8,7 @@ import spinal.lib.misc.plugin.{Plugin, PluginHost, FiberPlugin}
 class FetchPlugin extends FiberPlugin {
   val logic = during build new Area {
     implicit val h: PluginHost = host
-    val imem = Plugin[InstrBusSrv]
+    val imem = Plugin[InstrFetchSrv]
     val pipe = Plugin[PipelineSrv]
     val stack = Plugin[StackSrv]
 

@@ -67,7 +67,7 @@ trait TimerSrv {
   def disableLo(): Unit
 }
 
-trait InstrBusSrv {
+trait InstrFetchSrv {
   def cmd: Flow[t800.MemReadCmd]
   def rsp: Flow[Bits]
 }
