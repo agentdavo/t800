@@ -14,8 +14,6 @@ class ChannelPlugin extends FiberPlugin {
     pins = ChannelPins(TConsts.LinkCount)
     rxVec = Vec.fill(TConsts.LinkCount)(Stream(Bits(TConsts.WordBits bits)))
     txVec = Vec.fill(TConsts.LinkCount)(Stream(Bits(TConsts.WordBits bits)))
-    rxVec.foreach(_.setIdle())
-    txVec.foreach(_.setIdle())
     addService(new ChannelSrv {
       override def rx: Vec[Stream[Bits]] = rxVec
       override def tx: Vec[Stream[Bits]] = txVec

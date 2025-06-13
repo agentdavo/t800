@@ -31,24 +31,6 @@ class MemoryPlugin extends FiberPlugin {
     linkRdCmdReg = Flow(MemReadCmd())
     linkRdRspReg = Flow(Bits(TConsts.WordBits bits))
     linkWrCmdReg = Flow(MemWriteCmd())
-    instrCmdReg.valid := False
-    instrCmdReg.payload.addr := U(0)
-    instrRspReg.valid := False
-    instrRspReg.payload := B(0, TConsts.WordBits bits)
-    dataRdCmdReg.valid := False
-    dataRdCmdReg.payload.addr := U(0)
-    dataRdRspReg.valid := False
-    dataRdRspReg.payload := B(0, TConsts.WordBits bits)
-    dataWrCmdReg.valid := False
-    dataWrCmdReg.payload.addr := U(0)
-    dataWrCmdReg.payload.data := B(0, TConsts.WordBits bits)
-    linkRdCmdReg.valid := False
-    linkRdCmdReg.payload.addr := U(0)
-    linkRdRspReg.valid := False
-    linkRdRspReg.payload := B(0, TConsts.WordBits bits)
-    linkWrCmdReg.valid := False
-    linkWrCmdReg.payload.addr := U(0)
-    linkWrCmdReg.payload.data := B(0, TConsts.WordBits bits)
     addService(new InstrBusSrv {
       override def cmd = instrCmdReg
       override def rsp = instrRspReg
