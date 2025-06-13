@@ -107,10 +107,12 @@ class ChannelPlugin extends FiberPlugin {
     memTx(linkIdx).payload := byteReg.resized
     dmaDo.haltWhen(haveByte && !memTx(linkIdx).ready)
     when(dmaDo.isValid && haveByte && memTx(linkIdx).ready) {
-      haveByte := False
       when(remaining === 0) {
         busyVec(linkIdx) := False
+        haveByte := False
         dmaDo.throwIt(usingReady = true)
+      } otherwise {
+        haveByte := False
       }
     }
 
