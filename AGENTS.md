@@ -216,6 +216,8 @@ details.
 * Use `fork { ... }` to spawn concurrent threads. Control time with `sleep(n)`
   and block on conditions via `waitUntil(expr)` or the ClockDomain helpers
   like `waitRisingEdge()`.
+* Call `clockDomain.forkSimSpeedPrinter(printPeriod)` to print the current
+  simulation speed. See `doc/spinalHDL.html` for details.
 
 #### Common runtime errors
 
