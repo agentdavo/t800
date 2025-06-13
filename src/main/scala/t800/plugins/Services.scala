@@ -67,8 +67,21 @@ case class ChannelPins(count: Int) extends Bundle with LinkPins {
 }
 
 trait ChannelSrv {
-  def rx: Vec[Stream[Bits]]
-  def tx: Vec[Stream[Bits]]
+
+  /** Return true when the transmit FIFO can accept a new word. */
+  def txReady(link: UInt): Bool
+
+  /** Drive a transmit request. The returned value mirrors txReady. */
+  def push(link: UInt, data: Bits): Bool
+
+  /** True when a word is available on the receive FIFO. */
+  def rxValid(link: UInt): Bool
+
+  /** Current word from the receive FIFO. */
+  def rxPayload(link: UInt): Bits
+
+  /** Acknowledge the current word when done. */
+  def rxAck(link: UInt): Unit
 }
 
 trait ChannelPinsSrv {
