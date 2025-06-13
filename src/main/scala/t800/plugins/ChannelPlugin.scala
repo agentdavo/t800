@@ -2,7 +2,7 @@ package t800.plugins
 
 import spinal.core._
 import spinal.lib._
-import t800.{MemReadCmd, MemWriteCmd, TConsts}
+import t800.TConsts
 
 /** Provides transputer link interfaces with simple FIFO synchronizers. */
 class ChannelPlugin extends FiberPlugin {
@@ -17,14 +17,19 @@ class ChannelPlugin extends FiberPlugin {
     pins = ChannelPins(TConsts.LinkCount)
     rxVec = Vec.fill(TConsts.LinkCount)(Stream(Bits(TConsts.WordBits bits)))
     txVec = Vec.fill(TConsts.LinkCount)(Stream(Bits(TConsts.WordBits bits)))
-    txVec.foreach(_.setIdle())
+    rxVec.foreach(_.ready := False)
     cmdStream = Stream(ChannelTxCmd())
     busyVec = Vec.fill(TConsts.LinkCount)(Reg(Bool()) init False)
     addService(new ChannelSrv {
-      override def rx: Vec[Stream[Bits]] = rxVec
-      override def tx: Vec[Stream[Bits]] = txVec
-      override def txCmd: Stream[ChannelTxCmd] = cmdStream
-      override def busy: Vec[Bool] = busyVec
+      override def txReady(link: UInt): Bool = txVec(link).ready
+      override def push(link: UInt, data: Bits): Bool = {
+        txVec(link).valid := True
+        txVec(link).payload := data
+        txVec(link).ready
+      }
+      override def rxValid(link: UInt): Bool = rxVec(link).valid
+      override def rxPayload(link: UInt): Bits = rxVec(link).payload
+      override def rxAck(link: UInt): Unit = { rxVec(link).ready := True }
     })
     addService(new ChannelPinsSrv { def pins = ChannelPlugin.this.pins })
   }

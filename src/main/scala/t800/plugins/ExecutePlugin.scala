@@ -29,23 +29,15 @@ class ExecutePlugin extends FiberPlugin {
     val mem = Plugin[DataBusSrv]
     val timer = Plugin[TimerSrv]
     val linksOpt = Try(Plugin[ChannelSrv]).toOption
-    val dummyRx = Vec.fill(TConsts.LinkCount)(Stream(Bits(TConsts.WordBits bits)))
-    val dummyTx = Vec.fill(TConsts.LinkCount)(Stream(Bits(TConsts.WordBits bits)))
-    val dummyBusy = Vec.fill(TConsts.LinkCount)(False)
-    val dummyCmd = Stream(ChannelTxCmd())
-    dummyRx.foreach(_.setIdle())
-    dummyTx.foreach(_.setIdle())
-    dummyCmd.setIdle()
-    val links = linksOpt.getOrElse(new ChannelSrv {
-      override def rx = dummyRx
-      override def tx = dummyTx
-      override def txCmd = dummyCmd
-      override def busy = dummyBusy
-    })
+    val dummy = new ChannelSrv {
+      override def txReady(link: UInt): Bool = False
+      override def push(link: UInt, data: Bits): Bool = False
+      override def rxValid(link: UInt): Bool = False
+      override def rxPayload(link: UInt): Bits = B(0, TConsts.WordBits bits)
+      override def rxAck(link: UInt): Unit = {}
+    }
+    val links = linksOpt.getOrElse(dummy)
     val sched = Plugin[SchedSrv]
-
-    timer.set.valid := False
-    timer.set.payload := U(0)
 
     val inst = pipe.execute(pipe.INSTR)
     val nibble = inst(3 downto 0).asUInt
@@ -60,13 +52,6 @@ class ExecutePlugin extends FiberPlugin {
     sched.newProc.valid := False
     sched.newProc.payload.ptr := U(0)
     sched.newProc.payload.high := False
-
-    // Default link handshakes
-    links.rx.foreach(_.ready := False)
-    links.txCmd.valid := False
-    links.txCmd.payload.link := U(0)
-    links.txCmd.payload.addr := U(0)
-    links.txCmd.payload.length := U(0)
 
     switch(primary) {
       is(Opcodes.Primary.PFIX) {
@@ -91,20 +76,17 @@ class ExecutePlugin extends FiberPlugin {
           }
           is(Opcodes.Secondary.IN) {
             val idx = stack.B(1 downto 0)
-            pipe.execute.haltWhen(!links.rx(idx).valid)
-            links.rx(idx).ready := pipe.execute.down.isFiring
+            val avail = links.rxValid(idx)
+            pipe.execute.haltWhen(!avail)
             when(pipe.execute.down.isFiring) {
-              stack.A := links.rx(idx).payload.asUInt
+              stack.A := links.rxPayload(idx).asUInt
+              links.rxAck(idx)
             }
           }
           is(Opcodes.Secondary.OUT) {
-            val cmd = ChannelTxCmd()
-            cmd.link := stack.B(1 downto 0)
-            cmd.addr := stack.C
-            cmd.length := stack.A
-            links.txCmd.valid := True
-            links.txCmd.payload := cmd
-            pipe.execute.haltWhen(!links.txCmd.ready || links.busy(stack.B(1 downto 0)))
+            val idx = stack.B(1 downto 0)
+            val ready = links.push(idx, stack.A.asBits)
+            pipe.execute.haltWhen(!ready)
             when(pipe.execute.down.isFiring) {
               stack.A := stack.B
               stack.B := stack.C
@@ -163,8 +145,7 @@ class ExecutePlugin extends FiberPlugin {
             stack.A := U(0x80000000L)
           }
           is(Opcodes.Secondary.STTIMER) {
-            timer.set.valid := True
-            timer.set.payload := stack.A
+            timer.set(stack.A)
             stack.A := stack.B
             stack.B := stack.C
           }
@@ -207,9 +188,8 @@ class ExecutePlugin extends FiberPlugin {
           }
           is(Opcodes.Secondary.OUTBYTE) {
             val idx = stack.B(1 downto 0)
-            links.tx(idx).valid := True
-            links.tx(idx).payload := stack.A.asBits
-            pipe.execute.haltWhen(!links.tx(idx).ready)
+            val ready = links.push(idx, stack.A.asBits)
+            pipe.execute.haltWhen(!ready)
             when(pipe.execute.down.isFiring) {
               stack.A := stack.B
               stack.B := stack.C
@@ -217,9 +197,8 @@ class ExecutePlugin extends FiberPlugin {
           }
           is(Opcodes.Secondary.OUTWORD) {
             val idx = stack.B(1 downto 0)
-            links.tx(idx).valid := True
-            links.tx(idx).payload := stack.A.asBits
-            pipe.execute.haltWhen(!links.tx(idx).ready)
+            val ready = links.push(idx, stack.A.asBits)
+            pipe.execute.haltWhen(!ready)
             when(pipe.execute.down.isFiring) {
               stack.A := stack.B
               stack.B := stack.C
