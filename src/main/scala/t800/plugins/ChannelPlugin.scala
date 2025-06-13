@@ -58,6 +58,8 @@ class ChannelPlugin extends FiberPlugin {
     }
 
     when(busyVec.reduce(_ || _)) {
+      mem.rdCmd.valid := False
+      mem.rdCmd.payload.addr := (ptr >> 2).resized
       when(!haveByte) {
         mem.rdCmd.valid := True
         when(mem.rdRsp.valid) {

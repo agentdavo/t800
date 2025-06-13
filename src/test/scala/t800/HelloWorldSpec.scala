@@ -6,7 +6,7 @@ import org.scalatest.funsuite.AnyFunSuite
 import t800.plugins._
 
 class HelloWorldSpec extends AnyFunSuite {
-  ignore("ROM program prints hello world") {
+  test("ROM program prints hello world") {
     val romInit = Seq(
       0x24f42540L, 0x4526fe48L, 0xfe4c26feL, 0x26fe4c26L, 0x4022fe4fL, 0xfe4727feL, 0x27fe4f26L,
       0x4c26fe42L, 0xfe4426feL, 0xfe4aL, 0L, 0L, 0L, 0L, 0L, 0L
