@@ -124,15 +124,15 @@ class MemoryPlugin(romInit: Seq[BigInt] = Seq.fill(TConsts.RomWords)(BigInt(0)))
     )
     instrRspReg.valid := iDo.isValid
 
-    // Data read pipeline
-    val dCmd = CtrlLink()
-    val dDo = CtrlLink()
-    val dStage = StageLink(dCmd.down, dDo.up)
-    dCmd.up.driveFrom(dataRdCmdReg)((n, p) => n(Global.MEM_ADDR) := p.addr)
+    // Data read pipeline with skid buffer
+    val dCmdA = CtrlLink()
+    val dCmdB = CtrlLink()
+    val dStage = S2MLink(dCmdA.down, dCmdB.up)
+    dCmdA.up.driveFrom(dataRdCmdReg)((n, p) => n(Global.MEM_ADDR) := p.addr)
     dataRdRspReg.payload := ram.readSync(
-      dDo(Global.MEM_ADDR)(log2Up(Global.RAM_WORDS) - 1 downto 0)
+      dCmdB(Global.MEM_ADDR)(log2Up(Global.RAM_WORDS) - 1 downto 0)
     )
-    dataRdRspReg.valid := dDo.isValid
+    dataRdRspReg.valid := dCmdB.isValid
 
     // Link read pipeline
     val lCmd = CtrlLink()
@@ -144,18 +144,18 @@ class MemoryPlugin(romInit: Seq[BigInt] = Seq.fill(TConsts.RomWords)(BigInt(0)))
     )
     linkRdRspReg.valid := lDo.isValid
 
-    // Data write pipeline
-    val dwCmd = CtrlLink()
-    val dwDo = CtrlLink()
-    val dwStage = StageLink(dwCmd.down, dwDo.up)
-    dwCmd.up.driveFrom(dataWrCmdReg) { (n, p) =>
+    // Data write pipeline with skid buffer
+    val dwCmdA = CtrlLink()
+    val dwCmdB = CtrlLink()
+    val dwStage = S2MLink(dwCmdA.down, dwCmdB.up)
+    dwCmdA.up.driveFrom(dataWrCmdReg) { (n, p) =>
       n(Global.MEM_ADDR) := p.addr
       n(Global.MEM_DATA) := p.data
     }
-    when(dwDo.isValid) {
+    when(dwCmdB.isValid) {
       ram.write(
-        dwDo(Global.MEM_ADDR)(log2Up(Global.RAM_WORDS) - 1 downto 0),
-        dwDo(Global.MEM_DATA)
+        dwCmdB(Global.MEM_ADDR)(log2Up(Global.RAM_WORDS) - 1 downto 0),
+        dwCmdB(Global.MEM_DATA)
       )
     }
 
