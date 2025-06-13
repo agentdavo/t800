@@ -49,7 +49,7 @@ class MemoryPlugin(romInit: Seq[BigInt] = Seq.fill(TConsts.RomWords)(BigInt(0)))
     dataWrCmdReg.valid := False
     dataWrCmdReg.payload.addr := U(0)
     dataWrCmdReg.payload.data := B(0, Global.WORD_BITS bits)
-    addService(new InstrBusSrv {
+    addService(new InstrFetchSrv {
       override def cmd = instrCmdReg
       override def rsp = instrRspReg
     })

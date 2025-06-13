@@ -16,10 +16,10 @@ The pipeline DSL ensures stall/flush control between stages.
 
 ## Plugin responsibilities
 
-- `FetchPlugin` – maintains the PC and fetches bytes from `InstrBusSrv`.
+- `FetchPlugin` – maintains the PC and fetches bytes from `InstrFetchSrv`.
 - `ExecutePlugin` – implements integer ALU operations. More opcodes will be
   added per milestone.
-- `MemoryPlugin` – simple on-chip ROM and RAM. Provides `InstrBusSrv` and
+- `MemoryPlugin` – simple on-chip ROM and RAM. Provides `InstrFetchSrv` and
   `DataBusSrv`.
 - `FpuPlugin` – placeholder FPU interface; future variants may swap a different
   implementation.
