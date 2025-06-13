@@ -15,6 +15,8 @@ class GlobalDatabaseSpec extends AnyFunSuite {
     db(Global.ROM_WORDS) = TConsts.RomWords
     db(Global.RAM_WORDS) = TConsts.RamWords
     db(Global.LINK_COUNT) = TConsts.LinkCount
+    db(Global.FPU_PRECISION) = TConsts.FpuPrecision
+    db(Global.SCHED_QUEUE_DEPTH) = TConsts.SchedQueueDepth
     db(Global.RESET_PC) = TConsts.ResetPC
 
     SimConfig
