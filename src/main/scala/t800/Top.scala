@@ -21,7 +21,9 @@ object TopVerilog {
         new SchedulerPlugin,
         new TimerPlugin
       )
-      new T800(host, plugins, db)
+      PluginHost(host).on {
+        new T800(host, plugins, db)
+      }
     }
   }
 }
