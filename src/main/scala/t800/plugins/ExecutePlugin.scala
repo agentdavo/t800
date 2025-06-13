@@ -28,6 +28,7 @@ class ExecutePlugin extends FiberPlugin {
     val pipe = Plugin[PipelineSrv]
     val mem = Plugin[DataBusSrv]
     val timer = Plugin[TimerSrv]
+    val fpu = Plugin[FpuSrv]
     val linksOpt = Try(Plugin[ChannelSrv]).toOption
     val dummy = new ChannelSrv {
       override def txReady(link: UInt): Bool = False
@@ -231,6 +232,38 @@ class ExecutePlugin extends FiberPlugin {
           }
           is(Opcodes.Secondary.LDPI) {
             stack.A := stack.A + stack.IPtr
+          }
+          is(Opcodes.Secondary.FPADD) {
+            fpu.send(B"3'b000", stack.A, stack.B)
+            pipe.execute.haltWhen(!fpu.resultValid)
+            when(pipe.execute.down.isFiring) {
+              stack.A := fpu.result
+              stack.B := stack.C
+            }
+          }
+          is(Opcodes.Secondary.FPSUB) {
+            fpu.send(B"3'b001", stack.A, stack.B)
+            pipe.execute.haltWhen(!fpu.resultValid)
+            when(pipe.execute.down.isFiring) {
+              stack.A := fpu.result
+              stack.B := stack.C
+            }
+          }
+          is(Opcodes.Secondary.FPMUL) {
+            fpu.send(B"3'b010", stack.A, stack.B)
+            pipe.execute.haltWhen(!fpu.resultValid)
+            when(pipe.execute.down.isFiring) {
+              stack.A := fpu.result
+              stack.B := stack.C
+            }
+          }
+          is(Opcodes.Secondary.FPDIV) {
+            fpu.send(B"3'b011", stack.A, stack.B)
+            pipe.execute.haltWhen(!fpu.resultValid)
+            when(pipe.execute.down.isFiring) {
+              stack.A := fpu.result
+              stack.B := stack.C
+            }
           }
         }
         stack.O := 0
