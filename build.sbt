@@ -15,6 +15,7 @@ val spinalVersion   = if (sourceBuild) "dev" else "1.12.2"
 val spinalCoreDep   = "com.github.spinalhdl" %% "spinalhdl-core"  % spinalVersion
 val spinalLibDep    = "com.github.spinalhdl" %% "spinalhdl-lib"   % spinalVersion
 val spinalPlugDep   = compilerPlugin("com.github.spinalhdl" %% "spinalhdl-idsl-plugin" % spinalVersion)
+val spinalDbDep     = "com.github.spinalhdl" %% "spinalhdl-database" % spinalVersion
 
 // Add Sonatype snapshot resolver if needed
 resolvers ++= {
@@ -38,7 +39,7 @@ lazy val t800 = (project in file("."))
 
     libraryDependencies ++=
       Seq("org.scalatest" %% "scalatest" % "3.2.17" % Test) ++
-      (if (sourceBuild) Nil else Seq(spinalCoreDep, spinalLibDep, spinalPlugDep)),
+      (if (sourceBuild) Nil else Seq(spinalCoreDep, spinalLibDep, spinalPlugDep, spinalDbDep)),
 
     scalacOptions ++= Seq("-language:reflectiveCalls"),
 
