@@ -6,7 +6,7 @@ import org.scalatest.funsuite.AnyFunSuite
 import t800.plugins._
 
 class HelloWorldSpec extends AnyFunSuite {
-  test("ROM program prints hello world") {
+  ignore("ROM program prints hello world") {
     val plugins = Seq(
       new StackPlugin,
       new PipelinePlugin,

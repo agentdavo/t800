@@ -6,6 +6,10 @@
 
 SpinalHDL ≥ 1.9 • Plugin architecture • Pipeline DSL • Fiber tasks
 
+This repo re-implements the INMOS T800/T9000 CPU using modern SpinalHDL.
+Each subsystem lives in its own `FiberPlugin` and communicates via small
+"services". Pipelines are assembled with the DSL from SpinalLib.
+
 This project re-implements the INMOS T800/T9000 CPU in modern SpinalHDL.
 
 * **Plugins** – every subsystem (FPU, Scheduler …) is a hot-swappable `FiberPlugin`.
@@ -117,8 +121,13 @@ git clone --recursive https://github.com/agentdavo/t800.git
 cd t800
 
 # Default plugin set
+sbt scalafmtAll
 sbt test
 sbt "runMain t800.TopVerilog"
+
+# To build against the bundled SpinalHDL sources instead of published
+# artifacts, run with `SPINALHDL_FROM_SOURCE=1`:
+# SPINALHDL_FROM_SOURCE=1 sbt test
 ```
 
 ---
@@ -188,4 +197,4 @@ checks with clock boundaries. See **AGENTS.md §12** for common runtime errors.
 See `doc/hello_world.md` for a quick overview, and `doc/helloworld.md` for the full source listing.
 An overview of the link services and the upcoming VCP design lives in
 `doc/link_architecture.md`.
-`HelloWorldSpec` is currently marked with `ignore` until the channel hardware is complete.
+`HelloWorldSpec` is marked with `ignore` until the link hardware matures.
