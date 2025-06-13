@@ -52,17 +52,19 @@ class TimerPlugin extends FiberPlugin {
       hiTimer := loadVal
       loTimer := loadVal
       loCnt := 0
-    } otherwise {
-      when(hiEn) {
-        hiTimer := hiTimer + 1
-      }
-      when(loEn) {
-        loCnt := loCnt + 1
-        when(loCnt === 0) {
-          loTimer := loTimer + 1
-        }
+    }
+
+    when(!loadReq && hiEn) {
+      hiTimer := hiTimer + 1
+    }
+
+    when(!loadReq && loEn) {
+      loCnt := loCnt + 1
+      when(loCnt === 0) {
+        loTimer := loTimer + 1
       }
     }
+
     when(loadReq) { loadReq := False }
   }
 }
