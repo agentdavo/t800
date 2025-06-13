@@ -58,6 +58,13 @@ trait LinkBusSrv {
   def wrCmd: Flow[t800.MemWriteCmd]
 }
 
+trait LinkBusArbiterSrv {
+  def exeRd: Flow[t800.MemReadCmd]
+  def exeWr: Flow[t800.MemWriteCmd]
+  def chanRd: Flow[t800.MemReadCmd]
+  def chanWr: Flow[t800.MemWriteCmd]
+}
+
 trait MemAccessSrv {
   def rom: Mem[Bits]
   def ram: Mem[Bits]

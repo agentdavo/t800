@@ -3,6 +3,7 @@ package t800.plugins
 import spinal.core._
 import spinal.lib._
 import t800.{MemReadCmd, MemWriteCmd, TConsts}
+import t800.plugins.{LinkBusSrv, LinkBusArbiterSrv}
 
 /** Provides transputer link interfaces with simple FIFO synchronizers. */
 class ChannelPlugin extends FiberPlugin {
@@ -32,14 +33,21 @@ class ChannelPlugin extends FiberPlugin {
   override def build(): Unit = {
     implicit val h: PluginHost = host
     val mem = Plugin[LinkBusSrv]
+    val arb = Plugin[LinkBusArbiterSrv]
+
+    arb.chanRd.valid := False
+    arb.chanRd.payload.addr := U(0)
+    arb.chanWr.valid := False
+    arb.chanWr.payload.addr := U(0)
+    arb.chanWr.payload.data := B(0, TConsts.WordBits bits)
 
     memTx = Vec.fill(TConsts.LinkCount)(Stream(Bits(TConsts.WordBits bits)))
     memTx.foreach(_.setIdle())
 
     for (i <- 0 until TConsts.LinkCount) {
       rxVec(i) << pins.in(i)
-      val arb = StreamArbiterFactory.lowerFirst.onArgs(txVec(i), memTx(i))
-      pins.out(i) << arb
+      val txArb = StreamArbiterFactory.lowerFirst.onArgs(txVec(i), memTx(i))
+      pins.out(i) << txArb
     }
 
     cmdStream.ready := !busyVec.reduce(_ || _)
@@ -59,7 +67,8 @@ class ChannelPlugin extends FiberPlugin {
 
     when(busyVec.reduce(_ || _)) {
       when(!haveByte) {
-        mem.rdCmd.valid := True
+        arb.chanRd.valid := True
+        arb.chanRd.payload.addr := ptr
         when(mem.rdRsp.valid) {
           val shift = ptr(1 downto 0) * 8
           byteReg := (mem.rdRsp.payload >> shift)(7 downto 0)
