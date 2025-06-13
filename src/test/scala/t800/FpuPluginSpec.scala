@@ -5,6 +5,7 @@ import spinal.core.sim._
 import spinal.lib.misc.database.Database
 import org.scalatest.funsuite.AnyFunSuite
 import t800.plugins._
+import spinal.lib.misc.plugin.PluginHost
 
 class FpuDut extends Component {
   val io = new Bundle {
@@ -20,8 +21,9 @@ class FpuDut extends Component {
   val db = T800.defaultDatabase()
   Database(db).on {
     host.asHostOf(Seq(plugin))
+    plugin.awaitBuild()
   }
-  val srv = host.service[FpuSrv]
+  val srv = host[FpuSrv]
   srv.pipe.valid := io.cmdValid
   srv.pipe.payload.op := io.op
   srv.pipe.payload.opa := io.a

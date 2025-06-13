@@ -1,7 +1,8 @@
 package t800.plugins
 
 import spinal.core._
-import t800.plugins._
+import spinal.lib.misc.plugin.FiberPlugin
+import spinal.core.fiber.Retainer
 import t800.Global
 
 class StackPlugin extends FiberPlugin {
@@ -12,8 +13,9 @@ class StackPlugin extends FiberPlugin {
   private var regWPtr: UInt = null
   private var regIPtr: UInt = null
   private var workspace: Mem[UInt] = null
+  private val retain = Retainer()
 
-  override def setup(): Unit = {
+  during setup new Area {
     regA = Reg(UInt(Global.WORD_BITS bits)) init 0
     regB = Reg(UInt(Global.WORD_BITS bits)) init 0
     regC = Reg(UInt(Global.WORD_BITS bits)) init 0
@@ -38,5 +40,6 @@ class StackPlugin extends FiberPlugin {
         workspace.write(addr, data)
       }
     })
+    retain()
   }
 }

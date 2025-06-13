@@ -2,6 +2,8 @@ package t800.plugins
 
 import spinal.core._
 import spinal.lib._
+import spinal.lib.misc.plugin.{FiberPlugin, Plugin, PluginHost}
+import spinal.core.fiber.Retainer
 import t800.{MemReadCmd, MemWriteCmd, TConsts, Global}
 import t800.plugins.{LinkBusSrv, LinkBusArbiterSrv}
 
@@ -14,7 +16,9 @@ class ChannelPlugin extends FiberPlugin {
   private var busyVec: Vec[Bool] = null
   private var memTx: Vec[Stream[Bits]] = null
 
-  override def setup(): Unit = {
+  private val retain = Retainer()
+
+  during setup new Area {
     pins = ChannelPins(Global.LINK_COUNT)
     rxVec = Vec.fill(Global.LINK_COUNT)(Stream(Bits(Global.WORD_BITS bits)))
     txVec = Vec.fill(Global.LINK_COUNT)(Stream(Bits(Global.WORD_BITS bits)))
@@ -36,9 +40,11 @@ class ChannelPlugin extends FiberPlugin {
     })
     addService(new ChannelPinsSrv { def pins = ChannelPlugin.this.pins })
     addService(new ChannelDmaSrv { def cmd = ChannelPlugin.this.cmdStream })
+    retain()
   }
 
-  override def build(): Unit = {
+  during build new Area {
+    retain.await()
     implicit val h: PluginHost = host
     val mem = Plugin[LinkBusSrv]
     val arb = Plugin[LinkBusArbiterSrv]

@@ -3,6 +3,8 @@ package t800.plugins
 import spinal.core._
 import spinal.lib._
 import spinal.core.sim._
+import spinal.lib.misc.plugin.{FiberPlugin, Plugin, PluginHost}
+import spinal.core.fiber.{Retainer, Lock}
 import t800.{MemReadCmd, MemWriteCmd, TConsts, Global}
 
 /** Simple on-chip memory for instructions. */
@@ -22,8 +24,9 @@ class MemoryPlugin(romInit: Seq[BigInt] = Seq.fill(TConsts.RomWords)(BigInt(0)))
   private var exeWrCmd: Flow[MemWriteCmd] = null
   private var chanRdCmd: Flow[MemReadCmd] = null
   private var chanWrCmd: Flow[MemWriteCmd] = null
+  private val retain = Retainer()
 
-  override def setup(): Unit = {
+  during setup new Area {
     rom = Mem(Bits(Global.WORD_BITS bits), Global.ROM_WORDS)
     rom.initBigInt(romInit)
     ram = Mem(Bits(Global.WORD_BITS bits), Global.RAM_WORDS)
@@ -70,9 +73,11 @@ class MemoryPlugin(romInit: Seq[BigInt] = Seq.fill(TConsts.RomWords)(BigInt(0)))
       override def rom: Mem[Bits] = MemoryPlugin.this.rom
       override def ram: Mem[Bits] = MemoryPlugin.this.ram
     })
+    retain()
   }
 
-  override def build(): Unit = {
+  during build new Area {
+    retain.await()
     val busArb = new t800.LinkBusArbiter
     busArb.io.exeRd << exeRdCmd
     busArb.io.exeWr << exeWrCmd
