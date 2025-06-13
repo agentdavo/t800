@@ -220,7 +220,8 @@ details.
 #### Common runtime errors
 
 * **NO DRIVER ON** – a combinational signal has no assignment. Give it a
-  default value before any `when` branches.
+  default value before any `when` branches. For `Flow`/`Stream`, call
+  `.setIdle()` during setup.
 * **LATCH DETECTED** – incomplete assignments infer latches. Ensure every path
   assigns a value, or add a `default` case in `switch`/`mux` constructs.
 * **NullPointerException** – referencing hardware before `val` initialization

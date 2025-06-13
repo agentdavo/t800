@@ -17,8 +17,10 @@ class ChannelPlugin extends FiberPlugin {
     pins = ChannelPins(TConsts.LinkCount)
     rxVec = Vec.fill(TConsts.LinkCount)(Stream(Bits(TConsts.WordBits bits)))
     txVec = Vec.fill(TConsts.LinkCount)(Stream(Bits(TConsts.WordBits bits)))
+    rxVec.foreach(_.setIdle())
+    txVec.foreach(_.setIdle())
     rxVec.foreach(_.ready := False)
-    cmdStream = Stream(ChannelTxCmd())
+    cmdStream = Stream(ChannelTxCmd()).setIdle()
     busyVec = Vec.fill(TConsts.LinkCount)(Reg(Bool()) init False)
     addService(new ChannelSrv {
       override def txReady(link: UInt): Bool = txVec(link).ready
