@@ -2,9 +2,15 @@ package t800
 
 import spinal.core._
 import t800.plugins._
+import t800.Global
 
 class T800(plugins: Seq[FiberPlugin]) extends Component {
-  val host = new PluginHost
+  val database = new Database
+  val host = Database(database) on new PluginHost
+
+  database.update(Global.WORD_BITS, TConsts.WordBits)
+  database.update(Global.HART_COUNT, 1)
+
   host.asHostOf(plugins)
 }
 

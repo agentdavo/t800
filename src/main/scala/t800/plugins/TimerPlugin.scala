@@ -3,6 +3,7 @@ package t800.plugins
 import spinal.core._
 import spinal.lib._
 import spinal.core.sim._
+import spinal.sim.SimManagerContext
 import t800.TConsts
 
 /** Simple high/low priority timers. High increments every cycle; low every 64 cycles. */
@@ -35,10 +36,14 @@ class TimerPlugin extends FiberPlugin {
         loadVal := value
       }
 
-      override def enableHi(): Unit = hiEn #= true
-      override def enableLo(): Unit = loEn #= true
-      override def disableHi(): Unit = hiEn #= false
-      override def disableLo(): Unit = loEn #= false
+      override def enableHi(): Unit =
+        if (SimManagerContext.current != null) hiEn #= true else hiEn := True
+      override def enableLo(): Unit =
+        if (SimManagerContext.current != null) loEn #= true else loEn := True
+      override def disableHi(): Unit =
+        if (SimManagerContext.current != null) hiEn #= false else hiEn := False
+      override def disableLo(): Unit =
+        if (SimManagerContext.current != null) loEn #= false else loEn := False
     })
   }
 
