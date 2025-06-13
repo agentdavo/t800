@@ -54,6 +54,21 @@ class T800Core
 
 object T800CoreVerilog {
   def main(args: Array[String]): Unit = {
-    SpinalVerilog(new T800Core)
+    SpinalVerilog {
+      val host = new PluginHost
+      val plugins = Seq(
+        new StackPlugin,
+        new PipelinePlugin,
+        new MemoryPlugin,
+        new FetchPlugin,
+        new ExecutePlugin,
+        new FpuPlugin,
+        new SchedulerPlugin,
+        new TimerPlugin
+      )
+      PluginHost(host).on {
+        new T800(host, plugins)
+      }
+    }
   }
 }
