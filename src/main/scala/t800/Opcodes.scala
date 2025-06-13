@@ -2,6 +2,76 @@ package t800
 
 import spinal.core._
 
+/** Enumerations for the T800 instruction set.
+  */
+object PrimaryOp extends SpinalEnum(binarySequential) {
+
+  /** Primary opcodes in numerical order. */
+  val J, LDLP, PFIX, LDNL, LDC, LDNLP, NFIX, LDL, ADC, CALL, CJ, AJW, EQC, STL, STNL, OPR =
+    newElement()
+
+  def fromBits(bits: Bits): PrimaryOp.C = {
+    val ret = PrimaryOp()
+    ret.assignFromBits(bits)
+    ret
+  }
+}
+
+object SecondaryOp extends SpinalEnum(binarySequential) {
+  val REV, ADD, SUB, AND, XOR, SHL, SHR, IN, OUT, RET, STARTP, TESTERR, ALT, ALTWT, ALTEND, STLB,
+    STHB, STLF, STHF, MINT, STTIMER, LDTIMER, TIMERDISABLEH, TIMERDISABLEL, TIMERENABLEH,
+    TIMERENABLEL, CLRHALTERR, SETHALTERR, TESTHALTERR, DUP, POP, LB, OUTBYTE, OUTWORD, MOVE, LDPI,
+    FPADD, FPSUB, FPMUL, FPDIV, UNKNOWN = newElement()
+
+  def fromBits(bits: Bits): SecondaryOp.C = {
+    val ret = SecondaryOp()
+    switch(bits) {
+      is(B(0x00, 8 bits)) { ret := REV }
+      is(B(0x05, 8 bits)) { ret := ADD }
+      is(B(0x0c, 8 bits)) { ret := SUB }
+      is(B(0x46, 8 bits)) { ret := AND }
+      is(B(0x33, 8 bits)) { ret := XOR }
+      is(B(0x41, 8 bits)) { ret := SHL }
+      is(B(0x40, 8 bits)) { ret := SHR }
+      is(B(0x07, 8 bits)) { ret := IN }
+      is(B(0x0b, 8 bits)) { ret := OUT }
+      is(B(0x20, 8 bits)) { ret := RET }
+      is(B(0x0d, 8 bits)) { ret := STARTP }
+      is(B(0x29, 8 bits)) { ret := TESTERR }
+      is(B(0x43, 8 bits)) { ret := ALT }
+      is(B(0x44, 8 bits)) { ret := ALTWT }
+      is(B(0x45, 8 bits)) { ret := ALTEND }
+      is(B(0x17, 8 bits)) { ret := STLB }
+      is(B(0x50, 8 bits)) { ret := STHB }
+      is(B(0x1c, 8 bits)) { ret := STLF }
+      is(B(0x18, 8 bits)) { ret := STHF }
+      is(B(0x42, 8 bits)) { ret := MINT }
+      is(B(0x54, 8 bits)) { ret := STTIMER }
+      is(B(0x22, 8 bits)) { ret := LDTIMER }
+      is(B(0x7a, 8 bits)) { ret := TIMERDISABLEH }
+      is(B(0x7b, 8 bits)) { ret := TIMERDISABLEL }
+      is(B(0x7c, 8 bits)) { ret := TIMERENABLEH }
+      is(B(0x7d, 8 bits)) { ret := TIMERENABLEL }
+      is(B(0x57, 8 bits)) { ret := CLRHALTERR }
+      is(B(0x58, 8 bits)) { ret := SETHALTERR }
+      is(B(0x59, 8 bits)) { ret := TESTHALTERR }
+      is(B(0x5a, 8 bits)) { ret := DUP }
+      is(B(0x79, 8 bits)) { ret := POP }
+      is(B(0x01, 8 bits)) { ret := LB }
+      is(B(0x0e, 8 bits)) { ret := OUTBYTE }
+      is(B(0x0f, 8 bits)) { ret := OUTWORD }
+      is(B(0x4a, 8 bits)) { ret := MOVE }
+      is(B(0x1b, 8 bits)) { ret := LDPI }
+      is(B(0x87, 8 bits)) { ret := FPADD }
+      is(B(0x89, 8 bits)) { ret := FPSUB }
+      is(B(0x8b, 8 bits)) { ret := FPMUL }
+      is(B(0x8c, 8 bits)) { ret := FPDIV }
+      default { ret := UNKNOWN }
+    }
+    ret
+  }
+}
+
 /** Primary and secondary opcode definitions for the T800 ISA. */
 object Opcodes {
   object Primary {

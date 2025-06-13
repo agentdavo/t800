@@ -3,6 +3,7 @@ package t800
 import spinal.core._
 import spinal.lib.misc.database.Database
 import spinal.lib.misc.pipeline._
+import t800.{PrimaryOp, SecondaryOp}
 
 /** Global configuration elements accessed via [[Database]]. Plugins should use these handles rather
   * than constants in [[TConsts]].
