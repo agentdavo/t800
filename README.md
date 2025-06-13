@@ -178,3 +178,5 @@ For more advanced features, see `doc/spinalHDL.html`.
 
 See `doc/hello_world.md` for a minimal boot example that sends a
 "hello world" string over a link using newly supported instructions.
+An overview of the link services and the upcoming VCP design lives in
+`doc/link_architecture.md`.

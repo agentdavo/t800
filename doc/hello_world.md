@@ -19,3 +19,6 @@ stream ID and length, followed by the string bytes.
 
 The code makes use of several of the newly implemented operations such
 as `ldpi`, `outbyte`, `outword`, `lb`, `dup` and `pop`.
+
+See `link_architecture.md` for details on how the channel services and
+future VCP will interact with memory.
