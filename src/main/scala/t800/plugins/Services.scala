@@ -3,7 +3,7 @@ package t800.plugins
 import spinal.core._
 import spinal.lib._
 
-trait LinkPins extends Area
+trait LinkPins
 trait DebugPins extends Area
 trait ExtMemPins extends Area
 
@@ -11,6 +11,11 @@ trait StackSrv {
   val A: UInt
   val B: UInt
   val C: UInt
+  val O: UInt
+  val WPtr: UInt
+  val IPtr: UInt
+  def read(offset: SInt): UInt
+  def write(offset: SInt, data: UInt): Unit
 }
 
 trait FpuSrv {
@@ -18,10 +23,54 @@ trait FpuSrv {
   def rsp: Flow[UInt]
 }
 
+case class SchedCmd() extends Bundle {
+  val ptr = UInt(t800.TConsts.AddrBits bits)
+  val high = Bool()
+}
+
 trait SchedSrv {
-  def ctrl: Flow[Bits]
+  def newProc: Flow[SchedCmd]
+  def nextProc: UInt
 }
 
 trait TimerSrv {
-  def ctrl: Flow[Bits]
+  def hi: UInt
+  def lo: UInt
+  def set(value: UInt): Unit
+}
+
+trait InstrBusSrv {
+  def cmd: Flow[t800.MemReadCmd]
+  def rsp: Flow[Bits]
+}
+
+trait DataBusSrv {
+  def rdCmd: Flow[t800.MemReadCmd]
+  def rdRsp: Flow[Bits]
+  def wrCmd: Flow[t800.MemWriteCmd]
+}
+
+trait LinkBusSrv {
+  def rdCmd: Flow[t800.MemReadCmd]
+  def rdRsp: Flow[Bits]
+  def wrCmd: Flow[t800.MemWriteCmd]
+}
+
+trait MemAccessSrv {
+  def rom: Mem[Bits]
+  def ram: Mem[Bits]
+}
+
+case class ChannelPins(count: Int) extends Bundle with LinkPins {
+  val in = Vec(slave Stream (Bits(t800.TConsts.WordBits bits)), count)
+  val out = Vec(master Stream (Bits(t800.TConsts.WordBits bits)), count)
+}
+
+trait ChannelSrv {
+  def rx: Vec[Stream[Bits]]
+  def tx: Vec[Stream[Bits]]
+}
+
+trait ChannelPinsSrv {
+  def pins: ChannelPins
 }

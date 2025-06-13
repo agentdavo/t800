@@ -12,9 +12,13 @@ class T800Core
     extends T800(
       Seq(
         new StackPlugin,
-        new DecodeExecutePlugin,
+        new PipelinePlugin,
+        new MemoryPlugin,
+        new FetchPlugin,
+        new ExecutePlugin,
         new FpuPlugin,
-        new SchedulerPlugin
+        new SchedulerPlugin,
+        new TimerPlugin
       )
     )
 

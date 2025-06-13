@@ -51,7 +51,7 @@ sbt "runMain t800.TopVerilog --variant=min"
 
 | Stage                   | Command                                                            |
 | ----------------------- | ------------------------------------------------------------------ |
-| Style                   | `sbt scalafmtAll`                                                  |
+| Style                   | `sbt scalafmtAll`                                   
 | Tests (full variant)    | `sbt test`                                                         |
 | Verilog (both variants) | `sbt "runMain t800.TopVerilog --variant=min"` and `--variant=full` |
 | Nightly timing          | see `.github/workflows/ci.yml`                                     |
@@ -169,3 +169,32 @@ Golden rules:
 | DebugPlugin     | QA          |
 
 ---
+
+## 11 Hierarchy rules
+
+Signals may only be read in the component where they are defined or in its
+children. Assignments are restricted to the owner component and outputs of its
+children. Accessing a sibling's signal directly causes a **Hierarchy Violation**
+error. Expose functionality through services or explicit I/O bundles to share
+state between plugins.
+
+---
+
+## 12 Simulation quick‑start
+
+Use SpinalHDL's built-in simulator for unit tests. The typical pattern is
+
+```scala
+import spinal.core._
+import spinal.core.sim._
+
+SimConfig.withWave.compile(new MyCore).doSim { dut =>
+  dut.clockDomain.forkStimulus(10)
+  SimTimeout(1000)
+  // stimuli here
+}
+```
+
+Wave files are written under `simWorkspace/`. Select the backend with
+`withVerilator`, `withGhdl`, or `withIVerilog`. See `doc/spinalHDL.html` for
+details.

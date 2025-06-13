@@ -25,16 +25,18 @@ class FpCmd(opBits: Int = 3) extends Bundle {
 }
 
 class FpuPlugin extends FiberPlugin {
-  val pipe = Flow(new FpCmd)
-  val rsp = Flow(UInt(TConsts.WordBits bits))
+  private var pipeReg: Flow[FpCmd] = null
+  private var rspReg: Flow[UInt] = null
 
   override def setup(): Unit = {
-    pipe.valid := False
-    rsp.valid := False
-    rsp.payload := U(0)
+    pipeReg = Flow(new FpCmd)
+    rspReg = Flow(UInt(TConsts.WordBits bits))
+    pipeReg.valid := False
+    rspReg.valid := False
+    rspReg.payload := U(0)
     addService(new FpuSrv {
-      override def pipe = FpuPlugin.this.pipe
-      override def rsp = FpuPlugin.this.rsp
+      override def pipe = pipeReg
+      override def rsp = rspReg
     })
   }
 }
