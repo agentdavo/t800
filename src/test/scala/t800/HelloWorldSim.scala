@@ -14,18 +14,18 @@ object HelloWorldSim {
     ).map(BigInt(_))
     SimConfig.withWave
       .compile {
-        PluginHost.on {
-          val host = new PluginHost
-          val p = Seq(
-            new StackPlugin,
-            new PipelinePlugin,
-            new MemoryPlugin(romInit),
-            new FetchPlugin,
-            new ExecutePlugin,
-            new ChannelPlugin,
-            new SchedulerPlugin,
-            new TimerPlugin
-          )
+        val host = new PluginHost
+        val p = Seq(
+          new StackPlugin,
+          new PipelinePlugin,
+          new MemoryPlugin(romInit),
+          new FetchPlugin,
+          new ExecutePlugin,
+          new ChannelPlugin,
+          new SchedulerPlugin,
+          new TimerPlugin
+        )
+        PluginHost(host).on {
           new T800(host, p)
         }
       }
