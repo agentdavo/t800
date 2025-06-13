@@ -42,4 +42,8 @@ class StackPlugin extends FiberPlugin {
     })
     retain()
   }
+
+  during build new Area {
+    retain.await()
+  }
 }
