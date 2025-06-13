@@ -33,7 +33,9 @@ class FpuPlugin extends FiberPlugin {
 
   during setup new Area {
     pipeReg = Flow(new FpCmd)
+    pipeReg.setIdle()
     rspReg = Flow(UInt(Global.WORD_BITS bits))
+    rspReg.setIdle()
     addService(new FpuSrv {
       override def pipe = pipeReg
       override def rsp = rspReg
