@@ -17,9 +17,6 @@ class SchedulerPlugin extends FiberPlugin {
 
   override def setup(): Unit = {
     cmdReg = Flow(SchedCmd())
-    cmdReg.valid := False
-    cmdReg.payload.ptr := U(0)
-    cmdReg.payload.high := False
 
     hiQ = Vec.fill(TConsts.LinkCount)(Reg(UInt(TConsts.AddrBits bits)) init 0)
     hiHead = Reg(UInt(log2Up(TConsts.LinkCount) bits)) init 0

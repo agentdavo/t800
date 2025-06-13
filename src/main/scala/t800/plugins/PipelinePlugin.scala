@@ -30,6 +30,10 @@ class PipelinePlugin extends FiberPlugin {
     memoryReg = pipeline.ctrl(3)
     writeBackReg = pipeline.ctrl(4)
     instrPayload = Payload(Bits(8 bits))
+    // Touch isFiring early so StageCtrlPipeline can drive it during build
+    Seq(fetchReg, decodeReg, executeReg, memoryReg, writeBackReg).foreach(_.down.isFiring)
+    // Pre-create the instruction payload across stages
+    Seq(fetchReg, decodeReg, executeReg, memoryReg, writeBackReg).foreach(_(instrPayload))
   }
   def fetch: CtrlLink = fetchReg
   def decode: CtrlLink = decodeReg

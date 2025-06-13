@@ -13,9 +13,11 @@ class FetchPlugin extends FiberPlugin {
     val stack = Plugin[StackSrv]
 
     imem.cmd.valid := True
-    imem.cmd.payload.addr := stack.IPtr
+    val addr = stack.IPtr
+    imem.cmd.payload.addr := (addr >> 2).resized
     pipe.fetch.haltWhen(!imem.rsp.valid)
     when(pipe.fetch.down.isFiring) { stack.IPtr := stack.IPtr + 1 }
-    pipe.fetch(pipe.INSTR) := imem.rsp.payload(7 downto 0)
+    val shift = addr(1 downto 0) * 8
+    pipe.fetch(pipe.INSTR) := (imem.rsp.payload >> shift)(7 downto 0)
   }
 }

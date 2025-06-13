@@ -6,7 +6,8 @@ import spinal.core.sim._
 import t800.{MemReadCmd, MemWriteCmd, TConsts}
 
 /** Simple on-chip memory for instructions. */
-class MemoryPlugin extends FiberPlugin {
+class MemoryPlugin(romInit: Seq[BigInt] = Seq.fill(TConsts.RomWords)(BigInt(0)))
+    extends FiberPlugin {
   private var rom: Mem[Bits] = null
   private var ram: Mem[Bits] = null
   private var instrCmdReg: Flow[MemReadCmd] = null
@@ -20,6 +21,7 @@ class MemoryPlugin extends FiberPlugin {
 
   override def setup(): Unit = {
     rom = Mem(Bits(TConsts.WordBits bits), TConsts.RomWords)
+    rom.initBigInt(romInit)
     ram = Mem(Bits(TConsts.WordBits bits), TConsts.RamWords)
     rom.simPublic()
     ram.simPublic()
@@ -31,21 +33,8 @@ class MemoryPlugin extends FiberPlugin {
     linkRdCmdReg = Flow(MemReadCmd())
     linkRdRspReg = Flow(Bits(TConsts.WordBits bits))
     linkWrCmdReg = Flow(MemWriteCmd())
-    instrCmdReg.valid := False
-    instrCmdReg.payload.addr := U(0)
-    instrRspReg.valid := False
-    instrRspReg.payload := B(0, TConsts.WordBits bits)
-    dataRdCmdReg.valid := False
-    dataRdCmdReg.payload.addr := U(0)
-    dataRdRspReg.valid := False
-    dataRdRspReg.payload := B(0, TConsts.WordBits bits)
-    dataWrCmdReg.valid := False
-    dataWrCmdReg.payload.addr := U(0)
-    dataWrCmdReg.payload.data := B(0, TConsts.WordBits bits)
     linkRdCmdReg.valid := False
     linkRdCmdReg.payload.addr := U(0)
-    linkRdRspReg.valid := False
-    linkRdRspReg.payload := B(0, TConsts.WordBits bits)
     linkWrCmdReg.valid := False
     linkWrCmdReg.payload.addr := U(0)
     linkWrCmdReg.payload.data := B(0, TConsts.WordBits bits)

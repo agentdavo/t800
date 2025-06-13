@@ -9,7 +9,7 @@
 | Path | Description |
 |------|-------------|
 | `src/main/scala/t800/plugins/` | Each file is a `FiberPlugin` subsystem |
-| `src/main/scala/t800/Top.scala` | Builds `PluginHost`, selects plugin list with `--variant=` |
+| `src/main/scala/t800/Top.scala` | Builds the `PluginHost` and plugin list |
 | `src/test/scala/t800/` | ScalaTest units + SpinalSim benches |
 | `ext/SpinalHDL/` | Upstream library as git sub-module |
 | `doc/spinalHDL.html` | SpinalSim + SpinalHDL documentation |
@@ -19,12 +19,9 @@
 ## 2 Development quick-ref
 
 ```bash
-# default (full) variant
+# build and run
 sbt test
 sbt "runMain t800.TopVerilog"
-
-# integer-only variant
-sbt "runMain t800.TopVerilog --variant=min"
 ````
 
 ---
@@ -53,7 +50,7 @@ sbt "runMain t800.TopVerilog --variant=min"
 | ----------------------- | ------------------------------------------------------------------ |
 | Style                   | `sbt scalafmtAll`                                   
 | Tests (full variant)    | `sbt test`                                                         |
-| Verilog (both variants) | `sbt "runMain t800.TopVerilog --variant=min"` and `--variant=full` |
+| Verilog | `sbt "runMain t800.TopVerilog"` |
 | Nightly timing          | see `.github/workflows/ci.yml`                                     |
 
 ---
@@ -121,6 +118,17 @@ For strict ordering:
 val lock = Lock()
 buildBefore(lock)   // ensure this plugin finishes first
 ```
+
+### Fiber phases
+
+All `FiberPlugin`s run in two phases:
+
+1. **setup** – declare dependencies or mutate shared state.
+2. **build** – emit hardware once all plugins completed setup.
+
+Use `during setup { ... }` and `during build { ... }` to split the logic. Call
+`awaitBuild()` within setup if you need to resume in the build phase, and
+`buildBefore(lock)` to force ordering between plugins.
 
 ---
 
@@ -198,3 +206,22 @@ SimConfig.withWave.compile(new MyCore).doSim { dut =>
 Wave files are written under `simWorkspace/`. Select the backend with
 `withVerilator`, `withGhdl`, or `withIVerilog`. See `doc/spinalHDL.html` for
 details.
+
+### Debugging tips
+
+* Override `simWorkspace/` via the `SPINALSIM_WORKSPACE` environment variable.
+* `SimConfig.setTestPath(path)` sets the wave output folder; `currentTestPath()`
+  returns it at runtime.
+* `DualSimTracer` captures only the last slice of a failing run.
+* Use `fork { ... }` to spawn concurrent threads. Control time with `sleep(n)`
+  and block on conditions via `waitUntil(expr)` or the ClockDomain helpers
+  like `waitRisingEdge()`.
+
+#### Common runtime errors
+
+* **NO DRIVER ON** – a combinational signal has no assignment. Give it a
+  default value before any `when` branches.
+* **LATCH DETECTED** – incomplete assignments infer latches. Ensure every path
+  assigns a value, or add a `default` case in `switch`/`mux` constructs.
+* **NullPointerException** – referencing hardware before `val` initialization
+  in Scala. Declare signals before using them.
