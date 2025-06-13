@@ -112,6 +112,9 @@ rm -rf "$tmp"
 java  -version | head -n1
 sbt   --script-version
 verilator --version
+
+Run `sudo ./scripts/setup_env.sh` to execute these steps.
+
 ````
 
 ---
