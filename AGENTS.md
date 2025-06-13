@@ -240,6 +240,8 @@ details.
 * Override `simWorkspace/` via the `SPINALSIM_WORKSPACE` environment variable.
 * `SimConfig.setTestPath(path)` sets the wave output folder; `currentTestPath()`
   returns it at runtime.
+* Waveforms and log files are written under the chosen workspace directory,
+  making it easy to inspect multiple test runs.
 * `DualSimTracer` captures only the last slice of a failing run.
 * Use `fork { ... }` to spawn concurrent threads. Control time with `sleep(n)`
   and block on conditions via `waitUntil(expr)` or the ClockDomain helpers
