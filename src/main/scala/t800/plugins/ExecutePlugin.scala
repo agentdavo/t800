@@ -4,7 +4,7 @@ import spinal.core._
 import spinal.lib._
 import spinal.lib.misc.pipeline._
 import t800.{Opcodes, TConsts}
-import t800.plugins.{ChannelSrv, DataBusSrv, SchedSrv, ChannelTxCmd}
+import t800.plugins.{ChannelSrv, DataBusSrv, SchedSrv, ChannelTxCmd, ChannelDmaSrv}
 import scala.util.Try
 
 /** Implements basic ALU instructions and connects to the global pipeline. */
@@ -30,6 +30,7 @@ class ExecutePlugin extends FiberPlugin {
     val timer = Plugin[TimerSrv]
     val fpu = Plugin[FpuSrv]
     val linksOpt = Try(Plugin[ChannelSrv]).toOption
+    val dmaOpt = Try(Plugin[ChannelDmaSrv]).toOption
     val dummy = new ChannelSrv {
       override def txReady(link: UInt): Bool = False
       override def push(link: UInt, data: Bits): Bool = False
@@ -38,6 +39,8 @@ class ExecutePlugin extends FiberPlugin {
       override def rxAck(link: UInt): Unit = {}
     }
     val links = linksOpt.getOrElse(dummy)
+    val dummyDma = new ChannelDmaSrv { def cmd = Stream(ChannelTxCmd()).setIdle() }
+    val dma = dmaOpt.getOrElse(dummyDma)
     val sched = Plugin[SchedSrv]
 
     val inst = pipe.execute(pipe.INSTR)
@@ -53,6 +56,7 @@ class ExecutePlugin extends FiberPlugin {
     sched.newProc.valid := False
     sched.newProc.payload.ptr := U(0)
     sched.newProc.payload.high := False
+    dma.cmd.valid := False
 
     switch(primary) {
       is(Opcodes.Primary.PFIX) {
@@ -237,6 +241,18 @@ class ExecutePlugin extends FiberPlugin {
             val idx = stack.B(1 downto 0)
             val ready = links.push(idx, stack.A.asBits)
             pipe.execute.haltWhen(!ready)
+            when(pipe.execute.down.isFiring) {
+              stack.A := stack.B
+              stack.B := stack.C
+            }
+          }
+          is(Opcodes.Secondary.MOVE) {
+            val dma = Plugin[ChannelDmaSrv]
+            dma.cmd.valid := True
+            dma.cmd.payload.link := stack.B(1 downto 0)
+            dma.cmd.payload.addr := stack.C
+            dma.cmd.payload.length := stack.A
+            pipe.execute.haltWhen(!dma.cmd.ready)
             when(pipe.execute.down.isFiring) {
               stack.A := stack.B
               stack.B := stack.C
