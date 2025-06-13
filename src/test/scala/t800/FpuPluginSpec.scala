@@ -10,7 +10,7 @@ import spinal.lib.misc.plugin.PluginHost
 class FpuDut extends Component {
   val io = new Bundle {
     val cmdValid = in Bool ()
-    val op = in Bits (3 bits)
+    val op = in(FpOp())
     val a = in UInt (32 bits)
     val b = in UInt (32 bits)
     val rspValid = out Bool ()
@@ -33,9 +33,9 @@ class FpuDut extends Component {
 }
 
 class FpuPluginSpec extends AnyFunSuite {
-  private def run(op: Int, a: Int, b: Int): Int = {
+  private def run(op: FpOp.E, a: Int, b: Int): Int = {
     var result = 0
-    SimConfig.compile(new FpuDut).doSim { dut =>
+    SimConfig.compile(PluginHost.on { new FpuDut }).doSim { dut =>
       dut.clockDomain.forkStimulus(10)
       dut.io.cmdValid #= true
       dut.io.op #= op
@@ -50,8 +50,8 @@ class FpuPluginSpec extends AnyFunSuite {
     result
   }
 
-  test("FPADD") { assert(run(0, 3, 4) == 7) }
-  test("FPSUB") { assert(run(1, 9, 5) == 4) }
-  test("FPMUL") { assert(run(2, 3, 5) == 15) }
-  test("FPDIV") { assert(run(3, 8, 2) == 4) }
+  test("FPADD") { assert(run(FpOp.ADD, 3, 4) == 7) }
+  test("FPSUB") { assert(run(FpOp.SUB, 9, 5) == 4) }
+  test("FPMUL") { assert(run(FpOp.MUL, 3, 5) == 15) }
+  test("FPDIV") { assert(run(FpOp.DIV, 8, 2) == 4) }
 }
