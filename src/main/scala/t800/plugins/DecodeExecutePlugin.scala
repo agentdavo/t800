@@ -2,32 +2,26 @@ package t800.plugins
 
 import spinal.core._
 import spinal.lib._
+import spinal.lib.misc.pipeline._
 import t800.plugins._
-import t800.TConsts
 
 class DecodeExecutePlugin extends FiberPlugin {
-  val ctrl = Flow(UInt(8 bits))
-
-  override def setup(): Unit = {
-    ctrl.valid := False
-    ctrl.payload := 0
-  }
 
   override def build(): Unit = {
     implicit val h: PluginHost = host
     val stack = Plugin[StackSrv]
-    val fpu = Plugin[FpuSrv]
-    val sched = Plugin[SchedSrv]
-    val timer = Plugin[TimerSrv]
+    val pipe = Plugin[PipelineSrv]
 
-    when(ctrl.valid) {
-      switch(ctrl.payload) {
+    val opcode = pipe.decode.insert(pipe.decode(pipe.INSTR).asUInt)
+
+    when(pipe.execute.down.isFiring) {
+      switch(pipe.execute(opcode)) {
         is(U(0x30, 8 bits)) { // REV
           val tmp = stack.A
           stack.A := stack.B
           stack.B := tmp
         }
-        is(U(0x94, 8 bits)) {
+        is(U(0x94, 8 bits)) { // ADD placeholder
           val sum = stack.A + stack.B
           stack.A := sum
           stack.B := stack.C
