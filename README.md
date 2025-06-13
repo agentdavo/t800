@@ -122,6 +122,11 @@ verilator --version
 git clone --recursive https://github.com/agentdavo/t800.git
 cd t800
 
+# Ensure the bundled SpinalHDL submodule is present when
+# using `SPINALHDL_FROM_SOURCE=1`.
+git submodule update --init --recursive
+./scripts/check-submodules.sh
+
 # Default plugin set
 sbt scalafmtAll
 sbt test
