@@ -5,42 +5,8 @@ import spinal.core.sim._
 import spinal.lib._
 import org.scalatest.funsuite.AnyFunSuite
 import t800.plugins._
-import spinal.lib.misc.plugin.{PluginHost, FiberPlugin}
-
-class DummyTimerPlugin extends FiberPlugin {
-  private var hiReg, loReg: UInt = null
-  during setup new Area {
-    hiReg = Reg(UInt(TConsts.WordBits bits)) init 0
-    loReg = Reg(UInt(TConsts.WordBits bits)) init 0
-    addService(new TimerSrv {
-      override def hi: UInt = hiReg
-      override def lo: UInt = loReg
-      override def set(value: UInt): Unit = {
-        hiReg := value
-        loReg := value
-      }
-      override def enableHi(): Unit = {}
-      override def enableLo(): Unit = {}
-      override def disableHi(): Unit = hiReg := hiReg
-      override def disableLo(): Unit = loReg := loReg
-    })
-  }
-}
-
-class DummyFpuPlugin extends FiberPlugin {
-  private var pipeReg: Flow[FpCmd] = null
-  private var rspReg: Flow[UInt] = null
-  during setup new Area {
-    pipeReg = Flow(new FpCmd())
-    pipeReg.setIdle()
-    rspReg = Flow(UInt(TConsts.WordBits bits))
-    rspReg.setIdle()
-    addService(new FpuSrv {
-      override def pipe: Flow[FpCmd] = pipeReg
-      override def rsp: Flow[UInt] = rspReg
-    })
-  }
-}
+import spinal.lib.misc.plugin.PluginHost
+import t800.{DummyTimerPlugin, DummyFpuPlugin}
 
 class ChannelDmaSpec extends AnyFunSuite {
   test("DMA opcode transfers bytes") {
@@ -56,11 +22,11 @@ class ChannelDmaSpec extends AnyFunSuite {
             new PipelinePlugin,
             new MemoryPlugin(base),
             new FetchPlugin,
-            new ExecutePlugin,
             new ChannelPlugin,
-            new SchedulerPlugin,
             new DummyTimerPlugin,
-            new DummyFpuPlugin
+            new DummyFpuPlugin,
+            new ExecutePlugin,
+            new SchedulerPlugin
           )
           new T800(host, p)
         }
