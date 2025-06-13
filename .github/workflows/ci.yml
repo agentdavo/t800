@@ -26,3 +26,5 @@ jobs:
         run: sbt scalafmtAll
       - name: test
         run: sbt test
+      - name: verilog
+        run: sbt "runMain t800.TopVerilog"
