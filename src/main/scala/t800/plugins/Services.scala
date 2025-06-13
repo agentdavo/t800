@@ -23,7 +23,7 @@ trait FpuSrv {
   def rsp: Flow[UInt]
 
   /** Issue a new FPU command. */
-  def send(op: Bits, a: UInt, b: UInt): Unit = {
+  def send(op: FpOp.E, a: UInt, b: UInt): Unit = {
     pipe.valid := True
     pipe.payload.op := op
     pipe.payload.opa := a

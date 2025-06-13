@@ -8,18 +8,22 @@ import spinal.lib.misc.plugin.FiberPlugin
 import spinal.core.fiber.Retainer
 import t800.Global
 
-class FpCmd(opBits: Int = 3) extends Bundle {
-  val op = Bits(opBits bits)
+object FpOp extends SpinalEnum {
+  val ADD, SUB, MUL, DIV, INVALID = newElement()
+}
+
+class FpCmd() extends Bundle {
+  val op = FpOp()
   val opa = UInt(Global.WORD_BITS bits)
   val opb = UInt(Global.WORD_BITS bits)
   def this(name: String, a: UInt, b: UInt) = {
     this()
     name match {
-      case "FPADD" => op := B"3'b000"
-      case "FPSUB" => op := B"3'b001"
-      case "FPMUL" => op := B"3'b010"
-      case "FPDIV" => op := B"3'b011"
-      case _ => op := B"3'b111"
+      case "FPADD" => op := FpOp.ADD
+      case "FPSUB" => op := FpOp.SUB
+      case "FPMUL" => op := FpOp.MUL
+      case "FPDIV" => op := FpOp.DIV
+      case _ => op := FpOp.INVALID
     }
     opa := a
     opb := b
@@ -60,10 +64,10 @@ class FpuPlugin extends FiberPlugin {
 
     val resultCalc = UInt(Global.WORD_BITS bits)
     switch(n1(OP)) {
-      is(B"000") { resultCalc := (n1(A) + n1(B)).resized }
-      is(B"001") { resultCalc := (n1(A) - n1(B)).resized }
-      is(B"010") { resultCalc := (n1(A) * n1(B)).resized }
-      is(B"011") { resultCalc := (n1(A) / n1(B)).resized }
+      is(FpOp.ADD) { resultCalc := (n1(A) + n1(B)).resized }
+      is(FpOp.SUB) { resultCalc := (n1(A) - n1(B)).resized }
+      is(FpOp.MUL) { resultCalc := (n1(A) * n1(B)).resized }
+      is(FpOp.DIV) { resultCalc := (n1(A) / n1(B)).resized }
       default { resultCalc := 0 }
     }
     val RESULT = n1.insert(resultCalc)

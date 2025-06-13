@@ -271,7 +271,7 @@ class ExecutePlugin extends FiberPlugin {
             stack.A := stack.A + stack.IPtr
           }
           is(Opcodes.Secondary.FPADD) {
-            fpu.send(B"3'b000", stack.A, stack.B)
+            fpu.send(FpOp.ADD, stack.A, stack.B)
             pipe.execute.haltWhen(!fpu.resultValid)
             when(pipe.execute.down.isFiring) {
               stack.A := fpu.result
@@ -279,7 +279,7 @@ class ExecutePlugin extends FiberPlugin {
             }
           }
           is(Opcodes.Secondary.FPSUB) {
-            fpu.send(B"3'b001", stack.A, stack.B)
+            fpu.send(FpOp.SUB, stack.A, stack.B)
             pipe.execute.haltWhen(!fpu.resultValid)
             when(pipe.execute.down.isFiring) {
               stack.A := fpu.result
@@ -287,7 +287,7 @@ class ExecutePlugin extends FiberPlugin {
             }
           }
           is(Opcodes.Secondary.FPMUL) {
-            fpu.send(B"3'b010", stack.A, stack.B)
+            fpu.send(FpOp.MUL, stack.A, stack.B)
             pipe.execute.haltWhen(!fpu.resultValid)
             when(pipe.execute.down.isFiring) {
               stack.A := fpu.result
@@ -295,7 +295,7 @@ class ExecutePlugin extends FiberPlugin {
             }
           }
           is(Opcodes.Secondary.FPDIV) {
-            fpu.send(B"3'b011", stack.A, stack.B)
+            fpu.send(FpOp.DIV, stack.A, stack.B)
             pipe.execute.haltWhen(!fpu.resultValid)
             when(pipe.execute.down.isFiring) {
               stack.A := fpu.result
