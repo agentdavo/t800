@@ -19,6 +19,7 @@ class TimerPlugin extends FiberPlugin {
   private val retain = Retainer()
 
   during setup new Area {
+    println(s"[${TimerPlugin.this.getDisplayName()}] setup start")
     hiTimer = Reg(UInt(Global.WORD_BITS bits)) init (0)
     loTimer = Reg(UInt(Global.WORD_BITS bits)) init (0)
     loCnt = Reg(UInt(6 bits)) init (0)
@@ -44,9 +45,11 @@ class TimerPlugin extends FiberPlugin {
       override def disableLo(): Unit = loEn #= false
     })
     retain()
+    println(s"[${TimerPlugin.this.getDisplayName()}] setup end")
   }
 
   during build new Area {
+    println(s"[${TimerPlugin.this.getDisplayName()}] build start")
     retain.await()
     when(loadReq) {
       hiTimer := loadVal
@@ -66,5 +69,6 @@ class TimerPlugin extends FiberPlugin {
     }
 
     when(loadReq) { loadReq := False }
+    println(s"[${TimerPlugin.this.getDisplayName()}] build end")
   }
 }

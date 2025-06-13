@@ -16,6 +16,7 @@ class StackPlugin extends FiberPlugin {
   private val retain = Retainer()
 
   during setup new Area {
+    println(s"[${StackPlugin.this.getDisplayName()}] setup start")
     regA = Reg(UInt(Global.WORD_BITS bits)) init 0
     regB = Reg(UInt(Global.WORD_BITS bits)) init 0
     regC = Reg(UInt(Global.WORD_BITS bits)) init 0
@@ -41,9 +42,12 @@ class StackPlugin extends FiberPlugin {
       }
     })
     retain()
+    println(s"[${StackPlugin.this.getDisplayName()}] setup end")
   }
 
   during build new Area {
+    println(s"[${StackPlugin.this.getDisplayName()}] build start")
     retain.await()
+    println(s"[${StackPlugin.this.getDisplayName()}] build end")
   }
 }
