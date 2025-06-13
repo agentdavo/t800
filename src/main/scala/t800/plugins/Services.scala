@@ -21,6 +21,20 @@ trait StackSrv {
 trait FpuSrv {
   def pipe: Flow[FpCmd]
   def rsp: Flow[UInt]
+
+  /** Issue a new FPU command. */
+  def send(op: Bits, a: UInt, b: UInt): Unit = {
+    pipe.valid := True
+    pipe.payload.op := op
+    pipe.payload.opa := a
+    pipe.payload.opb := b
+  }
+
+  /** Result of the previously issued command. */
+  def result: UInt = rsp.payload
+
+  /** True when a result is available. */
+  def resultValid: Bool = rsp.valid
 }
 
 case class SchedCmd() extends Bundle {
