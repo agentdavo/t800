@@ -84,9 +84,37 @@ Open **one** milestone per PR branch (`feat/m1-alu`, etc.).
 Closes #42
 ```
 
+## 7\u2003Pull-request management
+
+All development occurs on feature branches. Direct commits to `main` are
+forbidden.
+
+### Automatic conflict resolution
+
+1. `git fetch origin && git rebase origin/main`
+2. If the rebase succeeds with no conflicts, push fast-forward.
+3. If conflicts remain, run `codex resolve-conflicts`.
+
+Preferred strategy:
+
+* Use `main` versions for lock or generated files.
+* For pure-format updates, re-run formatters then commit.
+* Keep both sides for code conflicts, merge manually and rerun `npm test` and
+  `pytest`.
+
+Codex may run:
+
+```bash
+git fetch origin && git rebase origin/main
+git push
+codex resolve-conflicts
+npm test
+pytest
+```
+
 ---
 
-## 7 Writing a plugin
+## 8 Writing a plugin
 
 ```scala
 package t800.plugins                // mandatory package!
@@ -132,7 +160,7 @@ Use `during setup { ... }` and `during build { ... }` to split the logic. Call
 
 ---
 
-## 8 Pipeline DSL cheat-sheet
+## 9 Pipeline DSL cheat-sheet
 
 | Need             | One-liner                         |
 | ---------------- | --------------------------------- |
@@ -153,7 +181,7 @@ Golden rules:
 
 ---
 
-## 9 Troubleshooting
+## 10 Troubleshooting
 
 | Symptom                       | Explanation & fix                                                               |
 | ----------------------------- | ------------------------------------------------------------------------------- |
@@ -163,7 +191,7 @@ Golden rules:
 
 ---
 
-## 10 Ownership matrix
+## 11 Ownership matrix
 
 | Plugin          | Maintainers |
 | --------------- | ----------- |
@@ -178,7 +206,7 @@ Golden rules:
 
 ---
 
-## 11 Hierarchy rules
+## 12 Hierarchy rules
 
 Signals may only be read in the component where they are defined or in its
 children. Assignments are restricted to the owner component and outputs of its
@@ -188,7 +216,7 @@ state between plugins.
 
 ---
 
-## 12 Simulation quick‑start
+## 13 Simulation quick‑start
 
 Use SpinalHDL's built-in simulator for unit tests. The typical pattern is
 
