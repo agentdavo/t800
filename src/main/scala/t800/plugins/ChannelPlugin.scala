@@ -15,14 +15,14 @@ class ChannelPlugin extends FiberPlugin {
   private var memTx: Vec[Stream[Bits]] = null
 
   override def setup(): Unit = {
-    pins = ChannelPins(Global.LINK_COUNT())
-    rxVec = Vec.fill(Global.LINK_COUNT())(Stream(Bits(Global.WORD_BITS() bits)))
-    txVec = Vec.fill(Global.LINK_COUNT())(Stream(Bits(Global.WORD_BITS() bits)))
+    pins = ChannelPins(Global.LINK_COUNT)
+    rxVec = Vec.fill(Global.LINK_COUNT)(Stream(Bits(Global.WORD_BITS bits)))
+    txVec = Vec.fill(Global.LINK_COUNT)(Stream(Bits(Global.WORD_BITS bits)))
     rxVec.foreach(_.setIdle())
     txVec.foreach(_.setIdle())
     rxVec.foreach(_.ready := False)
     cmdStream = Stream(ChannelTxCmd()).setIdle()
-    busyVec = Vec.fill(Global.LINK_COUNT())(Reg(Bool()) init False)
+    busyVec = Vec.fill(Global.LINK_COUNT)(Reg(Bool()) init False)
     addService(new ChannelSrv {
       override def txReady(link: UInt): Bool = txVec(link).ready
       override def push(link: UInt, data: Bits): Bool = {
@@ -49,19 +49,19 @@ class ChannelPlugin extends FiberPlugin {
     arb.chanWr.payload.addr := U(0)
     arb.chanWr.payload.data := B(0, TConsts.WordBits bits)
 
-    memTx = Vec.fill(Global.LINK_COUNT())(Stream(Bits(Global.WORD_BITS() bits)))
+    memTx = Vec.fill(Global.LINK_COUNT)(Stream(Bits(Global.WORD_BITS bits)))
     memTx.foreach(_.setIdle())
 
-    for (i <- 0 until Global.LINK_COUNT()) {
+    for (i <- 0 until Global.LINK_COUNT) {
       rxVec(i) << pins.in(i)
       val txArb = StreamArbiterFactory.lowerFirst.onArgs(txVec(i), memTx(i))
       pins.out(i) << txArb
     }
 
     cmdStream.ready := !busyVec.reduce(_ || _)
-    val ptr = Reg(UInt(Global.ADDR_BITS() bits)) init 0
-    val remaining = Reg(UInt(Global.ADDR_BITS() bits)) init 0
-    val linkIdx = Reg(UInt(log2Up(Global.LINK_COUNT()) bits)) init 0
+    val ptr = Reg(UInt(Global.ADDR_BITS bits)) init 0
+    val remaining = Reg(UInt(Global.ADDR_BITS bits)) init 0
+    val linkIdx = Reg(UInt(log2Up(Global.LINK_COUNT) bits)) init 0
     val haveByte = Reg(Bool()) init False
     val byteReg = Reg(Bits(8 bits)) init 0
 

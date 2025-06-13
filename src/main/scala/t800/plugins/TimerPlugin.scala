@@ -16,11 +16,11 @@ class TimerPlugin extends FiberPlugin {
   private var loEn: Bool = null
 
   override def setup(): Unit = {
-    hiTimer = Reg(UInt(Global.WORD_BITS() bits)) init (0)
-    loTimer = Reg(UInt(Global.WORD_BITS() bits)) init (0)
+    hiTimer = Reg(UInt(Global.WORD_BITS bits)) init (0)
+    loTimer = Reg(UInt(Global.WORD_BITS bits)) init (0)
     loCnt = Reg(UInt(6 bits)) init (0)
     loadReq = Reg(Bool()) init (False)
-    loadVal = Reg(UInt(Global.WORD_BITS() bits)) init (0)
+    loadVal = Reg(UInt(Global.WORD_BITS bits)) init (0)
     hiEn = Reg(Bool()) init (True)
     loEn = Reg(Bool()) init (True)
     hiTimer.simPublic()

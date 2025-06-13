@@ -38,7 +38,7 @@ trait FpuSrv {
 }
 
 case class SchedCmd() extends Bundle {
-  val ptr = UInt(t800.Global.ADDR_BITS() bits)
+  val ptr = UInt(t800.Global.ADDR_BITS bits)
   val high = Bool()
 }
 
@@ -98,13 +98,13 @@ trait MemAccessSrv {
 
 case class ChannelTxCmd() extends Bundle {
   val link = UInt(2 bits)
-  val addr = UInt(t800.Global.ADDR_BITS() bits)
-  val length = UInt(t800.Global.ADDR_BITS() bits)
+  val addr = UInt(t800.Global.ADDR_BITS bits)
+  val length = UInt(t800.Global.ADDR_BITS bits)
 }
 
 case class ChannelPins(count: Int) extends Bundle with LinkPins {
-  val in = Vec(slave Stream (Bits(t800.Global.WORD_BITS() bits)), count)
-  val out = Vec(master Stream (Bits(t800.Global.WORD_BITS() bits)), count)
+  val in = Vec(slave Stream (Bits(t800.Global.WORD_BITS bits)), count)
+  val out = Vec(master Stream (Bits(t800.Global.WORD_BITS bits)), count)
 }
 
 trait ChannelSrv {

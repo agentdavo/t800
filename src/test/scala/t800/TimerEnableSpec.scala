@@ -13,8 +13,8 @@ class TimerProbePlugin extends FiberPlugin {
   var loOut: UInt = null
 
   override def setup(): Unit = {
-    hiOut = out UInt (Global.WORD_BITS() bits)
-    loOut = out UInt (Global.WORD_BITS() bits)
+    hiOut = out UInt (Global.WORD_BITS bits)
+    loOut = out UInt (Global.WORD_BITS bits)
   }
 
   override def build(): Unit = {

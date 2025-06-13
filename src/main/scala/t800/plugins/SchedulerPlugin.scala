@@ -18,14 +18,14 @@ class SchedulerPlugin extends FiberPlugin {
   override def setup(): Unit = {
     cmdReg = Flow(SchedCmd())
 
-    hiQ = Vec.fill(Global.LINK_COUNT())(Reg(UInt(Global.ADDR_BITS() bits)) init 0)
-    hiHead = Reg(UInt(log2Up(Global.LINK_COUNT()) bits)) init 0
-    hiTail = Reg(UInt(log2Up(Global.LINK_COUNT()) bits)) init 0
-    loQ = Vec.fill(Global.LINK_COUNT())(Reg(UInt(Global.ADDR_BITS() bits)) init 0)
-    loHead = Reg(UInt(log2Up(Global.LINK_COUNT()) bits)) init 0
-    loTail = Reg(UInt(log2Up(Global.LINK_COUNT()) bits)) init 0
+    hiQ = Vec.fill(Global.LINK_COUNT)(Reg(UInt(Global.ADDR_BITS bits)) init 0)
+    hiHead = Reg(UInt(log2Up(Global.LINK_COUNT) bits)) init 0
+    hiTail = Reg(UInt(log2Up(Global.LINK_COUNT) bits)) init 0
+    loQ = Vec.fill(Global.LINK_COUNT)(Reg(UInt(Global.ADDR_BITS bits)) init 0)
+    loHead = Reg(UInt(log2Up(Global.LINK_COUNT) bits)) init 0
+    loTail = Reg(UInt(log2Up(Global.LINK_COUNT) bits)) init 0
 
-    nextReg = Reg(UInt(Global.ADDR_BITS() bits)) init 0
+    nextReg = Reg(UInt(Global.ADDR_BITS bits)) init 0
 
     addService(new SchedSrv {
       override def newProc: Flow[SchedCmd] = cmdReg

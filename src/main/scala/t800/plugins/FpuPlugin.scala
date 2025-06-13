@@ -9,8 +9,8 @@ import t800.Global
 
 class FpCmd(opBits: Int = 3) extends Bundle {
   val op = Bits(opBits bits)
-  val opa = UInt(Global.WORD_BITS() bits)
-  val opb = UInt(Global.WORD_BITS() bits)
+  val opa = UInt(Global.WORD_BITS bits)
+  val opb = UInt(Global.WORD_BITS bits)
   def this(name: String, a: UInt, b: UInt) = {
     this()
     name match {
@@ -31,7 +31,7 @@ class FpuPlugin extends FiberPlugin {
 
   override def setup(): Unit = {
     pipeReg = Flow(new FpCmd)
-    rspReg = Flow(UInt(Global.WORD_BITS() bits))
+    rspReg = Flow(UInt(Global.WORD_BITS bits))
     addService(new FpuSrv {
       override def pipe = pipeReg
       override def rsp = rspReg
@@ -49,7 +49,7 @@ class FpuPlugin extends FiberPlugin {
     val A = n0.insert(pipeReg.payload.opa)
     val B = n0.insert(pipeReg.payload.opb)
 
-    val resultCalc = UInt(Global.WORD_BITS() bits)
+    val resultCalc = UInt(Global.WORD_BITS bits)
     switch(n1(OP)) {
       is(B"000") { resultCalc := (n1(A) + n1(B)).resized }
       is(B"001") { resultCalc := (n1(A) - n1(B)).resized }
