@@ -165,6 +165,21 @@ in that component or to outputs of children. Breaking these rules triggers a
 `Hierarchy Violation` error during elaboration. Expose required signals via
 services or bundles instead of cross-plugin references.
 
+## SpinalHDL design checks
+
+The compiler catches a wide range of design mistakes:
+
+* Assignment overlapping
+* Clock domain crossing mistakes
+* Hierarchy violations
+* Combinatorial loops
+* Latches
+* Undriven signals
+* Width mismatches
+* Unreachable switch statements
+
+Each report includes a stack trace to pinpoint the offending code.
+
 ---
 
 ## Simulation with SpinalSim
