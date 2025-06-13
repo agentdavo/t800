@@ -12,6 +12,8 @@ object T800 {
     val db = new Database
     db(Global.WORD_BITS) = TConsts.WordBits
     db(Global.ADDR_BITS) = TConsts.AddrBits
+    db(Global.PC_BITS) = TConsts.AddrBits
+    db(Global.INSTR_BITS) = 8
     db(Global.ROM_WORDS) = TConsts.RomWords
     db(Global.RAM_WORDS) = TConsts.RamWords
     db(Global.LINK_COUNT) = TConsts.LinkCount
