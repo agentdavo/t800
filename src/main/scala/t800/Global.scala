@@ -1,6 +1,7 @@
 package t800
 
 import spinal.core._
+import spinal.lib.misc.database.Database
 
 /** Global configuration elements accessed via [[Database]]. Plugins should use these handles rather
   * than constants in [[TConsts]].

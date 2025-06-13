@@ -16,10 +16,10 @@ class ExecutePlugin extends FiberPlugin {
   override def setup(): Unit = {
     errReg = Reg(Bool()) init (False)
     haltErr = Reg(Bool()) init (False)
-    hiFPtr = Reg(UInt(Global.WORD_BITS() bits)) init (0)
-    hiBPtr = Reg(UInt(Global.WORD_BITS() bits)) init (0)
-    loFPtr = Reg(UInt(Global.WORD_BITS() bits)) init (0)
-    loBPtr = Reg(UInt(Global.WORD_BITS() bits)) init (0)
+    hiFPtr = Reg(UInt(Global.WORD_BITS bits)) init (0)
+    hiBPtr = Reg(UInt(Global.WORD_BITS bits)) init (0)
+    loFPtr = Reg(UInt(Global.WORD_BITS bits)) init (0)
+    loBPtr = Reg(UInt(Global.WORD_BITS bits)) init (0)
   }
 
   override def build(): Unit = {
@@ -36,7 +36,7 @@ class ExecutePlugin extends FiberPlugin {
       override def txReady(link: UInt): Bool = False
       override def push(link: UInt, data: Bits): Bool = False
       override def rxValid(link: UInt): Bool = False
-      override def rxPayload(link: UInt): Bits = B(0, Global.WORD_BITS() bits)
+      override def rxPayload(link: UInt): Bits = B(0, Global.WORD_BITS bits)
       override def rxAck(link: UInt): Unit = {}
     }
     val links = linksOpt.getOrElse(dummy)
@@ -53,7 +53,7 @@ class ExecutePlugin extends FiberPlugin {
     arb.exeRd.payload.addr := U(0)
     arb.exeWr.valid := False
     arb.exeWr.payload.addr := U(0)
-    arb.exeWr.payload.data := B(0, Global.WORD_BITS() bits)
+    arb.exeWr.payload.data := B(0, Global.WORD_BITS bits)
     sched.newProc.valid := False
     sched.newProc.payload.ptr := U(0)
     sched.newProc.payload.high := False
@@ -226,7 +226,7 @@ class ExecutePlugin extends FiberPlugin {
             when(pipe.execute.down.isFiring) {
               val shift = addr(1 downto 0) * 8
               val byte = (mem.rdRsp.payload >> shift).resize(8)
-              stack.A := byte.asUInt.resize(Global.WORD_BITS())
+              stack.A := byte.asUInt.resize(Global.WORD_BITS)
             }
           }
           is(Opcodes.Secondary.OUTBYTE) {
