@@ -4,10 +4,10 @@ import spinal.core._
 
 /** Generic memory port command definitions. */
 case class MemReadCmd() extends Bundle {
-  val addr = UInt(TConsts.AddrBits bits)
+  val addr = UInt(Global.ADDR_BITS() bits)
 }
 
 case class MemWriteCmd() extends Bundle {
-  val addr = UInt(TConsts.AddrBits bits)
-  val data = Bits(TConsts.WordBits bits)
+  val addr = UInt(Global.ADDR_BITS() bits)
+  val data = Bits(Global.WORD_BITS() bits)
 }
