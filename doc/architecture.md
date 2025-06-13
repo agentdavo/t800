@@ -33,8 +33,7 @@ instruction and data bus services implemented by `MemoryPlugin`. When the FPU is
 enabled, the execute stage issues commands through `FpuPlugin`'s pipeline
 interface and waits for results using the pipeline DSL's `haltWhen` mechanism.
 
-`TopVerilog` assembles different plugin sets depending on the `--variant`
-argument.
+`TopVerilog` builds a single plugin set for simulation and synthesis.
 
 ## Integration concepts
 

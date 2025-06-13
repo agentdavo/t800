@@ -36,7 +36,9 @@ trait SchedSrv {
 trait TimerSrv {
   def hi: UInt
   def lo: UInt
-  def set(value: UInt): Unit
+
+  /** Request to set the timers to a new value. */
+  def set: Flow[UInt]
 }
 
 trait InstrBusSrv {
@@ -61,6 +63,12 @@ trait MemAccessSrv {
   def ram: Mem[Bits]
 }
 
+case class ChannelTxCmd() extends Bundle {
+  val link = UInt(2 bits)
+  val addr = UInt(t800.TConsts.AddrBits bits)
+  val length = UInt(t800.TConsts.AddrBits bits)
+}
+
 case class ChannelPins(count: Int) extends Bundle with LinkPins {
   val in = Vec(slave Stream (Bits(t800.TConsts.WordBits bits)), count)
   val out = Vec(master Stream (Bits(t800.TConsts.WordBits bits)), count)
@@ -69,6 +77,8 @@ case class ChannelPins(count: Int) extends Bundle with LinkPins {
 trait ChannelSrv {
   def rx: Vec[Stream[Bits]]
   def tx: Vec[Stream[Bits]]
+  def txCmd: Stream[ChannelTxCmd]
+  def busy: Vec[Bool]
 }
 
 trait ChannelPinsSrv {

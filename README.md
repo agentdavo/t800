@@ -11,6 +11,7 @@ This project re-implements the INMOS T800/T9000 CPU in modern SpinalHDL.
 * **Plugins** – every subsystem (FPU, Scheduler …) is a hot-swappable `FiberPlugin`.
 * **Pipeline DSL** – build safe, stall/flush-aware pipelines with one-liners.
 * **Fibers** – allow out-of-order elaboration so plugins can depend on each other.
+* **Fiber phases** – each plugin runs a `setup` block before hardware `build`; use `awaitBuild()` or `buildBefore()` to coordinate ordering.
 
 ---
 
@@ -118,9 +119,6 @@ cd t800
 # Default plugin set
 sbt test
 sbt "runMain t800.TopVerilog"
-
-# Integer-only build (nofpu)
-sbt "runMain t800.TopVerilog --variant=min"
 ```
 
 ---
@@ -176,5 +174,16 @@ Icarus can be selected via `withGhdl` or `withIVerilog`.
 
 For more advanced features, see `doc/spinalHDL.html`.
 
-See `doc/hello_world.md` for a minimal boot example that sends a
-"hello world" string over a link using newly supported instructions.
+### Debugging tips
+
+Simulation artifacts live in `simWorkspace/`. Set the `SPINALSIM_WORKSPACE`
+environment variable to redirect logs and waves. `SimConfig.setTestPath("/tmp")`
+changes the per-test directory, and you can query it with `currentTestPath()`
+during execution. When chasing intermittent failures, use `DualSimTracer` to
+record only a short window before the crash.
+Spawn helper threads with `fork { ... }` and block on events using `sleep(n)` or
+`waitUntil(cond)`. ClockDomain utilities such as `waitRisingEdge()` help align
+checks with clock boundaries. See **AGENTS.md §12** for common runtime errors.
+
+See `doc/hello_world.md` for a quick overview, and `doc/helloworld.md` for the full source listing.
+`HelloWorldSpec` is currently marked with `ignore` until the channel hardware is complete.

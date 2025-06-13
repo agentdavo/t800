@@ -9,28 +9,74 @@ class ChannelPlugin extends FiberPlugin {
   private var pins: ChannelPins = null
   private var rxVec: Vec[Stream[Bits]] = null
   private var txVec: Vec[Stream[Bits]] = null
+  private var cmdStream: Stream[ChannelTxCmd] = null
+  private var busyVec: Vec[Bool] = null
+  private var memTx: Vec[Stream[Bits]] = null
 
   override def setup(): Unit = {
     pins = ChannelPins(TConsts.LinkCount)
     rxVec = Vec.fill(TConsts.LinkCount)(Stream(Bits(TConsts.WordBits bits)))
     txVec = Vec.fill(TConsts.LinkCount)(Stream(Bits(TConsts.WordBits bits)))
-    rxVec.foreach(_.setIdle())
     txVec.foreach(_.setIdle())
+    cmdStream = Stream(ChannelTxCmd())
+    busyVec = Vec.fill(TConsts.LinkCount)(Reg(Bool()) init False)
     addService(new ChannelSrv {
       override def rx: Vec[Stream[Bits]] = rxVec
       override def tx: Vec[Stream[Bits]] = txVec
+      override def txCmd: Stream[ChannelTxCmd] = cmdStream
+      override def busy: Vec[Bool] = busyVec
     })
     addService(new ChannelPinsSrv { def pins = ChannelPlugin.this.pins })
   }
 
   override def build(): Unit = {
+    implicit val h: PluginHost = host
+    val mem = Plugin[LinkBusSrv]
+
+    memTx = Vec.fill(TConsts.LinkCount)(Stream(Bits(TConsts.WordBits bits)))
+    memTx.foreach(_.setIdle())
+
     for (i <- 0 until TConsts.LinkCount) {
-      val inFifo = StreamFifo(Bits(TConsts.WordBits bits), 2)
-      val outFifo = StreamFifo(Bits(TConsts.WordBits bits), 2)
-      inFifo.io.push << pins.in(i)
-      rxVec(i) << inFifo.io.pop
-      outFifo.io.push << txVec(i)
-      pins.out(i) << outFifo.io.pop
+      rxVec(i) << pins.in(i)
+      val arb = StreamArbiterFactory.lowerFirst.onArgs(txVec(i), memTx(i))
+      pins.out(i) << arb
+    }
+
+    cmdStream.ready := !busyVec.reduce(_ || _)
+    val ptr = Reg(UInt(TConsts.AddrBits bits)) init 0
+    val remaining = Reg(UInt(TConsts.AddrBits bits)) init 0
+    val linkIdx = Reg(UInt(log2Up(TConsts.LinkCount) bits)) init 0
+    val haveByte = Reg(Bool()) init False
+    val byteReg = Reg(Bits(8 bits)) init 0
+
+    when(!busyVec.reduce(_ || _) && cmdStream.valid) {
+      ptr := cmdStream.payload.addr
+      remaining := cmdStream.payload.length
+      linkIdx := cmdStream.payload.link
+      busyVec.foreach(_ := False)
+      busyVec(cmdStream.payload.link) := True
+    }
+
+    when(busyVec.reduce(_ || _)) {
+      when(!haveByte) {
+        mem.rdCmd.valid := True
+        when(mem.rdRsp.valid) {
+          val shift = ptr(1 downto 0) * 8
+          byteReg := (mem.rdRsp.payload >> shift)(7 downto 0)
+          haveByte := True
+          ptr := ptr + 1
+          remaining := remaining - 1
+        }
+      } otherwise {
+        memTx(linkIdx).valid := True
+        memTx(linkIdx).payload := byteReg.resized
+        when(memTx(linkIdx).ready) {
+          haveByte := False
+          when(remaining === 0) {
+            busyVec(linkIdx) := False
+          }
+        }
+      }
     }
   }
 }
