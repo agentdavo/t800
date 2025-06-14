@@ -22,7 +22,7 @@ case class TrapHandlerSrv() extends Bundle {
 
 /** Plugin for T9000-style memory management, P-process protection, and error handling. */
 class MemoryManagementPlugin extends FiberPlugin {
-  val version = "MemoryManagementPlugin v1.3"
+  val version = "MemoryManagementPlugin v1.4"
   report(L"Initializing $version")
 
   object DBKeys {
@@ -77,11 +77,12 @@ class MemoryManagementPlugin extends FiberPlugin {
     when(configSrv.writeEnable && configSrv.isValid) {
       switch(configSrv.addr) {
         is(Global.ConfigAddr.CACHE) {
-          regionConfig(0) := configSrv.data // Cache region base
-          // Load other regions (e.g., PMI_STROBE for PMI configuration)
+          regionConfig(0) := configSrv.data // Cache region base (30 significant bits)
+          configSrv.write(Global.ConfigAddr.CACHE, regionConfig(0), 30) // Example write
         }
         is(Global.ConfigAddr.PMI_STROBE) {
-          // Example: Load PMI strobe timing (e.g., RASStrobe0 at #0401)
+          // Load PMI strobe timing (e.g., RAS_STROBE0 at #0401)
+          regionConfig(1) := configSrv.read(Global.ConfigAddr.RAS_STROBE0, 30)
         }
       }
     }
