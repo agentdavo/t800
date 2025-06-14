@@ -244,11 +244,16 @@ object Opcodes {
     }
 
     object Secondary extends SpinalEnum {
-      val REV, LB, ENDP, ADD, IN, OUT, SUB, STARTP, OUTBYTE, OUTWORD, STLB, STHF, LDPI, STLF, RET,
-        LEND, LDTIMER, TESTERR, XOR, SAVEL, SAVEH, SHR, SHL, MINT, ALT, ALTWT, ALTEND, AND, MOVE,
-        STHB, STTIMER, CLRHALTERR, SETHALTERR, TESTHALTERR, DUP, MOVE2DINIT, MOVE2DALL,
-        MOVE2DNONZERO, MOVE2DZERO, POP, TIMERDISABLEH, TIMERDISABLEL, TIMERENABLEH, TIMERENABLEL,
-        RUNP, STOPP, FPADD, FPSUB, FPMUL, FPDIV = newElement()
+      // format: off
+      val REV, LB, ENDP, ADD, IN, OUT, SUB, STARTP, OUTBYTE, OUTWORD,
+        STLB, STHF, LDPI, STLF, RET, LEND, LDTIMER, TESTERR, XOR,
+        SAVEL, SAVEH, SHR, SHL, LSHR, LSHL, LADD, LSUB, LSUM, LMUL,
+        LDIV, LDIFF, MINT, ALT, ALTWT, ALTEND, AND, MOVE, STHB, STTIMER,
+        CLRHALTERR, SETHALTERR, TESTHALTERR, DUP, MOVE2DINIT, MOVE2DALL,
+        MOVE2DNONZERO, MOVE2DZERO, POP, TIMERDISABLEH, TIMERDISABLEL,
+        TIMERENABLEH, TIMERENABLEL, RUNP, STOPP, FPADD, FPSUB, FPMUL, FPDIV =
+        newElement()
+      // format: on
       defaultEncoding = SpinalEnumEncoding("static")(
         REV -> 0x00,
         LB -> 0x01,
@@ -273,6 +278,14 @@ object Opcodes {
         SAVEH -> 0x3e,
         SHR -> 0x40,
         SHL -> 0x41,
+        LSHR -> 0x35,
+        LSHL -> 0x36,
+        LADD -> 0x16,
+        LSUB -> 0x38,
+        LSUM -> 0x37,
+        LMUL -> 0x31,
+        LDIV -> 0x1a,
+        LDIFF -> 0x4f,
         MINT -> 0x42,
         ALT -> 0x43,
         ALTWT -> 0x44,
