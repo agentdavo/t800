@@ -4,13 +4,13 @@ import spinal.core._
 import spinal.lib._
 import spinal.lib.misc.pipeline._
 import spinal.lib.misc.plugin.{FiberPlugin, Plugin, PluginHost}
-import spinal.core.fiber.{Retainer, Lock}
+import spinal.core.fiber.Retainer
 import t800.{Opcodes, Global}
 import t800.plugins.{ChannelSrv, SchedSrv, ChannelTxCmd, LinkBusSrv, LinkBusArbiterSrv}
 import scala.util.Try
 
 /** Implements basic ALU instructions and connects to the global pipeline. */
-class ExecutePlugin extends FiberPlugin {
+class SecondaryInstrPlugin extends FiberPlugin {
   private var errReg: Bool = null
   private var haltErr: Bool = null
   private var hiFPtr, hiBPtr, loFPtr, loBPtr: UInt = null
@@ -19,7 +19,7 @@ class ExecutePlugin extends FiberPlugin {
   private val retain = Retainer()
 
   during setup new Area {
-    println(s"[${ExecutePlugin.this.getDisplayName()}] setup start")
+    println(s"[${SecondaryInstrPlugin.this.getDisplayName()}] setup start")
     errReg = Reg(Bool()) init (False)
     haltErr = Reg(Bool()) init (False)
     hiFPtr = Reg(UInt(Global.WORD_BITS bits)) init (0)
@@ -32,11 +32,11 @@ class ExecutePlugin extends FiberPlugin {
     saveLPhase = Reg(Bool()) init (False)
     saveHPhase = Reg(Bool()) init (False)
     retain()
-    println(s"[${ExecutePlugin.this.getDisplayName()}] setup end")
+    println(s"[${SecondaryInstrPlugin.this.getDisplayName()}] setup end")
   }
 
   during build new Area {
-    println(s"[${ExecutePlugin.this.getDisplayName()}] build start")
+    println(s"[${SecondaryInstrPlugin.this.getDisplayName()}] build start")
     retain.await()
     implicit val h: PluginHost = host
     val stack = Plugin[StackSrv]
@@ -76,12 +76,6 @@ class ExecutePlugin extends FiberPlugin {
     dma.cmd.valid := False
 
     switch(primary) {
-      is(Opcodes.Enum.Primary.PFIX) {
-        stack.O := (accumulated << 4).resized
-      }
-      is(Opcodes.Enum.Primary.NFIX) {
-        stack.O := ((~accumulated) << 4).resized
-      }
       is(Opcodes.Enum.Primary.OPR) {
         val operand = accumulated.asSInt
         val secondary = Opcodes.Enum.Secondary()
@@ -428,100 +422,7 @@ class ExecutePlugin extends FiberPlugin {
         }
         stack.O := 0
       }
-      is(Opcodes.Enum.Primary.LDC) {
-        val operand = accumulated.asSInt
-        stack.C := stack.B
-        stack.B := stack.A
-        stack.A := operand.asUInt
-        stack.O := 0
-      }
-      is(Opcodes.Enum.Primary.LDL) {
-        val operand = accumulated.asSInt
-        stack.C := stack.B
-        stack.B := stack.A
-        stack.A := stack.read(operand)
-        stack.O := 0
-      }
-      is(Opcodes.Enum.Primary.STL) {
-        val operand = accumulated.asSInt
-        stack.write(operand, stack.A)
-        stack.A := stack.B
-        stack.B := stack.C
-        stack.O := 0
-      }
-      is(Opcodes.Enum.Primary.LDLP) {
-        val operand = accumulated
-        stack.C := stack.B
-        stack.B := stack.A
-        stack.A := stack.WPtr + operand
-        stack.O := 0
-      }
-      is(Opcodes.Enum.Primary.LDNLP) {
-        stack.A := stack.A + (stack.O |<< 2)
-        stack.O := 0
-      }
-      is(Opcodes.Enum.Primary.ADC) {
-        val operand = accumulated
-        stack.A := stack.A + operand
-        stack.O := 0
-      }
-      is(Opcodes.Enum.Primary.EQC) {
-        val operand = accumulated
-        stack.A := (stack.A === operand).asUInt.resized
-        stack.O := 0
-      }
-      is(Opcodes.Enum.Primary.J) {
-        val operand = accumulated.asSInt
-        stack.IPtr := (stack.IPtr.asSInt + operand).asUInt
-        stack.O := 0
-      }
-      is(Opcodes.Enum.Primary.CJ) {
-        val operand = accumulated.asSInt
-        when(stack.A === 0) {
-          stack.IPtr := (stack.IPtr.asSInt + operand).asUInt
-        } otherwise {
-          stack.A := stack.B
-          stack.B := stack.C
-        }
-        stack.O := 0
-      }
-      is(Opcodes.Enum.Primary.LDNL) {
-        val addr = stack.A + accumulated
-        arb.exeRd.valid := True
-        arb.exeRd.payload.addr := addr.resized
-        pipe.execute.haltWhen(!mem.rdRsp.valid)
-        when(pipe.execute.down.isFiring) {
-          stack.A := mem.rdRsp.payload.asUInt
-          stack.O := 0
-        }
-      }
-      is(Opcodes.Enum.Primary.STNL) {
-        val addr = stack.A + accumulated
-        arb.exeWr.valid := True
-        arb.exeWr.payload.addr := addr.resized
-        arb.exeWr.payload.data := stack.B.asBits
-        when(pipe.execute.down.isFiring) {
-          stack.A := stack.C
-          stack.O := 0
-        }
-      }
-      is(Opcodes.Enum.Primary.CALL) {
-        val operand = accumulated.asSInt
-        stack.write(S(-1), stack.C)
-        stack.write(S(-2), stack.B)
-        stack.write(S(-3), stack.A)
-        stack.write(S(-4), stack.IPtr + 1)
-        stack.WPtr := (stack.WPtr.asSInt - 4).asUInt
-        stack.A := stack.IPtr + 1
-        stack.IPtr := (stack.IPtr.asSInt + operand).asUInt
-        stack.O := 0
-      }
-      is(Opcodes.Enum.Primary.AJW) {
-        val operand = accumulated.asSInt
-        stack.WPtr := (stack.WPtr.asSInt + operand).asUInt
-        stack.O := 0
-      }
     }
-    println(s"[${ExecutePlugin.this.getDisplayName()}] build end")
+    println(s"[${SecondaryInstrPlugin.this.getDisplayName()}] build end")
   }
 }

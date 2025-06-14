@@ -23,7 +23,8 @@ class SchedulerSaveSpec extends AnyFunSuite {
           new FetchPlugin,
           new DummyTimerPlugin,
           new DummyFpuPlugin,
-          new ExecutePlugin,
+          new PrimaryInstrPlugin,
+          new SecondaryInstrPlugin,
           new SchedulerPlugin,
           new PipelineBuilderPlugin
         )

@@ -26,7 +26,8 @@ class Move2DSpec extends AnyFunSuite {
           new ChannelPlugin,
           new DummyTimerPlugin,
           new DummyFpuPlugin,
-          new ExecutePlugin,
+          new PrimaryInstrPlugin,
+          new SecondaryInstrPlugin,
           new SchedulerPlugin,
           new PipelineBuilderPlugin
         )
