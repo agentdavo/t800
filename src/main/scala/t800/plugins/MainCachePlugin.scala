@@ -1,3 +1,5 @@
+package t800.plugins
+
 import spinal.core._
 import spinal.core.fiber._
 import spinal.lib.misc.plugin._
