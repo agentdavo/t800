@@ -74,6 +74,9 @@ class ChannelPlugin extends FiberPlugin {
     val CMD_ADDR = Payload(UInt(Global.ADDR_BITS bits))
     val CMD_LEN = Payload(UInt(Global.ADDR_BITS bits))
     val CMD_LINK = Payload(UInt(log2Up(Global.LINK_COUNT) bits))
+    val CMD_STRIDE = Payload(UInt(Global.ADDR_BITS bits))
+    val CMD_ROWS = Payload(UInt(Global.ADDR_BITS bits))
+    val CMD_TWO_D = Payload(Bool())
 
     val dmaCmd = CtrlLink()
     val dmaDo = CtrlLink()
@@ -82,17 +85,28 @@ class ChannelPlugin extends FiberPlugin {
       n(CMD_ADDR) := p.addr
       n(CMD_LEN) := p.length
       n(CMD_LINK) := p.link
+      n(CMD_STRIDE) := p.stride
+      n(CMD_ROWS) := p.rows
+      n(CMD_TWO_D) := p.twoD
     }
     dmaCmd.haltWhen(stateVec.map(_ =/= DmaState.Idle).reduce(_ || _))
 
     val ptr = Reg(UInt(Global.ADDR_BITS bits)) init 0
     val remaining = Reg(UInt(Global.ADDR_BITS bits)) init 0
+    val rowBytes = Reg(UInt(Global.ADDR_BITS bits)) init 0
+    val rows = Reg(UInt(Global.ADDR_BITS bits)) init 0
+    val stride = Reg(UInt(Global.ADDR_BITS bits)) init 0
+    val is2d = Reg(Bool()) init False
     val linkIdx = Reg(UInt(log2Up(Global.LINK_COUNT) bits)) init 0
     val byteReg = Reg(Bits(8 bits)) init 0
 
     when(dmaCmd.down.isFiring) {
       ptr := dmaCmd(CMD_ADDR)
       remaining := dmaCmd(CMD_LEN)
+      rowBytes := dmaCmd(CMD_LEN)
+      rows := Mux(dmaCmd(CMD_TWO_D), dmaCmd(CMD_ROWS), U(1))
+      stride := dmaCmd(CMD_STRIDE)
+      is2d := dmaCmd(CMD_TWO_D)
       linkIdx := dmaCmd(CMD_LINK)
       stateVec.foreach(_ := DmaState.Idle)
       stateVec(dmaCmd(CMD_LINK)) := DmaState.Read
@@ -122,7 +136,14 @@ class ChannelPlugin extends FiberPlugin {
         dmaDo.haltWhen(!memTx(linkIdx).ready)
         when(dmaDo.isValid && memTx(linkIdx).ready) {
           when(remaining === 0) {
-            stateVec(linkIdx) := DmaState.Complete
+            when(rows === 1) {
+              stateVec(linkIdx) := DmaState.Complete
+            } otherwise {
+              rows := rows - 1
+              ptr := ptr + stride
+              remaining := rowBytes
+              stateVec(linkIdx) := DmaState.Read
+            }
           } otherwise {
             stateVec(linkIdx) := DmaState.Read
           }
