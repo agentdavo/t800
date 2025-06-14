@@ -228,4 +228,68 @@ object Opcodes {
     def CS = B(0xfa, 8 bits)
     def CSU = B(0xfb, 8 bits)
   }
+
+  /** SpinalEnum variants of the opcode tables used by the plugins. */
+  object Enum {
+    object Primary extends SpinalEnum(binarySequential) {
+      /*
+       * Order opcodes by their 4-bit values so that "binarySequential"
+       * matches the encoding nibble directly:
+       *  0 -> J, 1 -> LDLP, 2 -> PFIX, 3 -> LDNL, ... 15 -> OPR
+       */
+      val J, LDLP, PFIX, LDNL, LDC, LDNLP, NFIX, LDL, ADC, CALL, CJ, AJW, EQC, STL, STNL, OPR =
+        newElement()
+
+      /* Sequential encoding via binarySequential simplifies decoding logic */
+    }
+
+    object Secondary extends SpinalEnum {
+      val REV, LB, ADD, IN, OUT, SUB, STARTP, OUTBYTE, OUTWORD, STLB, STHF, LDPI, STLF, RET,
+        LDTIMER, TESTERR, XOR, SHR, SHL, MINT, ALT, ALTWT, ALTEND, AND, MOVE, STHB, STTIMER,
+        CLRHALTERR, SETHALTERR, TESTHALTERR, DUP, POP, TIMERDISABLEH, TIMERDISABLEL, TIMERENABLEH,
+        TIMERENABLEL, FPADD, FPSUB, FPMUL, FPDIV = newElement()
+      defaultEncoding = SpinalEnumEncoding("static")(
+        REV -> 0x00,
+        LB -> 0x01,
+        ADD -> 0x05,
+        IN -> 0x07,
+        OUT -> 0x0b,
+        SUB -> 0x0c,
+        STARTP -> 0x0d,
+        OUTBYTE -> 0x0e,
+        OUTWORD -> 0x0f,
+        STLB -> 0x17,
+        STHF -> 0x18,
+        LDPI -> 0x1b,
+        STLF -> 0x1c,
+        RET -> 0x20,
+        LDTIMER -> 0x22,
+        TESTERR -> 0x29,
+        XOR -> 0x33,
+        SHR -> 0x40,
+        SHL -> 0x41,
+        MINT -> 0x42,
+        ALT -> 0x43,
+        ALTWT -> 0x44,
+        ALTEND -> 0x45,
+        AND -> 0x46,
+        MOVE -> 0x4a,
+        STHB -> 0x50,
+        STTIMER -> 0x54,
+        CLRHALTERR -> 0x57,
+        SETHALTERR -> 0x58,
+        TESTHALTERR -> 0x59,
+        DUP -> 0x5a,
+        POP -> 0x79,
+        TIMERDISABLEH -> 0x7a,
+        TIMERDISABLEL -> 0x7b,
+        TIMERENABLEH -> 0x7c,
+        TIMERENABLEL -> 0x7d,
+        FPADD -> 0x87,
+        FPSUB -> 0x89,
+        FPMUL -> 0x8b,
+        FPDIV -> 0x8c
+      )
+    }
+  }
 }
