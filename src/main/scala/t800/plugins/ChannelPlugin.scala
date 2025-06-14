@@ -6,7 +6,7 @@ import spinal.lib.misc.plugin.{FiberPlugin, Plugin, PluginHost}
 import spinal.core.fiber.Retainer
 import spinal.lib.misc.pipeline
 import spinal.lib.misc.pipeline._
-import t800.{MemReadCmd, MemWriteCmd, TConsts, Global}
+import t800.{MemReadCmd, MemWriteCmd, Global}
 import t800.plugins.{LinkBusSrv, LinkBusArbiterSrv}
 
 object DmaState extends SpinalEnum {
@@ -65,7 +65,7 @@ class ChannelPlugin extends FiberPlugin with PipelineService {
     arb.chanRd.valid := False
     arb.chanWr.valid := False
     arb.chanWr.payload.addr := U(0)
-    arb.chanWr.payload.data := B(0, TConsts.WordBits bits)
+    arb.chanWr.payload.data := B(0, Global.WordBits bits)
 
     memTx = Vec.fill(Global.LINK_COUNT)(Stream(Bits(Global.WORD_BITS bits)))
     memTx.foreach(_.setIdle())

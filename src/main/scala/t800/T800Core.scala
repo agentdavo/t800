@@ -7,21 +7,21 @@ import t800.plugins._
 
 object T800 {
 
-  /** Create a database pre-loaded with defaults from [[TConsts]]. */
+  /** Create a database pre-loaded with defaults from [[Global]]. */
   def defaultDatabase(): Database = {
     val db = new Database
-    db(Global.WORD_BITS) = TConsts.WordBits
-    db(Global.ADDR_BITS) = TConsts.AddrBits
-    db(Global.PC_BITS) = TConsts.AddrBits
+    db(Global.WORD_BITS) = Global.WordBits
+    db(Global.ADDR_BITS) = Global.AddrBits
+    db(Global.PC_BITS) = Global.AddrBits
     db(Global.INSTR_BITS) = 8
-    db(Global.IPTR_BITS) = TConsts.AddrBits
+    db(Global.IPTR_BITS) = Global.AddrBits
     db(Global.OPCODE_BITS) = 8
-    db(Global.ROM_WORDS) = TConsts.RomWords
-    db(Global.RAM_WORDS) = TConsts.RamWords
-    db(Global.LINK_COUNT) = TConsts.LinkCount
-    db(Global.FPU_PRECISION) = TConsts.FpuPrecision
-    db(Global.SCHED_QUEUE_DEPTH) = TConsts.SchedQueueDepth
-    db(Global.RESET_IPTR) = TConsts.ResetIPtr
+    db(Global.ROM_WORDS) = Global.RomWords
+    db(Global.RAM_WORDS) = Global.RamWords
+    db(Global.LINK_COUNT) = Global.LinkCount
+    db(Global.FPU_PRECISION) = Global.FpuPrecision
+    db(Global.SCHED_QUEUE_DEPTH) = Global.SchedQueueDepth
+    db(Global.RESET_IPTR) = Global.ResetIPtr
     db
   }
 
@@ -30,7 +30,9 @@ object T800 {
     Seq(
       new StackPlugin,
       new PipelinePlugin,
-      new MemoryPlugin,
+      new MainCachePlugin,
+      new WorkspaceCachePlugin,
+      new PmiPlugin,
       new FetchPlugin,
       new GrouperPlugin,
       new ChannelPlugin,

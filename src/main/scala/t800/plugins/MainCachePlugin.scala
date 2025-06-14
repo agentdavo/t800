@@ -4,8 +4,17 @@ import spinal.core._
 import spinal.core.fiber._
 import spinal.lib.misc.plugin._
 import spinal.lib.misc.pipeline._
-import spinal.lib.misc.database_
-import spinal.lib.bus.bmb.{Bmb, BmbParameter, BmbAccessParameter, BmbOnChipRamMultiPort, BmbUnburstify, BmbArbiter, BmbDecoder, BmbDownSizerBridge}
+import spinal.lib.misc.database._
+import spinal.lib.bus.bmb.{
+  Bmb,
+  BmbParameter,
+  BmbAccessParameter,
+  BmbOnChipRamMultiPort,
+  BmbUnburstify,
+  BmbArbiter,
+  BmbDecoder,
+  BmbDownSizerBridge
+}
 import spinal.lib.bus.misc.{AddressMapping, SizeMapping}
 
 // The MainCachePlugin implements four BmbOnChipRamMultiPort banks (4 KB each, 32-bit data/32-bit address, two read ports)
@@ -38,11 +47,16 @@ class MainCachePlugin extends FiberPlugin {
     addService(service)
   }
 
-  buildBefore(retains(host[PmiPlugin].lock, host[MemoryManagementPlugin].lock, host[WorkspaceCachePlugin].lock).lock)
+  buildBefore(
+    retains(
+      host[PmiPlugin].lock,
+      host[WorkspaceCachePlugin].lock
+    ).lock
+  )
 
   lazy val logic = during build new Area {
     val fetch = host.find[StageCtrlPipeline].ctrl(0)
-    val memory = host.find[StageCtrlPipeline].ctrl(4)
+    val memory = host.find[StageCtrlPipeline].ctrl(3)
 
     // BMB bus parameters (32-bit data, 32-bit address)
     val bmbParameter = BmbParameter(
@@ -61,7 +75,7 @@ class MainCachePlugin extends FiberPlugin {
       SizeMapping(0x00000000L, 0x40000000L, B(0, 2 bits)), // Bank 0: addr[5:4] = 00
       SizeMapping(0x00000000L, 0x40000000L, B(1, 2 bits)), // Bank 1: addr[5:4] = 01
       SizeMapping(0x00000000L, 0x40000000L, B(2, 2 bits)), // Bank 2: addr[5:4] = 10
-      SizeMapping(0x00000000L, 0x40000000L, B(3, 2 bits))  // Bank 3: addr[5:4] = 11
+      SizeMapping(0x00000000L, 0x40000000L, B(3, 2 bits)) // Bank 3: addr[5:4] = 11
     )
 
     // Arbiter for pipeline inputs (Fetch/Memory)
@@ -97,7 +111,8 @@ class MainCachePlugin extends FiberPlugin {
     // Down-sizer for PMI refills
     val pmiDownSizer = BmbDownSizerBridge(
       inputParameter = host[PmiPlugin].srv.p,
-      outputParameter = BmbDownSizerBridge.outputParameterFrom(host[PmiPlugin].srv.p.access, 32).toBmbParameter()
+      outputParameter =
+        BmbDownSizerBridge.outputParameterFrom(host[PmiPlugin].srv.p.access, 32).toBmbParameter()
     )
 
     // Four cache banks, each with multi-port RAM
@@ -124,7 +139,7 @@ class MainCachePlugin extends FiberPlugin {
       val tagMem = Mem(Bits(26 bits), 256)
       val validBits = Mem(Bool(), 256)
       val dirtyBits = Mem(Bool(), 256)
-      val emptyLine = Reg(UInt(8 bits)) init(0)
+      val emptyLine = Reg(UInt(8 bits)) init (0)
 
       def read(addr: Bits, portIdx: Int): (Bool, Bits) = {
         val lineIdx = addr(11 downto 4).asUInt
@@ -137,7 +152,7 @@ class MainCachePlugin extends FiberPlugin {
 
         when(isRamMode) {
           isHit := True
-        } elsewhen(!isHit && !isRamMode) {
+        } elsewhen (!isHit && !isRamMode) {
           fetch.haltWhen(True)
           pmiDownSizer.io.input.cmd.valid := True
           pmiDownSizer.io.input.cmd.opcode := 0 // Read
@@ -185,7 +200,7 @@ class MainCachePlugin extends FiberPlugin {
             // Write-through to Workspace Cache
             host[WorkspaceCachePlugin].write(addr, data)
           }
-        } elsewhen(!isRamMode) {
+        } elsewhen (!isRamMode) {
           fetch.haltWhen(True)
           when(dirtyBits.readSync(emptyLine)) {
             pmiDownSizer.io.input.cmd.opcode := 1 // Write
@@ -209,7 +224,8 @@ class MainCachePlugin extends FiberPlugin {
 
     val banks = for (i <- 0 until 4) yield CacheBank(i)
 
-    val cacheMode = Reg(Bits(2 bits)) init(0) // 00: Full RAM, 01: Full Cache, 10: Half RAM/Half Cache
+    val cacheMode =
+      Reg(Bits(2 bits)) init (0) // 00: Full RAM, 01: Full Cache, 10: Half RAM/Half Cache
     val isRamMode = cacheMode === 0 || (cacheMode === 2 && fetch(PC)(13) === 0)
 
     val bankSel = fetch(PC)(5 downto 4).asUInt

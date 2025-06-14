@@ -9,8 +9,8 @@ import t800.plugins._
 class DummyTimerPlugin extends FiberPlugin {
   private var hiReg, loReg: UInt = null
   during setup new Area {
-    hiReg = Reg(UInt(TConsts.WordBits bits)) init 0
-    loReg = Reg(UInt(TConsts.WordBits bits)) init 0
+    hiReg = Reg(UInt(Global.WordBits bits)) init 0
+    loReg = Reg(UInt(Global.WordBits bits)) init 0
     addService(new TimerSrv {
       override def hi: UInt = hiReg
       override def lo: UInt = loReg
@@ -36,7 +36,7 @@ class DummyFpuPlugin extends FiberPlugin {
   during setup new Area {
     pipeReg = Flow(new FpCmd())
     pipeReg.setIdle()
-    rspReg = Flow(UInt(TConsts.WordBits bits))
+    rspReg = Flow(UInt(Global.WordBits bits))
     rspReg.setIdle()
     addService(new FpuSrv {
       override def pipe: Flow[FpCmd] = pipeReg

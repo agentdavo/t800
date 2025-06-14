@@ -17,7 +17,7 @@ Each link is buffered by a pair of two‑word FIFOs. Other plugins see clean `St
 regular data bus but is reserved for link DMA and VCP traffic.  Plugins issue
 `MemReadCmd` and `MemWriteCmd` requests on this service and receive responses in
 `rdRsp` and `wrCmd` streams.  The address space exposes the link input/output
-registers defined in `TConsts` (e.g. `Link0Output`, `Link0Input`).
+registers defined in `Global` (e.g. `Link0Output`, `Link0Input`).
 
 ## T9000 VCP design
 
@@ -37,5 +37,5 @@ A `VcpPlugin` would plug into:
 - optionally `SchedSrv` and `TimerSrv` when scheduling packets.
 
 The plugin processes messages such as `OPEN_CHANNEL`, `DATA`, and `CLOSE` using
-these services and updates the RAM locations from `TConsts.Link0Input` upward.
+these services and updates the RAM locations from `Global.Link0Input` upward.
 
