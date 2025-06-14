@@ -74,7 +74,8 @@ t800/
 ├─ ext/
 │  └─ SpinalHDL/                # git sub-module (optional)
 ├─ doc/
-│  └─ spinalHDL.txt             # SpinalSim + SpinalHDL documentation
+│  ├─ spinalHDL.txt             # SpinalSim + SpinalHDL documentation
+│  └─ bmb.md                    # overview of the BMB bus
 ├─ README.md
 └─ AGENTS.md
 
@@ -211,6 +212,7 @@ so long-running tests fail deterministically. Additional back‑ends like GHDL o
 Icarus can be selected via `withGhdl` or `withIVerilog`.
 
 For more advanced features, see `doc/spinalHDL.txt`.
+The BMB bus is described in `doc/bmb.md`.
 
 The SpinalHDL API reference is maintained in `docs/spinalAPI.md`.
 ### Debugging tips
@@ -231,6 +233,7 @@ checks with clock boundaries. See **AGENTS.md §12** for common runtime errors.
 See `doc/hello_world.md` for a quick overview, and `doc/helloworld.md` for the full source listing.
 An overview of the link services and the upcoming VCP design lives in
 `doc/link_architecture.md`.
+The BMB bus and its helpers are covered in `doc/bmb.md`.
 `HelloWorldSpec` is currently marked with `ignore` until the channel hardware is complete.
 
 ---

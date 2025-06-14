@@ -13,6 +13,7 @@
 | `src/test/scala/t800/` | ScalaTest units + SpinalSim benches |
 | `ext/SpinalHDL/` | Upstream library as git sub-module |
 | `doc/spinalHDL.txt` | SpinalSim + SpinalHDL documentation |
+| `doc/bmb.md` | BMB bus overview and feature list |
 | `docs/spinalAPI.md` | Local guide to the SpinalHDL helpers. Keep this updated as new features use the DSLs |
 
 ---
