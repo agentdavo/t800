@@ -6,10 +6,10 @@ import spinal.lib.misc.database_
 import spinal.lib.bus.bmb.{Bmb, BmbParameter, BmbAccessParameter, BmbOnChipRamMultiPort, BmbUnburstify, BmbArbiter, BmbDecoder, BmbDownSizerBridge}
 import spinal.lib.bus.misc.{AddressMapping, SizeMapping}
 
-// The WorkspaceCachePlugin implements a 32-word triple-ported cache (two reads, one write per cycle)
-// Providing zero-cycle read access in the Decode stage.
-// It is write-through to MainCachePlugin, organized as a circular buffer addressed by Wptr[4:0]
-// With invalidation on context switches/interrupts and roll-over, supporting two simultaneous CPU reads
+// The MainCachePlugin implements four BmbOnChipRamMultiPort banks (4 KB each, 32-bit data/32-bit address, two read ports)
+// accessed via 32-bit unburstified BMB interfaces, mapped using BmbDecoder
+// Single-beat transactions ensure single-cycle, zero-latency access for cache hits, saving logic area
+// It uses BmbArbiter for pipeline arbitration and BmbDownSizerBridge for PMI refills, supporting two simultaneous CPU reads
 
 case class MainCacheAccessSrv() extends Bundle {
   val addr = Bits(32 bits)
