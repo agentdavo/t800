@@ -7,7 +7,11 @@ import t800.plugins._
 /** Variant-aware entry point used by the build scripts. */
 object TopVerilog {
   def main(args: Array[String]): Unit = {
+    // Allow variant configuration via args (e.g., for different FPU precision)
     val db = T800.defaultDatabase()
+    if (args.contains("--double-precision")) {
+      db(Global.FPU_PRECISION) = 64 // Example variant for higher FPU precision
+    }
     require(db != null, "Failed to initialize T800 database")
     val report = SpinalVerilog {
       val host = new PluginHost
