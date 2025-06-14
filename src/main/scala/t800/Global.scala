@@ -3,6 +3,7 @@ package t800
 import spinal.core._
 import spinal.lib.misc.database.Database
 import spinal.lib.misc.pipeline._
+import spinal.lib._
 
 /** Global configuration elements and configuration register framework for T800, accessed via [[Database]].
   * Default values are defined below for convenience, aligned with IMS T9000 specifications.
@@ -68,6 +69,22 @@ object Global extends AreaObject {
   def OPCODE: Payload[Bits] = Payload(Bits(OPCODE_BITS bits))
   def MEM_ADDR: Payload[UInt] = Payload(UInt(ADDR_BITS bits))
   def MEM_DATA: Payload[Bits] = Payload(Bits(WORD_BITS bits))
+
+  // Memory command definitions, aligned with T9000
+  case class MemWriteCmd[T <: Data](payloadType: HardType[T] = HardType(Bits(WORD_BITS bits)), depth: Int = 1 << AddrBits) extends Bundle {
+    val address = UInt(log2Up(depth) bits)
+    val data = payloadType()
+  }
+
+  case class MemRead[T <: Data](payloadType: HardType[T] = HardType(Bits(WORD_BITS bits)), depth: Int = 1 << AddrBits) extends Bundle with IMasterSlave {
+    val cmd = Flow(UInt(log2Up(depth) bits))
+    val rsp = payloadType()
+
+    override def asMaster() = {
+      master(cmd)
+      in(rsp)
+    }
+  }
 
   // Configuration register addresses (16-bit, MSB for subsystem, LSB for register) [cite: t9000hrm.pdf, 225-226]
   object ConfigAddr {
@@ -256,15 +273,5 @@ object Global extends AreaObject {
         // Actual write logic to be implemented in plugin
       }
     }
-  }
-
-  // Memory port command definitions
-  case class MemReadCmd() extends Bundle {
-    val addr = UInt(ADDR_BITS bits)
-  }
-
-  case class MemWriteCmd() extends Bundle {
-    val addr = UInt(ADDR_BITS bits)
-    val data = Bits(WORD_BITS bits)
   }
 }
