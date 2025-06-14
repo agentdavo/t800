@@ -1,6 +1,7 @@
 # SpinalHDL API Overview
 
 This document serves as a quick reference for three SpinalHDL subpackages that are heavily used in the project.
+Updates follow the contribution rules in AGENTS.md.
 
 ## `spinal.lib.misc.pipeline._`
 

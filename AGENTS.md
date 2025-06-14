@@ -13,6 +13,7 @@
 | `src/test/scala/t800/` | ScalaTest units + SpinalSim benches |
 | `ext/SpinalHDL/` | Upstream library as git sub-module |
 | `doc/spinalHDL.txt` | SpinalSim + SpinalHDL documentation |
+| `docs/spinalAPI.md` | Local guide to the SpinalHDL helpers. Keep this updated as new features use the DSLs |
 
 ---
 
@@ -41,6 +42,7 @@ sbt "runMain t800.TopVerilog"
 * Dataflow inside a plugin **must** use Pipeline DSL (`Node`, `StageLink`, `CtrlLink`), not ad-hoc `RegNext`.
 
 * Each new opcode requires a unit test that drives bytes through fetch and checks A/B/C or memory.
+* Update `docs/spinalAPI.md` with any new DSL patterns or plugin services.
 
 ---
 
