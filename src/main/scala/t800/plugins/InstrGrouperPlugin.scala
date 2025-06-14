@@ -41,9 +41,10 @@ class GrouperPlugin extends FiberPlugin with PipelineService {
     implicit val h: PluginHost = host
     val pipe = Plugin[PipelineSrv]
 
-    // Payloads published on the decode stage
-    val GROUP_INSTR = pipe.decode.insert(Vec(Bits(Global.OPCODE_BITS bits), 8))
-    val GROUP_COUNT = pipe.decode.insert(UInt(4 bits))
+    val out = CtrlLink()
+    val toDecode = StageLink(out.down, pipe.decode.up)
+    val GROUP_INSTR = out.insert(Vec(Bits(Global.OPCODE_BITS bits), 8))
+    val GROUP_COUNT = out.insert(UInt(4 bits))
 
     // FIFO decouples fetch from decode while groups are formed
     val fifo = StreamFifo(Bits(Global.OPCODE_BITS bits), 16)
@@ -60,19 +61,26 @@ class GrouperPlugin extends FiberPlugin with PipelineService {
       when(instrCount === 7) { groupValid := True }
     }
 
-    groupFlow.valid := groupValid
-    groupFlow.payload.instructions := instrVec
-    groupFlow.payload.count := instrCount
+    val send = Flow(GroupedInstructions())
+    send.valid := groupValid
+    send.payload.instructions := instrVec
+    send.payload.count := instrCount
 
-    // Expose the current group on decode when ready
-    pipe.decode.haltWhen(!groupValid)
-    pipe.decode(GROUP_INSTR) := instrVec
-    pipe.decode(GROUP_COUNT) := instrCount
-    when(pipe.decode.down.isFiring && groupValid) {
+    out.up.driveFrom(send) { (n, p) =>
+      n(GROUP_INSTR) := p.instructions
+      n(GROUP_COUNT) := p.count
+    }
+    out.haltWhen(!groupValid)
+
+    when(out.down.isFiring) {
       groupValid := False
       instrCount := 0
     }
 
-    links = Seq() // No additional pipeline links
+    groupFlow.valid := out.down.isValid
+    groupFlow.payload.instructions := out.down(GROUP_INSTR)
+    groupFlow.payload.count := out.down(GROUP_COUNT)
+
+    links = Seq(toDecode)
   }
 }
