@@ -105,10 +105,11 @@ class SecondaryInstrPlugin extends FiberPlugin {
             stack.A := res.resized
           }
           is(Opcodes.Enum.Secondary.LSUM) {
-            val res = UInt(33 bits)
-            res := (stack.B.resize(33) + stack.A.resize(33) + stack.C(0).asUInt.resize(33))
-            stack.A := res(31 downto 0)
-            stack.B := res(32).asUInt.resize(32)
+            val wide = UInt(33 bits)
+            wide := stack.B.resize(33) + stack.A.resize(33) + stack.C(0).asUInt
+            stack.A := wide(31 downto 0)
+            val carry = wide >= U(0xffffffffL, 33 bits)
+            stack.B := carry.asUInt.resized
           }
           is(Opcodes.Enum.Secondary.LDIFF) {
             val res = UInt(33 bits)
