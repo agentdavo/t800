@@ -7,29 +7,13 @@ import spinal.lib.bus.bmb.{Bmb, BmbParameter, BmbAccessParameter}
 import t800.plugins._
 
 object T800 {
-  /** Create a database pre-loaded with defaults from [[Global]]. */
-  def defaultDatabase(): Database = {
-    // Populates database with Global constants (e.g., WordBits = 32)
-    val db = new Database
-    db(Global.WORD_BITS) = Global.WordBits
-    db(Global.ADDR_BITS) = Global.AddrBits
-    db(Global.PC_BITS) = Global.AddrBits
-    db(Global.INSTR_BITS) = 8
-    db(Global.IPTR_BITS) = Global.AddrBits
-    db(Global.OPCODE_BITS) = 8
-    db(Global.ROM_WORDS) = Global.RomWords
-    db(Global.RAM_WORDS) = Global.RamWords
-    db(Global.LINK_COUNT) = Global.LinkCount
-    db(Global.FPU_PRECISION) = Global.FpuPrecision
-    db(Global.SCHED_QUEUE_DEPTH) = Global.SchedQueueDepth
-    db(Global.RESET_IPTR) = Global.ResetIPtr
-    db
-  }
+  /** Create an empty database, populated by TransputerPlugin. */
+  def defaultDatabase(): Database = new Database
 
   /** Parameters for the 128-bit system bus, using Global.AddrBits. */
   val systemBusParam = BmbParameter(
     access = BmbAccessParameter(
-      addressWidth = Global.AddrBits, // 32 bits per Global.AddrBits
+      addressWidth = Global.AddrBits, // Dynamic, set by TransputerPlugin
       dataWidth = 128, // 128-bit wide system bus
       lengthWidth = 4, // Supports up to 16-byte bursts
       sourceWidth = 4, // Supports multiple masters (e.g., CPU, VCP)
@@ -39,7 +23,7 @@ object T800 {
 
   /** Standard plugin stack for T800, aligned with T9000 architecture. */
   def defaultPlugins(): Seq[FiberPlugin] = Seq(
-    new TransputerPlugin,
+    new TransputerPlugin, // Must be first to set Database values
     new StackPlugin,
     new PipelinePlugin,
     new MainCachePlugin,
@@ -68,7 +52,7 @@ class T800(
   Database(database).on {
     host.asHostOf(plugins)
     plugins.foreach(_.awaitBuild())
-    // Connect plugins to system bus (assumes plugins implement connectToSystemBus)
+    // Connect plugins to system bus
     plugins.foreach { plugin =>
       plugin match {
         case cache: MainCachePlugin => cache.connectToSystemBus(systemBus)
