@@ -9,7 +9,7 @@ import t800.plugins._
 object T800 {
   /** Create a database pre-loaded with defaults from [[Global]]. */
   def defaultDatabase(): Database = {
-    // Assumes Global.WORD_BITS, etc., are Element[Int] keys in t800.plugins
+    // Populates database with Global constants (e.g., WordBits = 32)
     val db = new Database
     db(Global.WORD_BITS) = Global.WordBits
     db(Global.ADDR_BITS) = Global.AddrBits
@@ -26,10 +26,10 @@ object T800 {
     db
   }
 
-  /** Parameters for the 128-bit system bus. */
+  /** Parameters for the 128-bit system bus, using Global.AddrBits. */
   val systemBusParam = BmbParameter(
     access = BmbAccessParameter(
-      addressWidth = Global.ADDR_BITS, // Assumes Global.AddrBits is defined
+      addressWidth = Global.AddrBits, // 32 bits per Global.AddrBits
       dataWidth = 128, // 128-bit wide system bus
       lengthWidth = 4, // Supports up to 16-byte bursts
       sourceWidth = 4, // Supports multiple masters (e.g., CPU, VCP)
@@ -37,7 +37,7 @@ object T800 {
     )
   )
 
-  /** Standard plugin stack used by [[T800Core]] and [[TopVerilog]], integrated with system bus. */
+  /** Standard plugin stack for T800, aligned with T9000 architecture. */
   def defaultPlugins(): Seq[FiberPlugin] = Seq(
     new StackPlugin,
     new PipelinePlugin,
