@@ -1,4 +1,4 @@
-package t800
+package t800.plugins
 
 import spinal.core._
 import spinal.lib.misc.database.{Database, Element}
