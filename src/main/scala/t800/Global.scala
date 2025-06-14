@@ -24,14 +24,17 @@ object Global extends AreaObject {
 
   // Default constants formerly hosted in `TConsts`, aligned with T9000
   val WordBits = 32
-  val AddrBits = 32
+  val AddrBitsValue = 32 // Renamed to avoid conflict with getter
   val RomWords = 16
   val RamWords = 4096
   val MicroWords = 1024
   val LinkCount = 4
   val FpuPrecision = WordBits
   val SchedQueueDepth = LinkCount
-  val ResetIPtr = 0x00000000L
+  val ResetIptr = 0x00000000L
+
+  // Dynamic getter for systemBusParam and plugins
+  def AddrBits: Int = ADDR_BITS.getOrElse(AddrBitsValue)
 
   // Memory layout and interrupt vectors
   val InternalMemStart = 0x80000000L
