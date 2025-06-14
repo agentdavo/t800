@@ -177,6 +177,30 @@ Defines a plugin abstraction built on the fiber API.
 | `during.setup {…}` | Schedules code for the setup phase (returns a `Handle`). |
 | `during.build {…}` | Schedules code for the build phase (returns a `Handle`). |
 
+### Custom services
+
+Plugins exchange data through small service traits:
+
+| Service | Description |
+|---------|-------------|
+| `LinkPins` | Marker trait for link-related I/O bundles. |
+| `DebugPins` | Area containing optional debug signals. |
+| `ExtMemPins` | Off-chip memory interface pins. |
+| `StackSrv` | Exposes A/B/C/O registers and workspace pointer with read/write helpers. |
+| `FpuSrv` | Command and response interface for the floating-point unit. |
+| `SchedSrv` | Scheduler queues and control for process dispatch. |
+| `TimerSrv` | High/low timers with load and enable controls. |
+| `InstrFetchSrv` | Instruction fetch memory request and response flows. |
+| `DataBusSrv` | Data memory bus read and write flows. |
+| `LinkBusSrv` | Memory bus for transputer links. |
+| `LinkBusArbiterSrv` | Arbitration channels between execution and channel DMA. |
+| `MemAccessSrv` | Provides access to ROM and RAM memories. |
+| `ChannelSrv` | FIFO-level transmit and receive operations on links. |
+| `ChannelPinsSrv` | External channel link pins. |
+| `ChannelDmaSrv` | DMA command stream for channel transfers. |
+| `GroupedInstrSrv` | Up to eight grouped opcodes and their count. |
+| `PipelineSrv` | Global pipeline stage handles and payloads. |
+
 ---
 
 ## spinal.lib.misc.pipeline Package

@@ -7,7 +7,9 @@ import t800.Global
 
 /** Instruction fetch unit using the pipeline framework. */
 class FetchPlugin extends FiberPlugin {
+  val version = "FetchPlugin v0.1"
   val logic = during build new Area {
+    report(L"Initializing $version")
     println(s"[${FetchPlugin.this.getDisplayName()}] build start")
     implicit val h: PluginHost = host
     val imem = Plugin[InstrFetchSrv]

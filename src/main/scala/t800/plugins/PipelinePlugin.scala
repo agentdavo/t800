@@ -20,6 +20,7 @@ trait PipelineSrv {
 }
 
 class PipelinePlugin extends FiberPlugin {
+  val version = "PipelinePlugin v0.1"
   private var pipeline: StageCtrlPipeline = null
   private var fetchReg: CtrlLink = null
   private var decodeReg: CtrlLink = null
@@ -29,6 +30,7 @@ class PipelinePlugin extends FiberPlugin {
   private val retain = Retainer()
 
   during setup new Area {
+    report(L"Initializing $version")
     println(s"[${PipelinePlugin.this.getDisplayName()}] setup start")
     pipeline = new StageCtrlPipeline()
     fetchReg = pipeline.ctrl(0)

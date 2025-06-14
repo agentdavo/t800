@@ -13,6 +13,7 @@ import t800.{MemReadCmd, MemWriteCmd, TConsts, Global}
 class MemoryPlugin(romInit: Seq[BigInt] = Seq.fill(TConsts.RomWords)(BigInt(0)))
     extends FiberPlugin
     with PipelineService {
+  val version = "MemoryPlugin v0.1"
   private var rom: Mem[Bits] = null
   private var ram: Mem[Bits] = null
   private var instrCmdReg: Flow[MemReadCmd] = null
@@ -33,6 +34,7 @@ class MemoryPlugin(romInit: Seq[BigInt] = Seq.fill(TConsts.RomWords)(BigInt(0)))
   override def getLinks(): Seq[pipeline.Link] = pipelineLinks
 
   during setup new Area {
+    report(L"Initializing $version")
     println(s"[${MemoryPlugin.this.getDisplayName()}] setup start")
     rom = Mem(Bits(Global.WORD_BITS bits), Global.ROM_WORDS)
     rom.initBigInt(romInit)

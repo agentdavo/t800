@@ -6,6 +6,7 @@ import spinal.core.fiber.Retainer
 import t800.Global
 
 class StackPlugin extends FiberPlugin {
+  val version = "StackPlugin v0.1"
   private var regA: UInt = null
   private var regB: UInt = null
   private var regC: UInt = null
@@ -16,6 +17,7 @@ class StackPlugin extends FiberPlugin {
   private val retain = Retainer()
 
   during setup new Area {
+    report(L"Initializing $version")
     println(s"[${StackPlugin.this.getDisplayName()}] setup start")
     regA = Reg(UInt(Global.WORD_BITS bits)) init 0
     regB = Reg(UInt(Global.WORD_BITS bits)) init 0

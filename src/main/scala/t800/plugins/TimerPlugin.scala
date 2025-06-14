@@ -9,6 +9,7 @@ import t800.Global
 
 /** Simple high/low priority timers. High increments every cycle; low every 64 cycles. */
 class TimerPlugin extends FiberPlugin {
+  val version = "TimerPlugin v0.1"
   private var hiTimer: UInt = null
   private var loTimer: UInt = null
   private var loCnt: UInt = null
@@ -19,6 +20,7 @@ class TimerPlugin extends FiberPlugin {
   private val retain = Retainer()
 
   during setup new Area {
+    report(L"Initializing $version")
     println(s"[${TimerPlugin.this.getDisplayName()}] setup start")
     hiTimer = Reg(UInt(Global.WORD_BITS bits)) init (0)
     loTimer = Reg(UInt(Global.WORD_BITS bits)) init (0)

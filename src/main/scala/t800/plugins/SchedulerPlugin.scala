@@ -10,6 +10,7 @@ import t800.Global
 
 /** Minimal round-robin scheduler with high/low priority queues. */
 class SchedulerPlugin extends FiberPlugin {
+  val version = "SchedulerPlugin v0.1"
   private var cmdReg: Flow[SchedCmd] = null
   private var nextReg: UInt = null
   private var hiFrontReg, hiBackReg, loFrontReg, loBackReg: UInt = null
@@ -22,6 +23,7 @@ class SchedulerPlugin extends FiberPlugin {
   private val retain = Retainer()
 
   during setup new Area {
+    report(L"Initializing $version")
     println(s"[${SchedulerPlugin.this.getDisplayName()}] setup start")
     cmdReg = Flow(SchedCmd())
 
