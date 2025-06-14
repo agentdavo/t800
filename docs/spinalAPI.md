@@ -56,4 +56,8 @@ Defines the plugin framework used throughout the T800 core. Each subsystem exten
 
 Plugins interact via small service classes and can retain each other during setup. Details and more examples live under `ext/SpinalHDL/lib/src/.../plugin`.
 
+### `PipelineService` and `PipelineBuilderPlugin`
+
+Plugins that define pipeline stages implement `PipelineService` to expose their `Link` sequences. `PipelineBuilderPlugin` waits until all such services are registered and then calls `pipeline.Builder` to finalize hardware for every collected link.
+
 ---

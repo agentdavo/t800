@@ -4,8 +4,8 @@ import spinal.core._
 import spinal.lib._
 import spinal.lib.misc.plugin.{FiberPlugin, Plugin, PluginHost}
 import spinal.core.fiber.Retainer
-import spinal.lib.misc.{pipeline => miscPipeline}
-import miscPipeline._
+import spinal.lib.misc.pipeline
+import spinal.lib.misc.pipeline._
 import t800.{MemReadCmd, MemWriteCmd, TConsts, Global}
 import t800.plugins.{LinkBusSrv, LinkBusArbiterSrv}
 
@@ -23,8 +23,8 @@ class ChannelPlugin extends FiberPlugin with PipelineService {
   private var memTx: Vec[Stream[Bits]] = null
 
   private val retain = Retainer()
-  private var pipelineLinks: Seq[miscPipeline.Link] = Seq()
-  override def getLinks(): Seq[miscPipeline.Link] = pipelineLinks
+  private var pipelineLinks: Seq[pipeline.Link] = Seq()
+  override def getLinks(): Seq[pipeline.Link] = pipelineLinks
 
   during setup new Area {
     println(s"[${ChannelPlugin.this.getDisplayName()}] setup start")

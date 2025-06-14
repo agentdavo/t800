@@ -4,12 +4,12 @@ import spinal.core._
 import spinal.core.Area
 import spinal.core.fiber.Retainer
 import spinal.lib.misc.plugin.FiberPlugin
-import spinal.lib.misc.{pipeline => miscPipeline}
+import spinal.lib.misc.pipeline
 
 /** Collect all [[PipelineService]] implementations and build their links.
   */
 trait PipelineService {
-  def getLinks(): Seq[miscPipeline.Link]
+  def getLinks(): Seq[pipeline.Link]
 }
 
 /** The function of this plugin is to collect all the pipeline parts defined by the other's
@@ -22,6 +22,6 @@ class PipelineBuilderPlugin extends FiberPlugin {
     elaborationLock.await()
     val chunks = host.list[PipelineService]
     val links = chunks.flatMap(_.getLinks())
-    miscPipeline.Builder(links)
+    pipeline.Builder(links)
   }
 }
