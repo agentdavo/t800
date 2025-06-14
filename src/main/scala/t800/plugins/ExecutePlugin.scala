@@ -335,6 +335,10 @@ class ExecutePlugin extends FiberPlugin {
         stack.A := stack.WPtr + operand
         stack.O := 0
       }
+      is(Opcodes.Enum.Primary.LDNLP) {
+        stack.A := stack.A + (stack.O |<< 2)
+        stack.O := 0
+      }
       is(Opcodes.Enum.Primary.ADC) {
         val operand = accumulated
         stack.A := stack.A + operand
