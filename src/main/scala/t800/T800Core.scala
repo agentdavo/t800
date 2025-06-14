@@ -39,6 +39,7 @@ object T800 {
 
   /** Standard plugin stack for T800, aligned with T9000 architecture. */
   def defaultPlugins(): Seq[FiberPlugin] = Seq(
+    new TransputerPlugin,
     new StackPlugin,
     new PipelinePlugin,
     new MainCachePlugin,
@@ -53,7 +54,7 @@ object T800 {
     new SchedulerPlugin,
     new TimerPlugin,
     new PipelineBuilderPlugin,
-    new MemoryManagementPlugin // Replaces MemoryPlugin
+    new MemoryManagementPlugin
   )
 }
 
