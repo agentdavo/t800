@@ -7,10 +7,10 @@ import spinal.lib.misc.plugin.{FiberPlugin, Plugin, PluginHost}
 import spinal.core.fiber.{Retainer, Lock}
 import spinal.lib.misc.pipeline
 import spinal.lib.misc.pipeline._
-import t800.{MemReadCmd, MemWriteCmd, TConsts, Global}
+import t800.{MemReadCmd, MemWriteCmd, Global}
 
 /** Simple on-chip memory for instructions. */
-class MemoryPlugin(romInit: Seq[BigInt] = Seq.fill(TConsts.RomWords)(BigInt(0)))
+class MemoryPlugin(romInit: Seq[BigInt] = Seq.fill(Global.RomWords)(BigInt(0)))
     extends FiberPlugin
     with PipelineService {
   val version = "MemoryPlugin v0.1"

@@ -11,17 +11,17 @@ class GlobalDatabaseSpec extends AnyFunSuite {
   test("plugins read configuration from database") {
     val db = new Database
     db(Global.WORD_BITS) = 16
-    db(Global.ADDR_BITS) = TConsts.AddrBits
-    db(Global.PC_BITS) = TConsts.AddrBits
+    db(Global.ADDR_BITS) = Global.AddrBits
+    db(Global.PC_BITS) = Global.AddrBits
     db(Global.INSTR_BITS) = 8
-    db(Global.IPTR_BITS) = TConsts.AddrBits
+    db(Global.IPTR_BITS) = Global.AddrBits
     db(Global.OPCODE_BITS) = 8
-    db(Global.ROM_WORDS) = TConsts.RomWords
-    db(Global.RAM_WORDS) = TConsts.RamWords
-    db(Global.LINK_COUNT) = TConsts.LinkCount
-    db(Global.FPU_PRECISION) = TConsts.FpuPrecision
-    db(Global.SCHED_QUEUE_DEPTH) = TConsts.SchedQueueDepth
-    db(Global.RESET_IPTR) = TConsts.ResetIPtr
+    db(Global.ROM_WORDS) = Global.RomWords
+    db(Global.RAM_WORDS) = Global.RamWords
+    db(Global.LINK_COUNT) = Global.LinkCount
+    db(Global.FPU_PRECISION) = Global.FpuPrecision
+    db(Global.SCHED_QUEUE_DEPTH) = Global.SchedQueueDepth
+    db(Global.RESET_IPTR) = Global.ResetIPtr
 
     SimConfig
       .compile {

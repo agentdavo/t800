@@ -4,9 +4,16 @@ import spinal.core._
 import spinal.core.fiber._
 import spinal.lib.misc.plugin._
 import spinal.lib.misc.pipeline._
-import spinal.lib.misc.database_
+import spinal.lib.misc.database._
 import spinal.lib.com.spi.ddr.{SpiXdrMasterCtrl, BmbSpiXdrMasterCtrl}
-import spinal.lib.bus.bmb.{Bmb, BmbParameter, BmbAccessParameter, BmbDecoder, BmbArbiter, BmbDownSizerBridge}
+import spinal.lib.bus.bmb.{
+  Bmb,
+  BmbParameter,
+  BmbAccessParameter,
+  BmbDecoder,
+  BmbArbiter,
+  BmbDownSizerBridge
+}
 import spinal.lib.bus.misc.{AddressMapping, SizeMapping}
 
 // The PmiPlugin implements a 64-bit DDR external memory interface with four BmbSpiXdrMasterCtrl channels
@@ -39,10 +46,15 @@ class PmiPlugin extends FiberPlugin {
     addService(service)
   }
 
-  buildBefore(retains(host[MainCachePlugin].lock, host[WorkspaceCachePlugin].lock, host[MemoryManagementPlugin].lock).lock)
+  buildBefore(
+    retains(
+      host[MainCachePlugin].lock,
+      host[WorkspaceCachePlugin].lock
+    ).lock
+  )
 
   lazy val logic = during build new Area {
-    val memory = host.find[StageCtrlPipeline].ctrl(4)
+    val memory = host.find[StageCtrlPipeline].ctrl(3)
 
     // BMB bus parameters (64-bit data, 32-bit address, burst support)
     val bmbParameter = BmbParameter(
@@ -73,7 +85,7 @@ class PmiPlugin extends FiberPlugin {
       SizeMapping(0x00000000L, 0x40000000L, B(0, 2 bits)), // Channel 0
       SizeMapping(0x40000000L, 0x40000000L, B(1, 2 bits)), // Channel 1
       SizeMapping(0x80000000L, 0x40000000L, B(2, 2 bits)), // Channel 2
-      SizeMapping(0xC0000000L, 0x40000000L, B(3, 2 bits))  // Channel 3
+      SizeMapping(0xc0000000L, 0x40000000L, B(3, 2 bits)) // Channel 3
     )
 
     // Decoder for channel routing
@@ -96,21 +108,38 @@ class PmiPlugin extends FiberPlugin {
     val channels = for (i <- 0 until 4) yield new Area {
       val downSizer = BmbDownSizerBridge(
         inputParameter = bmbParameter,
-        outputParameter = BmbDownSizerBridge.outputParameterFrom(bmbParameter.access, 32).toBmbParameter()
+        outputParameter =
+          BmbDownSizerBridge.outputParameterFrom(bmbParameter.access, 32).toBmbParameter()
       )
       val spiCtrl = BmbSpiXdrMasterCtrl(
         p = SpiXdrMasterCtrl.MemoryMappingParameters(
-          ctrl = SpiXdrMasterCtrl.Parameters(
-            dataWidth = 8,
-            timerWidth = 12,
-            spi = SpiXdrParameter(
+          ctrl = SpiXdrMasterCtrl
+            .Parameters(
               dataWidth = 8,
-              ioRate = 2,
-              ssWidth = 4
+              timerWidth = 12,
+              spi = SpiXdrParameter(
+                dataWidth = 8,
+                ioRate = 2,
+                ssWidth = 4
+              )
             )
-          )
-          .addFullDuplex(id = 0, rate = 1, ddr = true, dataWidth = 8, lateSampling = true) // DDR for bursts
-          .addHalfDuplex(id = 1, rate = 1, ddr = false, spiWidth = 8, dataWidth = 8, readPinOffset = 0, ouputHighWhenIdle = false, lateSampling = true), // Octal SPI
+            .addFullDuplex(
+              id = 0,
+              rate = 1,
+              ddr = true,
+              dataWidth = 8,
+              lateSampling = true
+            ) // DDR for bursts
+            .addHalfDuplex(
+              id = 1,
+              rate = 1,
+              ddr = false,
+              spiWidth = 8,
+              dataWidth = 8,
+              readPinOffset = 0,
+              ouputHighWhenIdle = false,
+              lateSampling = true
+            ), // Octal SPI
           cmdFifoDepth = 32,
           rspFifoDepth = 32,
           xip = null
@@ -132,9 +161,9 @@ class PmiPlugin extends FiberPlugin {
 
     // External memory simulation
     val externalMem = Vec(Vec(Mem(Bits(64 bits), 4096), 4), 4) // 256 KB per device
-    val strobeTimings = Vec(Reg(UInt(8 bits)) init(0), 4)
-    val pageModeEns = Vec(Reg(Bool()) init(False), 4)
-    val deviceSels = Vec(Reg(UInt(2 bits)) init(0), 4)
+    val strobeTimings = Vec(Reg(UInt(8 bits)) init (0), 4)
+    val pageModeEns = Vec(Reg(Bool()) init (False), 4)
+    val deviceSels = Vec(Reg(UInt(2 bits)) init (0), 4)
 
     // DDR access logic
     def read(addr: Bits): Bits = {
@@ -148,7 +177,11 @@ class PmiPlugin extends FiberPlugin {
       channels(chanIdx).spiCtrl.io.ctrl.cmd.data := 0
       channels(chanIdx).spiCtrl.io.spi.ss := B(1 << deviceSels(chanIdx), 4 bits)
 
-      when(channels(chanIdx).spiCtrl.io.ctrl.rsp.valid && channels(chanIdx).spiCtrl.io.spi.sclk.write === B(1, 2 bits)) {
+      when(
+        channels(chanIdx).spiCtrl.io.ctrl.rsp.valid && channels(
+          chanIdx
+        ).spiCtrl.io.spi.sclk.write === B(1, 2 bits)
+      ) {
         srv.dataOut := externalMem(chanIdx)(deviceSels(chanIdx)).readSync(addr(13 downto 3).asUInt)
         srv.isValid := channels(chanIdx).spiCtrl.io.ctrl.rsp.last // Valid on last beat
       }
@@ -167,7 +200,11 @@ class PmiPlugin extends FiberPlugin {
       channels(chanIdx).spiCtrl.io.ctrl.cmd.data := data(31 downto 0)
       channels(chanIdx).spiCtrl.io.spi.ss := B(1 << deviceSels(chanIdx), 4 bits)
 
-      when(srv.writeEnable && channels(chanIdx).spiCtrl.io.ctrl.rsp.valid && channels(chanIdx).spiCtrl.io.ctrl.rsp.last) {
+      when(
+        srv.writeEnable && channels(chanIdx).spiCtrl.io.ctrl.rsp.valid && channels(
+          chanIdx
+        ).spiCtrl.io.ctrl.rsp.last
+      ) {
         externalMem(chanIdx)(deviceSels(chanIdx)).writeAsync(addr(13 downto 3).asUInt, data)
         srv.isValid := True
       }
@@ -175,9 +212,9 @@ class PmiPlugin extends FiberPlugin {
 
     // Octal SPI configuration logic (per channel)
     val spiConfigs = for (i <- 0 until 4) yield new Area {
-      val configState = Reg(UInt(2 bits)) init(0)
-      val configData = Reg(Bits(8 bits)) init(0)
-      val bitCount = Reg(UInt(4 bits)) init(0)
+      val configState = Reg(UInt(2 bits)) init (0)
+      val configData = Reg(Bits(8 bits)) init (0)
+      val bitCount = Reg(UInt(4 bits)) init (0)
 
       when(channels(i).spiCtrl.io.spi.ss(deviceSels(i)) === False) {
         switch(configState) {
@@ -186,7 +223,9 @@ class PmiPlugin extends FiberPlugin {
             channels(i).spiCtrl.io.ctrl.cmd.opcode := 1 // Write
             channels(i).spiCtrl.io.ctrl.cmd.address := 0x0 // Command register
             channels(i).spiCtrl.io.ctrl.cmd.length := 0 // Single-beat
-            channels(i).spiCtrl.io.ctrl.cmd.data := (True ## False ## True ## U"8'h01" ## U"8'h00").asBits
+            channels(
+              i
+            ).spiCtrl.io.ctrl.cmd.data := (True ## False ## True ## U"8'h01" ## U"8'h00").asBits
             when(channels(i).spiCtrl.io.ctrl.rsp.valid) {
               configState := 1
               bitCount := 0
@@ -202,7 +241,7 @@ class PmiPlugin extends FiberPlugin {
                 configState := 2
                 when(configData === B"00000001") {
                   strobeTimings(i) := channels(i).spiCtrl.io.ctrl.rsp.data(7 downto 0).asUInt
-                } elsewhen(configData === B"00000010") {
+                } elsewhen (configData === B"00000010") {
                   pageModeEns(i) := channels(i).spiCtrl.io.ctrl.rsp.data(0)
                 }
               }
@@ -228,7 +267,9 @@ class PmiPlugin extends FiberPlugin {
     // Debug logging
     when(srv.isValid && debugEn) {
       val chanIdx = srv.addr(31 downto 30).asUInt
-      report(L"PMI addr=$PMI_ADDR data=$PMI_DATA pageMode=${pageModeEns(chanIdx)} device=${deviceSels(chanIdx)} channel=$chanIdx")
+      report(
+        L"PMI addr=$PMI_ADDR data=$PMI_DATA pageMode=${pageModeEns(chanIdx)} device=${deviceSels(chanIdx)} channel=$chanIdx"
+      )
     }
   }
 }

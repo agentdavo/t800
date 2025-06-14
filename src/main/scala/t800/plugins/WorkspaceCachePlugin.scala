@@ -4,7 +4,7 @@ import spinal.core._
 import spinal.core.fiber._
 import spinal.lib.misc.plugin._
 import spinal.lib.misc.pipeline._
-import spinal.lib.misc.database_
+import spinal.lib.misc.database._
 import spinal.lib.bus.bmb.{Bmb, BmbParameter, BmbAccessParameter, BmbOnChipRamMultiPort}
 import spinal.lib.bus.misc.SingleMapping
 
@@ -46,7 +46,7 @@ class WorkspaceCachePlugin extends FiberPlugin {
     addService(service)
   }
 
-  buildBefore(retains(host[MainCachePlugin].lock, host[MemoryManagementPlugin].lock).lock)
+  buildBefore(retains(host[MainCachePlugin].lock).lock)
 
   lazy val logic = during build new Area {
     val decode = host.find[StageCtrlPipeline].ctrl(2)
@@ -70,8 +70,8 @@ class WorkspaceCachePlugin extends FiberPlugin {
     )
 
     // Workspace pointer and invalidation logic
-    val wptr = Reg(Bits(32 bits)) init(0)
-    val validBits = Reg(Bits(32 bits)) init(0)
+    val wptr = Reg(Bits(32 bits)) init (0)
+    val validBits = Reg(Bits(32 bits)) init (0)
     val contextSwitch = False // Triggered by SchedulerPlugin
     val interrupt = False // Triggered by SystemControlPlugin
     when(contextSwitch || interrupt) {
@@ -88,7 +88,7 @@ class WorkspaceCachePlugin extends FiberPlugin {
             validBits(i) := False
           }
         }
-      } elsewhen(wptrDelta > 0) { // Procedure return (move up)
+      } elsewhen (wptrDelta > 0) { // Procedure return (move up)
         for (i <- 0 until 32) {
           when((wptr(4 downto 0).asUInt + i) < (wptr(4 downto 0).asUInt + wptrDelta.asUInt)) {
             validBits(i) := False
@@ -143,7 +143,10 @@ class WorkspaceCachePlugin extends FiberPlugin {
     when(srv.writeEnable) {
       validBits(srv.writeAddr(4 downto 0).asUInt) := True
       // Write-through to Main Cache
-      host[MainCachePlugin].write(srv.writeAddr, srv.writeData ## srv.writeData ## srv.writeData ## srv.writeData)
+      host[MainCachePlugin].write(
+        srv.writeAddr,
+        srv.writeData ## srv.writeData ## srv.writeData ## srv.writeData
+      )
     }
 
     val wsCacheLogic = new Area {
