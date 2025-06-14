@@ -24,6 +24,21 @@ object T800 {
     db(Global.RESET_IPTR) = TConsts.ResetIPtr
     db
   }
+
+  /** Standard plugin stack used by [[T800Core]] and [[TopVerilog]]. */
+  def defaultPlugins(): Seq[FiberPlugin] =
+    Seq(
+      new StackPlugin,
+      new PipelinePlugin,
+      new MemoryPlugin,
+      new FetchPlugin,
+      new ChannelPlugin,
+      new ExecutePlugin,
+      new FpuPlugin,
+      new SchedulerPlugin,
+      new TimerPlugin,
+      new PipelineBuilderPlugin
+    )
 }
 
 class T800(
@@ -37,37 +52,13 @@ class T800(
   }
 }
 
-class T800Core
-    extends T800(
-      new PluginHost,
-      Seq(
-        new StackPlugin,
-        new PipelinePlugin,
-        new MemoryPlugin,
-        new FetchPlugin,
-        new ExecutePlugin,
-        new FpuPlugin,
-        new SchedulerPlugin,
-        new TimerPlugin,
-        new PipelineBuilderPlugin
-      )
-    )
+class T800Core extends T800(new PluginHost, T800.defaultPlugins())
 
 object T800CoreVerilog {
   def main(args: Array[String]): Unit = {
     SpinalVerilog {
       val host = new PluginHost
-      val plugins = Seq(
-        new StackPlugin,
-        new PipelinePlugin,
-        new MemoryPlugin,
-        new FetchPlugin,
-        new ExecutePlugin,
-        new FpuPlugin,
-        new SchedulerPlugin,
-        new TimerPlugin,
-        new PipelineBuilderPlugin
-      )
+      val plugins = T800.defaultPlugins()
       PluginHost(host).on {
         new T800(host, plugins)
       }
