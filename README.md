@@ -73,7 +73,7 @@ t800/
 ├─ ext/
 │  └─ SpinalHDL/                # git sub-module (optional)
 ├─ doc/
-│  └─ spinalHDL.html            # SpinalSim + SpinalHDL reference documentation
+│  └─ spinalHDL.txt             # SpinalSim + SpinalHDL documentation
 ├─ README.md
 └─ AGENTS.md
 
@@ -206,7 +206,7 @@ SimConfig
 so long-running tests fail deterministically. Additional back‑ends like GHDL or
 Icarus can be selected via `withGhdl` or `withIVerilog`.
 
-For more advanced features, see `doc/spinalHDL.html`.
+For more advanced features, see `doc/spinalHDL.txt`.
 
 ### Debugging tips
 
@@ -221,7 +221,7 @@ Spawn helper threads with `fork { ... }` and block on events using `sleep(n)` or
 `waitUntil(cond)`. ClockDomain utilities such as `waitRisingEdge()` help align
 checks with clock boundaries. See **AGENTS.md §12** for common runtime errors.
 * `clockDomain.forkSimSpeedPrinter(printPeriod)` prints the simulation speed;
-  see `doc/spinalHDL.html` for details.
+  see `doc/spinalHDL.txt` for details.
 
 See `doc/hello_world.md` for a quick overview, and `doc/helloworld.md` for the full source listing.
 An overview of the link services and the upcoming VCP design lives in
