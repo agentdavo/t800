@@ -96,6 +96,42 @@ class SecondaryInstrPlugin extends FiberPlugin {
             stack.A := diff
             stack.B := stack.C
           }
+          is(Opcodes.Enum.Secondary.LADD) {
+            val res = stack.B + stack.A + (stack.C & 1)
+            stack.A := res.resized
+          }
+          is(Opcodes.Enum.Secondary.LSUB) {
+            val res = stack.B - stack.A - (stack.C & 1)
+            stack.A := res.resized
+          }
+          is(Opcodes.Enum.Secondary.LSUM) {
+            val res = UInt(33 bits)
+            res := (stack.B.resize(33) + stack.A.resize(33) + stack.C(0).asUInt.resize(33))
+            stack.A := res(31 downto 0)
+            stack.B := res(32).asUInt.resize(32)
+          }
+          is(Opcodes.Enum.Secondary.LDIFF) {
+            val res = UInt(33 bits)
+            res := (stack.B.resize(33) - stack.A.resize(33) - stack.C(0).asUInt.resize(33))
+            stack.A := res(31 downto 0)
+            stack.B := res(32).asUInt.resize(32)
+          }
+          is(Opcodes.Enum.Secondary.LMUL) {
+            val product = (stack.B * stack.A).resize(64) + stack.C.resize(64)
+            stack.A := product(31 downto 0)
+            stack.B := product(63 downto 32)
+          }
+          is(Opcodes.Enum.Secondary.LDIV) {
+            when(stack.C >= stack.A) {
+              errReg := True
+            } otherwise {
+              val dividend = (stack.C ## stack.B).asUInt.resize(64)
+              val quotient = dividend / stack.A
+              val rem = dividend % stack.A
+              stack.A := quotient(31 downto 0)
+              stack.B := rem(31 downto 0)
+            }
+          }
           is(Opcodes.Enum.Secondary.AND) {
             val res = stack.A & stack.B
             stack.A := res
@@ -115,6 +151,28 @@ class SecondaryInstrPlugin extends FiberPlugin {
             val res = (stack.B.asSInt >> stack.A).asUInt
             stack.A := res
             stack.B := stack.C
+          }
+          is(Opcodes.Enum.Secondary.LSHR) {
+            when(stack.A < 64) {
+              val wide = (stack.C ## stack.B).asUInt.resize(64)
+              val shifted = wide >> stack.A
+              stack.A := shifted(31 downto 0)
+              stack.B := shifted(63 downto 32)
+            } otherwise {
+              stack.A := 0
+              stack.B := 0
+            }
+          }
+          is(Opcodes.Enum.Secondary.LSHL) {
+            when(stack.A < 64) {
+              val wide = (stack.C ## stack.B).asUInt.resize(64)
+              val shifted = wide |<< stack.A
+              stack.A := shifted(31 downto 0)
+              stack.B := shifted(63 downto 32)
+            } otherwise {
+              stack.A := 0
+              stack.B := 0
+            }
           }
           is(Opcodes.Enum.Secondary.IN) {
             val idx = stack.B(1 downto 0)
