@@ -9,21 +9,26 @@ import t800.plugins._
 object TopVerilog {
   def main(args: Array[String]): Unit = {
     
-    // Build plugin list with configured TransputerPlugin
-    val plugins = Seq(
-      new TransputerPlugin(
-        fpuPrecision = if (args.contains("--double-precision")) 64 else Global.FpuPrecision,
-        linkCount = args.find(_.startsWith("--link-count=")).map(_.split("=")(1).toInt).getOrElse(Global.LinkCount),
-        ramWords = args.find(_.startsWith("--ram-words=")).map(_.split("=")(1).toInt).getOrElse(Global.RamWords)
-      )
-    ) ++ T800.defaultPlugins().tail
-
-    // Generate Verilog
+    // Configure Database for variant support
     val db = T800.defaultDatabase()
+    
+    if (args.contains("--double-precision")) {
+      db(Global.FPU_PRECISION) = 64
+    }
+    args.find(_.startsWith("--link-count=")).foreach { arg =>
+      db(Global.LINK_COUNT) = arg.split("=")(1).toInt
+    }
+    args.find(_.startsWith("--ram-words=")).foreach { arg =>
+      db(Global.RAM_WORDS) = arg.split("=")(1).toInt
+    }
+
+    // Generate Verilog with default plugins
     val report = SpinalVerilog {
       val host = new PluginHost
-      new T800(host, plugins, db)
+      new T800(host, T800.defaultPlugins(), db)
     }
+    
     println(s"Verilog generated: ${report.toplevelName}")
+    
   }
 }
