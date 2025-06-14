@@ -142,7 +142,11 @@ trait ChannelDmaSrv {
   def cmd: Stream[ChannelTxCmd]
 }
 
+case class GroupedInstructions() extends Bundle {
+  val instructions = Vec(Bits(t800.Global.OPCODE_BITS bits), 8)
+  val count = UInt(4 bits)
+}
+
 trait GroupedInstrSrv {
-  val instructions: Vec[Bits]
-  val count: UInt
+  def groups: Flow[GroupedInstructions]
 }
