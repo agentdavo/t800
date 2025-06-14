@@ -131,6 +131,9 @@ cd t800
 git submodule update --init --recursive
 ./scripts/check-submodules.sh
 
+# Install Java, sbt and Verilator once via helper script
+sudo ./scripts/setup_env.sh
+
 # Default plugin set
 sbt scalafmtAll
 sbt test

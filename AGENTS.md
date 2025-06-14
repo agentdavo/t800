@@ -20,7 +20,11 @@
 ## 2 Development quick-ref
 
 ```bash
-# build and run
+# first-time setup (installs sbt & build tools)
+sudo ./scripts/setup_env.sh
+
+# format, test and run
+sbt scalafmtAll
 sbt test
 sbt "runMain t800.TopVerilog"
 ````
