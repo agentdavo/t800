@@ -198,7 +198,7 @@ Plugins exchange data through small service traits:
 | `ChannelSrv` | FIFO-level transmit and receive operations on links. |
 | `ChannelPinsSrv` | External channel link pins. |
 | `ChannelDmaSrv` | DMA command stream for channel transfers. |
-| `GroupedInstrSrv` | Up to eight grouped opcodes and their count. |
+| `GroupedInstrSrv` | Flow of instruction groups (up to eight opcodes). |
 | `PipelineSrv` | Global pipeline stage handles and payloads. |
 
 ---

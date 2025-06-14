@@ -17,6 +17,7 @@ class GrouperPlugin extends FiberPlugin with PipelineService {
   private var instrVec: Vec[Bits] = null
   private var instrCount: UInt = null
   private var groupValid: Bool = null
+  private var groupFlow: Flow[GroupedInstructions] = null
   private var links: Seq[pipeline.Link] = Seq()
 
   override def getLinks(): Seq[pipeline.Link] = links
@@ -28,9 +29,10 @@ class GrouperPlugin extends FiberPlugin with PipelineService {
     instrVec = Vec.fill(8)(Reg(Bits(Global.OPCODE_BITS bits)) init 0)
     instrCount = Reg(UInt(4 bits)) init 0
     groupValid = Reg(Bool()) init False
+    groupFlow = Flow(GroupedInstructions())
+    groupFlow.setIdle()
     addService(new GroupedInstrSrv {
-      override val instructions: Vec[Bits] = instrVec
-      override val count: UInt = instrCount
+      override def groups: Flow[GroupedInstructions] = groupFlow
     })
   }
 
@@ -57,6 +59,10 @@ class GrouperPlugin extends FiberPlugin with PipelineService {
       fifo.io.pop.ready := True
       when(instrCount === 7) { groupValid := True }
     }
+
+    groupFlow.valid := groupValid
+    groupFlow.payload.instructions := instrVec
+    groupFlow.payload.count := instrCount
 
     // Expose the current group on decode when ready
     pipe.decode.haltWhen(!groupValid)
