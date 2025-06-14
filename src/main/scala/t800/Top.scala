@@ -19,7 +19,8 @@ object TopVerilog {
         new ExecutePlugin,
         new FpuPlugin,
         new SchedulerPlugin,
-        new TimerPlugin
+        new TimerPlugin,
+        new PipelineBuilderPlugin
       )
       PluginHost(host).on {
         new T800(host, plugins, db)

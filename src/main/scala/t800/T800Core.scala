@@ -48,7 +48,8 @@ class T800Core
         new ExecutePlugin,
         new FpuPlugin,
         new SchedulerPlugin,
-        new TimerPlugin
+        new TimerPlugin,
+        new PipelineBuilderPlugin
       )
     )
 
@@ -64,7 +65,8 @@ object T800CoreVerilog {
         new ExecutePlugin,
         new FpuPlugin,
         new SchedulerPlugin,
-        new TimerPlugin
+        new TimerPlugin,
+        new PipelineBuilderPlugin
       )
       PluginHost(host).on {
         new T800(host, plugins)

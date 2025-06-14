@@ -27,7 +27,8 @@ class Move2DSpec extends AnyFunSuite {
           new DummyTimerPlugin,
           new DummyFpuPlugin,
           new ExecutePlugin,
-          new SchedulerPlugin
+          new SchedulerPlugin,
+          new PipelineBuilderPlugin
         )
         PluginHost(host).on(new T800(host, p))
       }

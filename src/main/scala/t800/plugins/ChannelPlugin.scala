@@ -4,7 +4,8 @@ import spinal.core._
 import spinal.lib._
 import spinal.lib.misc.plugin.{FiberPlugin, Plugin, PluginHost}
 import spinal.core.fiber.Retainer
-import spinal.lib.misc.pipeline._
+import spinal.lib.misc.{pipeline => miscPipeline}
+import miscPipeline._
 import t800.{MemReadCmd, MemWriteCmd, TConsts, Global}
 import t800.plugins.{LinkBusSrv, LinkBusArbiterSrv}
 
@@ -13,7 +14,7 @@ object DmaState extends SpinalEnum {
 }
 
 /** Provides transputer link interfaces with simple FIFO synchronizers. */
-class ChannelPlugin extends FiberPlugin {
+class ChannelPlugin extends FiberPlugin with PipelineService {
   private var pins: ChannelPins = null
   private var rxVec: Vec[Stream[Bits]] = null
   private var txVec: Vec[Stream[Bits]] = null
@@ -22,6 +23,8 @@ class ChannelPlugin extends FiberPlugin {
   private var memTx: Vec[Stream[Bits]] = null
 
   private val retain = Retainer()
+  private var pipelineLinks: Seq[miscPipeline.Link] = Seq()
+  override def getLinks(): Seq[miscPipeline.Link] = pipelineLinks
 
   during setup new Area {
     println(s"[${ChannelPlugin.this.getDisplayName()}] setup start")
@@ -158,7 +161,7 @@ class ChannelPlugin extends FiberPlugin {
       default {}
     }
 
-    Builder(dmaStage)
+    pipelineLinks = Seq(dmaStage)
     println(s"[${ChannelPlugin.this.getDisplayName()}] build end")
   }
 }

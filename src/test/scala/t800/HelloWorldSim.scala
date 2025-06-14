@@ -23,7 +23,8 @@ object HelloWorldSim {
           new ExecutePlugin,
           new ChannelPlugin,
           new SchedulerPlugin,
-          new TimerPlugin
+          new TimerPlugin,
+          new PipelineBuilderPlugin
         )
         PluginHost(host).on {
           new T800(host, p)
