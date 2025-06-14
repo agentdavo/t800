@@ -148,6 +148,11 @@ class ExecutePlugin extends FiberPlugin {
             stack.A := stack.B
             stack.B := stack.C
           }
+          is(Opcodes.Enum.Secondary.RUNP) {
+            sched.enqueue(stack.A, False)
+            stack.A := stack.B
+            stack.B := stack.C
+          }
           is(Opcodes.Enum.Secondary.TESTERR) {
             val tmp = errReg
             errReg := False
@@ -183,6 +188,10 @@ class ExecutePlugin extends FiberPlugin {
             hiFPtr := stack.A
             stack.A := stack.B
             stack.B := stack.C
+          }
+          is(Opcodes.Enum.Secondary.STOPP) {
+            sched.enqueue(stack.WPtr, False)
+            pipe.execute.haltWhen(True)
           }
           is(Opcodes.Enum.Secondary.MINT) {
             stack.C := stack.B

@@ -45,6 +45,7 @@ case class SchedCmd() extends Bundle {
 trait SchedSrv {
   def newProc: Flow[SchedCmd]
   def nextProc: UInt
+  def enqueue(ptr: UInt, high: Bool): Unit
 }
 
 trait TimerSrv {

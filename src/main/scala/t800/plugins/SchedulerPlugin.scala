@@ -32,6 +32,11 @@ class SchedulerPlugin extends FiberPlugin {
     addService(new SchedSrv {
       override def newProc: Flow[SchedCmd] = cmdReg
       override def nextProc: UInt = nextReg
+      override def enqueue(ptr: UInt, high: Bool): Unit = {
+        cmdReg.valid := True
+        cmdReg.payload.ptr := ptr
+        cmdReg.payload.high := high
+      }
     })
     retain()
     println(s"[${SchedulerPlugin.this.getDisplayName()}] setup end")
