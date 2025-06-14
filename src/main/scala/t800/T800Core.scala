@@ -9,6 +9,7 @@ import t800.plugins._
 object T800 {
   /** Create a database pre-loaded with defaults from [[Global]]. */
   def defaultDatabase(): Database = {
+    // Assumes Global.WORD_BITS, etc., are Element[Int] keys in t800.plugins
     val db = new Database
     db(Global.WORD_BITS) = Global.WordBits
     db(Global.ADDR_BITS) = Global.AddrBits
@@ -28,7 +29,7 @@ object T800 {
   /** Parameters for the 128-bit system bus. */
   val systemBusParam = BmbParameter(
     access = BmbAccessParameter(
-      addressWidth = Global.ADDR_BITS,
+      addressWidth = Global.ADDR_BITS, // Assumes Global.AddrBits is defined
       dataWidth = 128, // 128-bit wide system bus
       lengthWidth = 4, // Supports up to 16-byte bursts
       sourceWidth = 4, // Supports multiple masters (e.g., CPU, VCP)
@@ -52,7 +53,7 @@ object T800 {
     new SchedulerPlugin,
     new TimerPlugin,
     new PipelineBuilderPlugin,
-    new MemoryManagementPlugin // Added to replace MemoryPlugin
+    new MemoryManagementPlugin // Replaces MemoryPlugin
   )
 }
 
@@ -66,13 +67,13 @@ class T800(
   Database(database).on {
     host.asHostOf(plugins)
     plugins.foreach(_.awaitBuild())
-    // Connect plugins to system bus (to be implemented in each plugin)
+    // Connect plugins to system bus (assumes plugins implement connectToSystemBus)
     plugins.foreach { plugin =>
       plugin match {
         case cache: MainCachePlugin => cache.connectToSystemBus(systemBus)
         case workspace: WorkspaceCachePlugin => workspace.connectToSystemBus(systemBus)
         case pmi: PmiPlugin => pmi.connectToSystemBus(systemBus)
-        case _ => // Other plugins may not need direct connection
+        case _ => // Other plugins may not need direct bus connection
       }
     }
   }
@@ -82,12 +83,11 @@ class T800Core extends T800(new PluginHost, T800.defaultPlugins())
 
 object T800CoreVerilog {
   def main(args: Array[String]): Unit = {
-    SpinalVerilog {
+    val report = SpinalVerilog {
       val host = new PluginHost
       val plugins = T800.defaultPlugins()
-      PluginHost(host).on {
-        new T800(host, plugins)
-      }
+      new T800(host, plugins)
     }
+    println(s"Verilog generated: ${report.toplevelName}")
   }
 }
