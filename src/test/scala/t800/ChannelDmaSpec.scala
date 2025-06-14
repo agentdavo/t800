@@ -22,6 +22,7 @@ class ChannelDmaSpec extends AnyFunSuite {
           new MemoryPlugin(base),
           new FetchPlugin,
           new ChannelPlugin,
+          new GrouperPlugin,
           new DummyTimerPlugin,
           new DummyFpuPlugin,
           new PrimaryInstrPlugin,
