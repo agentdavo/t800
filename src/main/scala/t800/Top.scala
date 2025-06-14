@@ -7,13 +7,13 @@ import t800.plugins._
 /** Variant-aware entry point used by the build scripts. */
 object TopVerilog {
   def main(args: Array[String]): Unit = {
-    SpinalVerilog {
+    val db = T800.defaultDatabase()
+    require(db != null, "Failed to initialize T800 database")
+    val report = SpinalVerilog {
       val host = new PluginHost
-      val db = T800.defaultDatabase()
       val plugins = T800.defaultPlugins()
-      PluginHost(host).on {
-        new T800(host, plugins, db)
-      }
+      new T800(host, plugins, db)
     }
+    println(s"Verilog generated: ${report.toplevelName}")
   }
 }
