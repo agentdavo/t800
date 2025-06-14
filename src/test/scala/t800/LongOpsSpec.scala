@@ -124,9 +124,21 @@ class LongOpsSpec extends AnyFunSuite {
     assert(a == 0xffffffffL.toInt && b == 1)
   }
 
+  test("LMUL high") {
+    val (a, b, _, _) = run(0x31, 0x12345678L, 0x10000000L, 0L)
+    assert(b == 0x01234567L.toInt)
+    assert(a == 0x80000000L.toInt)
+  }
+
   test("LSUM with carry") {
     val (a, b, _, _) = run(0x37, 0xffffffffL, 1L, 0L)
     assert(a == 0)
+    assert(b == 1)
+  }
+
+  test("LSUM boundary") {
+    val (a, b, _, _) = run(0x37, 0xfffffffeL, 1L, 0L)
+    assert(a == 0xffffffffL.toInt)
     assert(b == 1)
   }
 
@@ -145,6 +157,11 @@ class LongOpsSpec extends AnyFunSuite {
     assert(a == 2 && b == 2 && !err)
   }
 
+  test("LDIV error") {
+    val (_, _, _, err) = run(0x1a, 3L, 8L, 5L)
+    assert(err)
+  }
+
   test("LDIFF borrow") {
     val (a, b, _, _) = run(0x4f, 5L, 3L, 1L)
     assert(a == (3 - 5 - 1).toInt)
@@ -156,8 +173,23 @@ class LongOpsSpec extends AnyFunSuite {
     assert(a == 0 && b == 0)
   }
 
+  test("LSHR 32") {
+    val (a, b, _, _) = run(0x35, 32L, 0x12345678L, 0x9abcdef0L)
+    assert(a == 0x9abcdef0L.toInt && b == 0)
+  }
+
   test("LSHL normal") {
     val (a, b, _, _) = run(0x36, 1L, 0x12345678L, 0L)
     assert(a == 0x2468acf0L.toInt && b == 0)
+  }
+
+  test("LSHL 32") {
+    val (a, b, _, _) = run(0x36, 32L, 0x12345678L, 0x9abcdef0L)
+    assert(a == 0x9abcdef0L.toInt && b == 0x12345678L)
+  }
+
+  test("LSHL large") {
+    val (a, b, _, _) = run(0x36, 64L, 0x12345678L, 0x9abcdef0L)
+    assert(a == 0 && b == 0)
   }
 }
