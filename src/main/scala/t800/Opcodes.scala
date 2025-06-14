@@ -247,8 +247,8 @@ object Opcodes {
       val REV, LB, ADD, IN, OUT, SUB, STARTP, OUTBYTE, OUTWORD, STLB, STHF, LDPI, STLF, RET,
         LDTIMER, TESTERR, XOR, SHR, SHL, MINT, ALT, ALTWT, ALTEND, AND, MOVE, STHB, STTIMER,
         CLRHALTERR, SETHALTERR, TESTHALTERR, DUP, MOVE2DINIT, MOVE2DALL, MOVE2DNONZERO, MOVE2DZERO,
-        POP, TIMERDISABLEH, TIMERDISABLEL, TIMERENABLEH, TIMERENABLEL, FPADD, FPSUB, FPMUL, FPDIV =
-        newElement()
+        POP, TIMERDISABLEH, TIMERDISABLEL, TIMERENABLEH, TIMERENABLEL, RUNP, STOPP, FPADD, FPSUB,
+        FPMUL, FPDIV = newElement()
       defaultEncoding = SpinalEnumEncoding("static")(
         REV -> 0x00,
         LB -> 0x01,
@@ -290,6 +290,8 @@ object Opcodes {
         TIMERDISABLEL -> 0x7b,
         TIMERENABLEH -> 0x7c,
         TIMERENABLEL -> 0x7d,
+        RUNP -> 0x39,
+        STOPP -> 0x15,
         FPADD -> 0x87,
         FPSUB -> 0x89,
         FPMUL -> 0x8b,
