@@ -12,7 +12,7 @@
 | `src/main/scala/t800/Top.scala` | Builds the `Database` + `PluginHost` and plugin list |
 | `src/test/scala/t800/` | ScalaTest units + SpinalSim benches |
 | `ext/SpinalHDL/` | Upstream library as git sub-module |
-| `doc/spinalHDL.html` | SpinalSim + SpinalHDL documentation |
+| `doc/spinalHDL.txt` | SpinalSim + SpinalHDL documentation |
 
 ---
 
@@ -232,7 +232,7 @@ SimConfig.withWave.compile(new MyCore).doSim { dut =>
 ```
 
 Wave files are written under `simWorkspace/`. Select the backend with
-`withVerilator`, `withGhdl`, or `withIVerilog`. See `doc/spinalHDL.html` for
+`withVerilator`, `withGhdl`, or `withIVerilog`. See `doc/spinalHDL.txt` for
 details.
 
 ### Debugging tips
@@ -247,7 +247,7 @@ details.
   and block on conditions via `waitUntil(expr)` or the ClockDomain helpers
   like `waitRisingEdge()`.
 * Call `clockDomain.forkSimSpeedPrinter(printPeriod)` to print the current
-  simulation speed. See `doc/spinalHDL.html` for details.
+  simulation speed. See `doc/spinalHDL.txt` for details.
 
 #### Common runtime errors
 
