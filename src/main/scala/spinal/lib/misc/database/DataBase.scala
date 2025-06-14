@@ -69,7 +69,7 @@ abstract class Element[T](sp: ScopeProperty[Database] = Database) extends Nameab
 class ElementValue[T](sp: ScopeProperty[Database] = Database) extends Element[T](sp) {
   def getOn(db: Database): T = db.storageGet(this)
   def set(db: Database, value: T) = db.storageUpdate(this, value)
-  override def isEmpty(db: Database): Boolean = ???
+  override def isEmpty(db: Database): Boolean = !db.storageExists(this)
 }
 
 /** Same as ElementValue, but based on the SpinalHDL Fiber API. Meaning that when we get something
@@ -106,5 +106,5 @@ class ElementLanda[T](body: => T, sp: ScopeProperty[Database] = Database)
     super.getOn(db)
   }
 
-  override def set(db: Database, value: T) = ???
+  override def set(db: Database, value: T) = db.storageUpdate(this, value)
 }
