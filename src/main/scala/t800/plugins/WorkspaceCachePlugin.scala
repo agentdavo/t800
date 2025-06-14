@@ -6,6 +6,11 @@ import spinal.lib.misc.database_
 import spinal.lib.bus.bmb.{Bmb, BmbParameter, BmbAccessParameter, BmbOnChipRamMultiPort}
 import spinal.lib.bus.misc.SingleMapping
 
+// The WorkspaceCachePlugin implements a 32-word triple-ported cache (two reads, one write per cycle)
+// Providing zero-cycle read access in the Decode stage.
+// It is write-through to MainCachePlugin, organized as a circular buffer addressed by Wptr[4:0]
+// With invalidation on context switches/interrupts and roll-over, supporting two simultaneous CPU reads
+
 case class WorkspaceCacheAccessSrv() extends Bundle {
   val addrA = Bits(32 bits) // Read port A
   val addrB = Bits(32 bits) // Read port B
