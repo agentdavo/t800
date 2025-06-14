@@ -100,6 +100,9 @@ case class ChannelTxCmd() extends Bundle {
   val link = UInt(2 bits)
   val addr = UInt(t800.Global.ADDR_BITS bits)
   val length = UInt(t800.Global.ADDR_BITS bits)
+  val stride = UInt(t800.Global.ADDR_BITS bits)
+  val rows = UInt(t800.Global.ADDR_BITS bits)
+  val twoD = Bool()
 }
 
 case class ChannelPins(count: Int) extends Bundle with LinkPins {

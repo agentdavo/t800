@@ -14,6 +14,7 @@ class ExecutePlugin extends FiberPlugin {
   private var errReg: Bool = null
   private var haltErr: Bool = null
   private var hiFPtr, hiBPtr, loFPtr, loBPtr: UInt = null
+  private var move2dLen, move2dStride, move2dAddr: UInt = null
   private val retain = Retainer()
 
   during setup new Area {
@@ -24,6 +25,9 @@ class ExecutePlugin extends FiberPlugin {
     hiBPtr = Reg(UInt(Global.WORD_BITS bits)) init (0)
     loFPtr = Reg(UInt(Global.WORD_BITS bits)) init (0)
     loBPtr = Reg(UInt(Global.WORD_BITS bits)) init (0)
+    move2dLen = Reg(UInt(Global.WORD_BITS bits)) init (0)
+    move2dStride = Reg(UInt(Global.WORD_BITS bits)) init (0)
+    move2dAddr = Reg(UInt(Global.WORD_BITS bits)) init (0)
     retain()
     println(s"[${ExecutePlugin.this.getDisplayName()}] setup end")
   }
@@ -222,6 +226,58 @@ class ExecutePlugin extends FiberPlugin {
             stack.C := stack.B
             stack.B := stack.A
           }
+          is(Opcodes.Enum.Secondary.MOVE2DINIT) {
+            move2dLen := stack.A
+            move2dStride := stack.B
+            move2dAddr := stack.C
+            stack.A := stack.B
+            stack.B := stack.C
+          }
+          is(Opcodes.Enum.Secondary.MOVE2DALL) {
+            dma.cmd.valid := True
+            dma.cmd.payload.link := stack.B(1 downto 0)
+            dma.cmd.payload.addr := move2dAddr
+            dma.cmd.payload.length := move2dLen
+            dma.cmd.payload.stride := move2dStride
+            dma.cmd.payload.rows := stack.A
+            dma.cmd.payload.twoD := True
+            pipe.execute.haltWhen(!dma.cmd.ready)
+            when(pipe.execute.down.isFiring) {
+              move2dAddr := move2dAddr + move2dStride * stack.A
+              stack.A := stack.B
+              stack.B := stack.C
+            }
+          }
+          is(Opcodes.Enum.Secondary.MOVE2DNONZERO) {
+            dma.cmd.valid := True
+            dma.cmd.payload.link := stack.B(1 downto 0)
+            dma.cmd.payload.addr := move2dAddr
+            dma.cmd.payload.length := move2dLen
+            dma.cmd.payload.stride := move2dStride
+            dma.cmd.payload.rows := stack.A
+            dma.cmd.payload.twoD := True
+            pipe.execute.haltWhen(!dma.cmd.ready)
+            when(pipe.execute.down.isFiring) {
+              move2dAddr := move2dAddr + move2dStride * stack.A
+              stack.A := stack.B
+              stack.B := stack.C
+            }
+          }
+          is(Opcodes.Enum.Secondary.MOVE2DZERO) {
+            dma.cmd.valid := True
+            dma.cmd.payload.link := stack.B(1 downto 0)
+            dma.cmd.payload.addr := move2dAddr
+            dma.cmd.payload.length := move2dLen
+            dma.cmd.payload.stride := move2dStride
+            dma.cmd.payload.rows := stack.A
+            dma.cmd.payload.twoD := True
+            pipe.execute.haltWhen(!dma.cmd.ready)
+            when(pipe.execute.down.isFiring) {
+              move2dAddr := move2dAddr + move2dStride * stack.A
+              stack.A := stack.B
+              stack.B := stack.C
+            }
+          }
           is(Opcodes.Enum.Secondary.POP) {
             val t = stack.A
             stack.A := stack.B
@@ -263,6 +319,9 @@ class ExecutePlugin extends FiberPlugin {
             dma.cmd.payload.link := stack.B(1 downto 0)
             dma.cmd.payload.addr := stack.C
             dma.cmd.payload.length := stack.A
+            dma.cmd.payload.stride := 0
+            dma.cmd.payload.rows := 0
+            dma.cmd.payload.twoD := False
             pipe.execute.haltWhen(!dma.cmd.ready)
             when(pipe.execute.down.isFiring) {
               stack.A := stack.B
