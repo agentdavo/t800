@@ -1,49 +1,59 @@
-# T800 Core Planning
+# T800 Core Architecture & SpinalHDL Guidelines
 
-This document sketches the T800 plugin-based architecture and the CPU pipeline.
+This handbook describes the plugin-based CPU used in this repository. It collects the pipeline layout, the roles of each plugin and the SpinalHDL conventions we follow.
 
-## Pipeline stages
+## System overview
 
-A five-stage `StageCtrlPipeline` is created by `PipelinePlugin`:
+The core is a five-stage in-order pipeline built with `StageCtrlPipeline` and connected to a 128‑bit BMB system bus. The global parameters in `Global.scala` define a 32‑bit address space and constants such as `Global.WORD_BITS` for payload widths.
 
-1. **Fetch** – issue address to instruction memory and insert fetched byte.
-2. **Decode** – translate opcode to internal control signals.
-3. **Execute** – perform ALU/FPU operations.
-4. **Memory** – data memory accesses.
-5. **WriteBack** – final register updates or scheduler handover.
+### Pipeline stages
 
-The pipeline DSL ensures stall/flush control between stages.
+1. **Fetch** – reads 8‑bit instructions via the BMB bus.
+2. **Decode** – decodes opcodes and looks up stack operands.
+3. **Execute** – performs ALU and optional FPU operations.
+4. **Memory** – handles loads and stores through `MemoryManagementPlugin`.
+5. **WriteBack** – writes results and interacts with the scheduler.
 
-## Plugin responsibilities
+CtrlLink handshakes between the stages allow plugins to stall (`haltWhen`) or flush (`throwWhen`) transactions.
 
-- `FetchPlugin` – maintains the PC and fetches bytes from `InstrFetchSrv`.
-- `PrimaryInstrPlugin` – implements the 16 primary instructions.
-- `SecondaryInstrPlugin` – handles the extended OPR instruction set.
-- `MemoryPlugin` – simple on-chip ROM and RAM. Provides `InstrFetchSrv` and
-  `DataBusSrv`.
-- `FpuPlugin` – placeholder FPU interface; future variants may swap a different
-  implementation.
-- `SchedulerPlugin` – handles process scheduling and timers.
-- `StackPlugin` – the A/B/C stack registers.
-- `TimerPlugin` – provides high and low priority timer counters.
+## Plugins
 
-Each plugin exposes a tiny service API so others can request operations without
-directly touching internal signals. The fetch and execute stages rely on the
-instruction and data bus services implemented by `MemoryPlugin`. When the FPU is
-enabled, the execute stage issues commands through `FpuPlugin`'s pipeline
-interface and waits for results using the pipeline DSL's `haltWhen` mechanism.
+Each subsystem resides in `src/main/scala/t800/plugins` as a `FiberPlugin`:
 
-`TopVerilog` builds a single plugin set for simulation and synthesis.
+- `FetchPlugin` – program counter and instruction prefetch via BMB.
+- `PrimaryInstrPlugin` – implements the base T800 instructions.
+- `SecondaryInstrPlugin` – decodes the extended OPR group.
+- `MemoryManagementPlugin` – connects data and instruction traffic to the system bus.
+- `FpuPlugin` – optional floating point pipeline.
+- `SchedulerPlugin` – timers and context switching.
+- `StackPlugin` – A/B/C stack storage.
+- `TimerPlugin` – high and low priority counters.
+- Additional plugins such as `MainCachePlugin` and `WorkspaceCachePlugin` provide cache functionality.
+
+Plugins publish small service traits so other subsystems stay loosely coupled. The top level (`Top.scala`) builds the `Database` and `PluginHost` and then instantiates the chosen plugin list.
 
 ## Integration concepts
 
-The memory and FPU plugins expose lightweight services so other subsystems can
-issue commands without direct coupling. The pipeline service exposes `Node`
-handles used by plugins to insert or consume payloads. Coordination between
-stages uses `haltWhen` and `insert` from `spinal.lib.misc.pipeline`.
+The memory subsystem exposes `InstrFetchSrv` and `DataBusSrv` for BMB access. Stages use `haltWhen(!systemBus.rsp.valid)` to wait for BMB responses. Write‑locked configuration registers are checked through `Global.WriteLock.isLocked(addr)` before updates.
 
-Each pipeline stage receives a `CtrlLink` from `PipelinePlugin`. Plugins attach
-their logic to these links, inserting or reading instruction payloads and
-stalling downstream stages when resources are busy. For example the execute
-stage halts while waiting for a memory read or FPU result. This approach keeps
-all components loosely coupled while still allowing deterministic flow control.
+Payload names originate from `Global.scala` (for example `IPTR`, `OPCODE`, `MEM_ADDR`). Prefix payloads with the stage name when necessary, such as `EXE_ALU_RES`.
+
+### Retiming
+
+Plugins can retime logic by adjusting the insert stage index without altering interfaces. `StagePipeline` and `StageLink` handle register slicing automatically.
+
+## Plugin coding checklist
+
+- Use values from `Global` via `Database.blocking[Int]`.
+- Expose bus connections with `connectToSystemBus(bmb)` where required.
+- Access configuration registers through `Global.ConfigAccessSrv` and honour write locks.
+- Emit a version string using `report()` during build.
+- Encapsulate loops in `Area` blocks and use the pipeline helpers instead of manual `valid/ready` logic.
+
+## Debugging and simulation
+
+Call `report(L"MEM addr=$MEM_ADDR data=$MEM_DATA")` for runtime tracing. Unit tests under `src/test/scala` use `SimConfig.withWave` and `BmbMemoryAgent` to verify memory behaviour. Waveforms are written to `simWorkspace/` and can be inspected with GTKWave.
+
+## SpinalHDL best practices
+
+Follow the checks listed in `AGENTS.md` for safe RTL: avoid assignment overlap, watch for clock domain crossings and keep bundles immutable. Use explicit widths from `Global` and prefer `report` statements over waveform-only debugging.
