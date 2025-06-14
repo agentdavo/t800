@@ -7,4 +7,3 @@ addSbtPlugin("com.github.tkawachi" % "sbt-repeat" % "0.1.0")
 
 libraryDependencies += "com.lihaoyi" %% "sourcecode" % "0.3.0"
 addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.5.2")
-

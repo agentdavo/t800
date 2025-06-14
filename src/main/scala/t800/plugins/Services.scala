@@ -46,6 +46,11 @@ trait SchedSrv {
   def newProc: Flow[SchedCmd]
   def nextProc: UInt
   def enqueue(ptr: UInt, high: Bool): Unit
+  def terminateCurrent(): Unit
+  def hiFront: UInt
+  def hiBack: UInt
+  def loFront: UInt
+  def loBack: UInt
 }
 
 trait TimerSrv {
