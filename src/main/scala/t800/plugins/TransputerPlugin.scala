@@ -6,19 +6,22 @@ import t800.Global
 
 /**
  * Centralized configuration plugin for T800, setting T9000-specific parameters in the Database.
+ * Acts as a parameter trampoline, similar to VexiiRiscv's RiscvPlugin.
  */
 class TransputerPlugin(
   var wordBits: Int = Global.WordBits, // 32-bit default
-  var addrBits: Int = Global.AddrBits, // 32-bit default
+  var addrBits: Int = Global.AddrBitsValue, // 32-bit default
   var linkCount: Int = Global.LinkCount, // 4 links default
   var fpuPrecision: Int = Global.FpuPrecision, // 32-bit default
   var schedQueueDepth: Int = Global.SchedQueueDepth, // 4 default
   var romWords: Int = Global.RomWords, // 16 default
   var ramWords: Int = Global.RamWords, // 4096 default
-  var resetIptr: Long = Global.ResetIPtr // 0x00000000 default
+  var resetIptr: Long = Global.ResetIptr // 0x00000000 default
 ) extends FiberPlugin {
-
   val logic = during build new Area {
+    // Ensure early execution before other plugins
+    buildBefore(host.retain())
+
     // Set Database keys for T9000 configuration
     Global.WORD_BITS.set(wordBits)
     Global.ADDR_BITS.set(addrBits)
