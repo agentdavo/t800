@@ -20,6 +20,7 @@ object HelloWorldSim {
           new PipelinePlugin,
           new MemoryPlugin(romInit),
           new FetchPlugin,
+          new GrouperPlugin,
           new PrimaryInstrPlugin,
           new SecondaryInstrPlugin,
           new ChannelPlugin,

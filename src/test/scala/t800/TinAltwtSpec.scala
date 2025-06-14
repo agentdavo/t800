@@ -31,6 +31,7 @@ class TinAltwtSpec extends AnyFunSuite {
           new PipelinePlugin,
           new MemoryPlugin(rom),
           new FetchPlugin,
+          new GrouperPlugin,
           new DummyFpuPlugin,
           new PrimaryInstrPlugin,
           new SecondaryInstrPlugin,

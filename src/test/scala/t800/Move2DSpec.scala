@@ -23,6 +23,7 @@ class Move2DSpec extends AnyFunSuite {
           new PipelinePlugin,
           new MemoryPlugin(rom),
           new FetchPlugin,
+          new GrouperPlugin,
           new ChannelPlugin,
           new DummyTimerPlugin,
           new DummyFpuPlugin,

@@ -16,6 +16,7 @@ class HelloWorldSpec extends AnyFunSuite {
           new PipelinePlugin,
           new MemoryPlugin,
           new FetchPlugin,
+          new GrouperPlugin,
           new PrimaryInstrPlugin,
           new SecondaryInstrPlugin,
           new ChannelPlugin,

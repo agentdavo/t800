@@ -21,6 +21,7 @@ class SchedulerSaveSpec extends AnyFunSuite {
           new PipelinePlugin,
           new MemoryPlugin(rom),
           new FetchPlugin,
+          new GrouperPlugin,
           new DummyTimerPlugin,
           new DummyFpuPlugin,
           new PrimaryInstrPlugin,
