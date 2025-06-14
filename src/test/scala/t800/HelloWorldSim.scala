@@ -20,10 +20,12 @@ object HelloWorldSim {
           new PipelinePlugin,
           new MemoryPlugin(romInit),
           new FetchPlugin,
-          new ExecutePlugin,
+          new PrimaryInstrPlugin,
+          new SecondaryInstrPlugin,
           new ChannelPlugin,
           new SchedulerPlugin,
-          new TimerPlugin
+          new TimerPlugin,
+          new PipelineBuilderPlugin
         )
         PluginHost(host).on {
           new T800(host, p)

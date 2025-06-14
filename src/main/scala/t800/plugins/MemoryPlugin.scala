@@ -5,12 +5,14 @@ import spinal.lib._
 import spinal.core.sim._
 import spinal.lib.misc.plugin.{FiberPlugin, Plugin, PluginHost}
 import spinal.core.fiber.{Retainer, Lock}
+import spinal.lib.misc.pipeline
 import spinal.lib.misc.pipeline._
 import t800.{MemReadCmd, MemWriteCmd, TConsts, Global}
 
 /** Simple on-chip memory for instructions. */
 class MemoryPlugin(romInit: Seq[BigInt] = Seq.fill(TConsts.RomWords)(BigInt(0)))
-    extends FiberPlugin {
+    extends FiberPlugin
+    with PipelineService {
   private var rom: Mem[Bits] = null
   private var ram: Mem[Bits] = null
   private var instrCmdReg: Flow[MemReadCmd] = null
@@ -26,6 +28,9 @@ class MemoryPlugin(romInit: Seq[BigInt] = Seq.fill(TConsts.RomWords)(BigInt(0)))
   private var chanRdCmd: Flow[MemReadCmd] = null
   private var chanWrCmd: Flow[MemWriteCmd] = null
   private val retain = Retainer()
+  private var pipelineLinks: Seq[pipeline.Link] = Seq()
+
+  override def getLinks(): Seq[pipeline.Link] = pipelineLinks
 
   during setup new Area {
     println(s"[${MemoryPlugin.this.getDisplayName()}] setup start")
@@ -174,7 +179,7 @@ class MemoryPlugin(romInit: Seq[BigInt] = Seq.fill(TConsts.RomWords)(BigInt(0)))
       )
     }
 
-    Builder(
+    pipelineLinks = Seq(
       rdBuf,
       wrBuf,
       iStage,

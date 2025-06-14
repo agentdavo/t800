@@ -13,6 +13,7 @@
 | `src/test/scala/t800/` | ScalaTest units + SpinalSim benches |
 | `ext/SpinalHDL/` | Upstream library as git sub-module |
 | `doc/spinalHDL.txt` | SpinalSim + SpinalHDL documentation |
+| `docs/spinalAPI.md` | Local guide to the SpinalHDL helpers. Keep this updated as new features use the DSLs |
 
 ---
 
@@ -41,6 +42,7 @@ sbt "runMain t800.TopVerilog"
 * Dataflow inside a plugin **must** use Pipeline DSL (`Node`, `StageLink`, `CtrlLink`), not ad-hoc `RegNext`.
 
 * Each new opcode requires a unit test that drives bytes through fetch and checks A/B/C or memory.
+* Update `docs/spinalAPI.md` with any new DSL patterns or plugin services.
 
 ---
 
@@ -59,8 +61,8 @@ sbt "runMain t800.TopVerilog"
 
 | ID      | Goal                             | Plugin(s) touched | DSL highlight                 |
 | ------- | -------------------------------- | ----------------- | ----------------------------- |
-| **M-1** | ALU-Lite (`REV ADD SUB AND XOR`) | `ExecutePlugin`   | `StageCtrlPipeline`, `haltIt` |
-| **M-2** | PFIX/NFIX + `LDL`                | `ExecutePlugin`   | same                          |
+| **M-1** | ALU-Lite (`REV ADD SUB AND XOR`) | `PrimaryInstrPlugin`, `SecondaryInstrPlugin`   | `StageCtrlPipeline`, `haltIt` |
+| **M-2** | PFIX/NFIX + `LDL`                | `PrimaryInstrPlugin`   | same                          |
 | **M-3** | RAM `STL/LDL` + stack            | `MemoryPlugin`    | `S2MLink`                     |
 | **M-4** | Two-queue scheduler              | `SchedulerPlugin` | `ForkLink`                    |
 | **M-5** | 64-bit timer + wait              | `SchedulerPlugin` | `JoinLink`                    |
@@ -196,7 +198,7 @@ Golden rules:
 | Plugin          | Maintainers |
 | --------------- | ----------- |
 | FetchPlugin     | Front-end   |
-| ExecutePlugin   | ALU team    |
+| PrimaryInstrPlugin, SecondaryInstrPlugin   | ALU team    |
 | FpuPlugin       | FPU team    |
 | SchedulerPlugin | Flow team   |
 | MemoryPlugin    | Mem/cache   |

@@ -16,10 +16,12 @@ class HelloWorldSpec extends AnyFunSuite {
           new PipelinePlugin,
           new MemoryPlugin,
           new FetchPlugin,
-          new ExecutePlugin,
+          new PrimaryInstrPlugin,
+          new SecondaryInstrPlugin,
           new ChannelPlugin,
           new SchedulerPlugin,
-          new TimerPlugin
+          new TimerPlugin,
+          new PipelineBuilderPlugin
         )
         PluginHost(host).on {
           new T800(host, plugins)

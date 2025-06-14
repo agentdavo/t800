@@ -15,6 +15,7 @@ This project re-implements the INMOS T800/T9000 CPU in modern SpinalHDL.
 * **Plugins** – every subsystem (FPU, Scheduler …) is a hot-swappable `FiberPlugin`.
 * **Pipeline DSL** – build safe, stall/flush-aware pipelines with one-liners.
 * **Fibers** – allow out-of-order elaboration so plugins can depend on each other.
+* **API reference** -- see `docs/spinalAPI.md` for pipeline, fiber, and plugin APIs.
 * **Fiber phases** – each plugin runs a `setup` block before hardware `build`; use `awaitBuild()` or `buildBefore()` to coordinate ordering.
 
 ---
@@ -208,6 +209,7 @@ Icarus can be selected via `withGhdl` or `withIVerilog`.
 
 For more advanced features, see `doc/spinalHDL.txt`.
 
+The SpinalHDL API reference is maintained in `docs/spinalAPI.md`.
 ### Debugging tips
 
 Simulation artifacts live in `simWorkspace/`. Waveforms and log files are

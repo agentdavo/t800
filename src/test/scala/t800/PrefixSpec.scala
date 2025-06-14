@@ -23,8 +23,10 @@ class PrefixSpec extends AnyFunSuite {
           new FetchPlugin,
           new DummyTimerPlugin,
           new DummyFpuPlugin,
-          new ExecutePlugin,
-          new SchedulerPlugin
+          new PrimaryInstrPlugin,
+          new SecondaryInstrPlugin,
+          new SchedulerPlugin,
+          new PipelineBuilderPlugin
         )
         PluginHost(host).on {
           new T800(host, p)

@@ -10,17 +10,7 @@ object TopVerilog {
     SpinalVerilog {
       val host = new PluginHost
       val db = T800.defaultDatabase()
-      val plugins = Seq(
-        new StackPlugin,
-        new PipelinePlugin,
-        new MemoryPlugin,
-        new FetchPlugin,
-        new ChannelPlugin,
-        new ExecutePlugin,
-        new FpuPlugin,
-        new SchedulerPlugin,
-        new TimerPlugin
-      )
+      val plugins = T800.defaultPlugins()
       PluginHost(host).on {
         new T800(host, plugins, db)
       }
