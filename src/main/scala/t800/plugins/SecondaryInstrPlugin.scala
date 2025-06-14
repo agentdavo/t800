@@ -217,13 +217,15 @@ class SecondaryInstrPlugin extends FiberPlugin {
             stack.A := tmp.asUInt.resized
           }
           is(Opcodes.Enum.Secondary.ALT) {
-            // Placeholder for ALT state machine
+            // ALT setup not yet implemented
           }
           is(Opcodes.Enum.Secondary.ALTWT) {
-            // Placeholder
+            val waitDone = timer.hi >= stack.A
+            when(!waitDone) { sched.enqueue(stack.WPtr, False) }
+            pipe.execute.haltWhen(!waitDone)
           }
           is(Opcodes.Enum.Secondary.ALTEND) {
-            // Placeholder
+            // ALTEND placeholder
           }
           is(Opcodes.Enum.Secondary.STLB) {
             loBPtr := stack.A
@@ -478,6 +480,11 @@ class SecondaryInstrPlugin extends FiberPlugin {
               stack.B := stack.C
             }
           }
+        }
+        when(secondary.asBits === Opcodes.Secondary.TIN) {
+          val waitDone = timer.hi >= stack.A
+          when(!waitDone) { sched.enqueue(stack.WPtr, False) }
+          pipe.execute.haltWhen(!waitDone)
         }
         stack.O := 0
       }
