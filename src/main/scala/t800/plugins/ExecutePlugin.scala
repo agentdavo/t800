@@ -15,6 +15,7 @@ class ExecutePlugin extends FiberPlugin {
   private var haltErr: Bool = null
   private var hiFPtr, hiBPtr, loFPtr, loBPtr: UInt = null
   private var move2dLen, move2dStride, move2dAddr: UInt = null
+  private var saveLPhase, saveHPhase: Bool = null
   private val retain = Retainer()
 
   during setup new Area {
@@ -28,6 +29,8 @@ class ExecutePlugin extends FiberPlugin {
     move2dLen = Reg(UInt(Global.WORD_BITS bits)) init (0)
     move2dStride = Reg(UInt(Global.WORD_BITS bits)) init (0)
     move2dAddr = Reg(UInt(Global.WORD_BITS bits)) init (0)
+    saveLPhase = Reg(Bool()) init (False)
+    saveHPhase = Reg(Bool()) init (False)
     retain()
     println(s"[${ExecutePlugin.this.getDisplayName()}] setup end")
   }
@@ -189,9 +192,51 @@ class ExecutePlugin extends FiberPlugin {
             stack.A := stack.B
             stack.B := stack.C
           }
+          is(Opcodes.Enum.Secondary.SAVEL) {
+            val addr = Mux(saveLPhase, loBPtr, loFPtr)
+            arb.exeWr.valid := True
+            arb.exeWr.payload.addr := addr.resized
+            arb.exeWr.payload.data := Mux(saveLPhase, sched.loBack, sched.loFront).asBits
+            pipe.execute.haltWhen(False)
+            when(pipe.execute.down.isFiring) {
+              when(!saveLPhase) {
+                saveLPhase := True
+              } otherwise {
+                saveLPhase := False
+                stack.A := stack.B
+                stack.B := stack.C
+              }
+            }
+          }
+          is(Opcodes.Enum.Secondary.SAVEH) {
+            val addr = Mux(saveHPhase, hiBPtr, hiFPtr)
+            arb.exeWr.valid := True
+            arb.exeWr.payload.addr := addr.resized
+            arb.exeWr.payload.data := Mux(saveHPhase, sched.hiBack, sched.hiFront).asBits
+            pipe.execute.haltWhen(False)
+            when(pipe.execute.down.isFiring) {
+              when(!saveHPhase) {
+                saveHPhase := True
+              } otherwise {
+                saveHPhase := False
+                stack.A := stack.B
+                stack.B := stack.C
+              }
+            }
+          }
           is(Opcodes.Enum.Secondary.STOPP) {
             sched.enqueue(stack.WPtr, False)
             pipe.execute.haltWhen(True)
+          }
+          is(Opcodes.Enum.Secondary.ENDP) {
+            val parent = stack.read(S(0))
+            val cnt = stack.read(S(-1)) - 1
+            stack.write(S(-1), cnt)
+            when(cnt === 0) {
+              sched.terminateCurrent()
+            } otherwise {
+              sched.enqueue(parent, False)
+            }
           }
           is(Opcodes.Enum.Secondary.MINT) {
             stack.C := stack.B
@@ -219,6 +264,14 @@ class ExecutePlugin extends FiberPlugin {
           }
           is(Opcodes.Enum.Secondary.TIMERENABLEL) {
             timer.enableLo()
+          }
+          is(Opcodes.Enum.Secondary.LEND) {
+            val cnt = stack.A - 1
+            stack.A := cnt
+            when(cnt =/= 0) {
+              sched.enqueue(stack.WPtr, False)
+              pipe.execute.haltWhen(True)
+            }
           }
           is(Opcodes.Enum.Secondary.CLRHALTERR) {
             haltErr := False
