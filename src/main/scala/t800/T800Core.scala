@@ -32,6 +32,7 @@ object T800 {
       new PipelinePlugin,
       new MemoryPlugin,
       new FetchPlugin,
+      new GrouperPlugin,
       new ChannelPlugin,
       new PrimaryInstrPlugin,
       new SecondaryInstrPlugin,

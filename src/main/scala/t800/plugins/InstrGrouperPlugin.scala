@@ -1,166 +1,72 @@
+package t800.plugins
+
 import spinal.core._
-import spinal.core.fiber._
-import spinal.lib.misc.plugin._
+import spinal.lib._
+import spinal.lib.misc.plugin.{FiberPlugin, Plugin, PluginHost}
+import spinal.lib.misc.pipeline
 import spinal.lib.misc.pipeline._
-import spinal.lib.misc.database._
+import spinal.core.fiber.Retainer
+import t800.Global
 
-// Service interface for providing grouped instructions
-case class GroupedInstructions() extends Bundle with IMasterSlave {
-  val instructions = Vec(Bits(16 bits), 8) // Up to 8 instructions
-  val count = UInt(4 bits)                // Number of valid instructions
+/** Gather opcodes from the fetch stage and deliver them in groups of up to eight instructions on
+  * the decode stage. Other plugins may read the grouped values through [[GroupedInstrSrv]].
+  */
+class GrouperPlugin extends FiberPlugin with PipelineService {
+  val version = "GrouperPlugin v0.1"
+  private val retain = Retainer()
+  private var instrVec: Vec[Bits] = null
+  private var instrCount: UInt = null
+  private var groupValid: Bool = null
+  private var links: Seq[pipeline.Link] = Seq()
 
-  override def asMaster(): Unit = {
-    out(instructions, count)
-  }
-}
+  override def getLinks(): Seq[pipeline.Link] = links
 
-/**
- * T9000 Grouper Plugin
- *
- * Models the T9000's instruction grouper, assembling fetched instructions into groups
- * for superscalar execution based on resource constraints and dependencies
- */
-class GrouperPlugin extends FiberPlugin {
-  val version = "GrouperPlugin v2.1"
-  report(L"Initializing $version")
-
-  // Database keys
-  object DBKeys {
-    val GROUP_INSTR = Database.blocking[Vec[Bits]]()
-    val GROUP_COUNT = Database.blocking[UInt]()
-  }
-
-  // Payload definitions
-  lazy val DECODED_INSTR = Payload(Bits(16 bits))
-  lazy val GROUP_INSTR = Payload(Vec(Bits(16 bits), 8))
-  lazy val GROUP_COUNT = Payload(UInt(4 bits))
-
-  // Service instance
-  lazy val srv = during setup new Area {
-    val service = master(GroupedInstructions())
-    addService(service)
+  // Provide grouped instruction access to other plugins
+  during setup new Area {
+    report(L"Initializing $version")
+    retain()
+    instrVec = Vec.fill(8)(Reg(Bits(Global.OPCODE_BITS bits)) init 0)
+    instrCount = Reg(UInt(4 bits)) init 0
+    groupValid = Reg(Bool()) init False
+    addService(new GroupedInstrSrv {
+      override val instructions: Vec[Bits] = instrVec
+      override val count: UInt = instrCount
+    })
   }
 
-  // Pipeline integration
-  buildBefore(retains(host[CorePipelinePlugin].lock, host[MemoryManagementPlugin].lock).lock)
+  during build new Area {
+    retain.await()
+    implicit val h: PluginHost = host
+    val pipe = Plugin[PipelineSrv]
 
-  lazy val logic = during build new Area {
-    val fetch = host.find[StageCtrlPipeline].ctrl(0)
-    val group = host.find[StageCtrlPipeline].ctrl(1)
+    // Payloads published on the decode stage
+    val GROUP_INSTR = pipe.decode.insert(Vec(Bits(Global.OPCODE_BITS bits), 8))
+    val GROUP_COUNT = pipe.decode.insert(UInt(4 bits))
 
-    // Resource limits from T9000 HRM
-    val MAX_LOCAL_LOADS = 2      // Dual-ported workspace cache
-    val MAX_ADDR_CALCS = 2       // Non-local or indexed accesses
-    val MAX_NON_LOCAL_LOADS = 2  // Main cache ports
-    val MAX_ALU_FPU_OPS = 1      // Single ALU/FPU unit
-    val MAX_WRITE_JUMPS = 1      // Single write-back/jump unit
+    // FIFO decouples fetch from decode while groups are formed
+    val fifo = StreamFifo(Bits(Global.OPCODE_BITS bits), 16)
+    fifo.io.push << pipe.fetch.down.toStream(n => n(Global.OPCODE))
+    pipe.fetch.ignoreReadyWhen(True)
+    pipe.fetch.haltWhen(!fifo.io.push.ready)
 
-    // Instruction buffer
-    val instrBuffer = new StreamFifo(Bits(16 bits), 32)
-    instrBuffer.io.push << fetch.toStream.translateWith(fetch(DECODED_INSTR))
-
-    // Grouping logic
-    val groupFormation = new Area {
-      val group = Reg(Vec(Bits(16 bits), 8)) init(Vec.fill(8)(B(0)))
-      val groupCount = Reg(UInt(4 bits)) init(0)
-
-      // Resource counters
-      val localLoads = Reg(UInt(2 bits)) init(0)
-      val addrCalcs = Reg(UInt(2 bits)) init(0)
-      val nonLocalLoads = Reg(UInt(2 bits)) init(0)
-      val aluOps = Reg(UInt(1 bit)) init(0)
-      val writeJumps = Reg(UInt(1 bit)) init(0)
-
-      // Dependency tracking: simplified stack-based check
-      val stackDependency = Reg(Bool()) init(False)
-
-      // Reset counters when group is sent
-      when(group.isValid && group.isReady) {
-        localLoads := 0
-        addrCalcs := 0
-        nonLocalLoads := 0
-        aluOps := 0
-        writeJumps := 0
-        groupCount := 0
-        stackDependency := False
-      }
-
-      // Instruction classification
-      when(instrBuffer.io.pop.valid && !group.isValid) {
-        val currentInstr = instrBuffer.io.pop.payload
-        val opcode = currentInstr(15 downto 8)
-        var canAdd = True
-
-        switch(opcode) {
-          is(B"x07") { // ldl
-            when(localLoads >= MAX_LOCAL_LOADS || groupCount >= 8) {
-              canAdd := False
-            } otherwise {
-              localLoads := localLoads + 1
-              stackDependency := True // Pushes to stack
-            }
-          }
-          is(B"xF2") { // wsub
-            when(addrCalcs >= MAX_ADDR_CALCS || groupCount >= 8 || !stackDependency) {
-              canAdd := False
-            } otherwise {
-              addrCalcs := addrCalcs + 1
-              stackDependency := True // Consumes and produces stack value
-            }
-          }
-          is(B"x0A") { // ldnl
-            when(nonLocalLoads >= MAX_NON_LOCAL_LOADS || groupCount >= 8 || !stackDependency) {
-              canAdd := False
-            } otherwise {
-              nonLocalLoads := nonLocalLoads + 1
-              stackDependency := True // Loads to stack
-            }
-          }
-          is(B"xF5") { // add
-            when(aluOps >= MAX_ALU_FPU_OPS || groupCount >= 8 || !stackDependency) {
-              canAdd := False
-            } otherwise {
-              aluOps := aluOps + 1
-              stackDependency := True // Consumes two, produces one
-            }
-          }
-          is(B"x0D", B"x0E") { // stl, stnl
-            when(writeJumps >= MAX_WRITE_JUMPS || groupCount >= 8 || !stackDependency) {
-              canAdd := False
-            } otherwise {
-              writeJumps := writeJumps + 1
-              stackDependency := False // Consumes stack
-            }
-          }
-          default {
-            canAdd := groupCount < 8 // Simplified for other instructions
-          }
-        }
-
-        when(canAdd) {
-          group(groupCount) := currentInstr
-          groupCount := groupCount + 1
-          instrBuffer.io.pop.ready := True
-        } otherwise {
-          group.isValid := groupCount > 0 // Finalize group
-        }
-      }
-
-      // Connect to service interface
-      srv.instructions := group
-      srv.count := groupCount
-
-      // Drive pipeline
-      group.isValid := groupCount > 0
-      group(GROUP_INSTR) := group
-      group(GROUP_COUNT) := groupCount
-      DBKeys.GROUP_INSTR.set(group)
-      DBKeys.GROUP_COUNT.set(groupCount)
+    // Fill the current group until eight opcodes are collected
+    fifo.io.pop.ready := False
+    when(!groupValid && fifo.io.pop.valid) {
+      instrVec(instrCount) := fifo.io.pop.payload
+      instrCount := instrCount + 1
+      fifo.io.pop.ready := True
+      when(instrCount === 7) { groupValid := True }
     }
 
-    // Debug logging
-    when(group.isValid && debugEn) {
-      report(L"GROUP count=$GROUP_COUNT")
+    // Expose the current group on decode when ready
+    pipe.decode.haltWhen(!groupValid)
+    pipe.decode(GROUP_INSTR) := instrVec
+    pipe.decode(GROUP_COUNT) := instrCount
+    when(pipe.decode.down.isFiring && groupValid) {
+      groupValid := False
+      instrCount := 0
     }
+
+    links = Seq() // No additional pipeline links
   }
 }

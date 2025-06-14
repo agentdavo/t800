@@ -17,8 +17,10 @@ trait PipelineService {
   * finalize the pipelines hardware.
   */
 class PipelineBuilderPlugin extends FiberPlugin {
+  val version = "PipelineBuilderPlugin v0.1"
   val elaborationLock = Retainer()
   val logic = during build new Area {
+    report(L"Initializing $version")
     elaborationLock.await()
     val chunks = host.list[PipelineService]
     val links = chunks.flatMap(_.getLinks())

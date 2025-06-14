@@ -31,11 +31,13 @@ class FpCmd() extends Bundle {
 }
 
 class FpuPlugin extends FiberPlugin {
+  val version = "FpuPlugin v0.1"
   private var pipeReg: Flow[FpCmd] = null
   private var rspReg: Flow[UInt] = null
   private val retain = Retainer()
 
   during setup new Area {
+    report(L"Initializing $version")
     println(s"[${FpuPlugin.this.getDisplayName()}] setup start")
     pipeReg = Flow(new FpCmd)
     pipeReg.setIdle()

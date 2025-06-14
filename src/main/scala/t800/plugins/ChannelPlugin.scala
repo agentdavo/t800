@@ -15,6 +15,7 @@ object DmaState extends SpinalEnum {
 
 /** Provides transputer link interfaces with simple FIFO synchronizers. */
 class ChannelPlugin extends FiberPlugin with PipelineService {
+  val version = "ChannelPlugin v0.1"
   private var pins: ChannelPins = null
   private var rxVec: Vec[Stream[Bits]] = null
   private var txVec: Vec[Stream[Bits]] = null
@@ -27,6 +28,7 @@ class ChannelPlugin extends FiberPlugin with PipelineService {
   override def getLinks(): Seq[pipeline.Link] = pipelineLinks
 
   during setup new Area {
+    report(L"Initializing $version")
     println(s"[${ChannelPlugin.this.getDisplayName()}] setup start")
     pins = ChannelPins(Global.LINK_COUNT)
     rxVec = Vec.fill(Global.LINK_COUNT)(Stream(Bits(Global.WORD_BITS bits)))

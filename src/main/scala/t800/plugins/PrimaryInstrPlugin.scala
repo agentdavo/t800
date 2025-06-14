@@ -10,9 +10,11 @@ import t800.plugins.{LinkBusSrv, LinkBusArbiterSrv}
 
 /** Implements basic ALU instructions and connects to the global pipeline. */
 class PrimaryInstrPlugin extends FiberPlugin {
+  val version = "PrimaryInstrPlugin v0.1"
   private val retain = Retainer()
 
   during setup new Area {
+    report(L"Initializing $version")
     println(s"[${PrimaryInstrPlugin.this.getDisplayName()}] setup start")
     retain()
     println(s"[${PrimaryInstrPlugin.this.getDisplayName()}] setup end")

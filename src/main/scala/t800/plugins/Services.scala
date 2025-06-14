@@ -141,3 +141,8 @@ trait ChannelPinsSrv {
 trait ChannelDmaSrv {
   def cmd: Stream[ChannelTxCmd]
 }
+
+trait GroupedInstrSrv {
+  val instructions: Vec[Bits]
+  val count: UInt
+}

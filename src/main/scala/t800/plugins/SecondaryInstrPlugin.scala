@@ -11,6 +11,7 @@ import scala.util.Try
 
 /** Implements basic ALU instructions and connects to the global pipeline. */
 class SecondaryInstrPlugin extends FiberPlugin {
+  val version = "SecondaryInstrPlugin v0.1"
   private var errReg: Bool = null
   private var haltErr: Bool = null
   private var hiFPtr, hiBPtr, loFPtr, loBPtr: UInt = null
@@ -19,6 +20,7 @@ class SecondaryInstrPlugin extends FiberPlugin {
   private val retain = Retainer()
 
   during setup new Area {
+    report(L"Initializing $version")
     println(s"[${SecondaryInstrPlugin.this.getDisplayName()}] setup start")
     errReg = Reg(Bool()) init (False)
     haltErr = Reg(Bool()) init (False)
