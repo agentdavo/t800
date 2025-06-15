@@ -3,6 +3,7 @@ package t800.plugins
 import spinal.core._
 import spinal.lib._
 import spinal.lib.misc.pipeline._
+import spinal.lib.bus.bmb.Bmb
 import t800.Global
 
 trait LinkPins

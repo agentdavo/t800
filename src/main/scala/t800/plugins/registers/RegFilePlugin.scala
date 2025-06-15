@@ -4,7 +4,8 @@ import spinal.core._
 import spinal.core.fiber._
 import spinal.lib._
 import spinal.lib.misc.plugin.FiberPlugin
-import t800.{Global, PipelineSrv}
+import t800.Global
+import t800.plugins.pipeline.PipelineSrv
 
 class RegFilePlugin extends FiberPlugin with RegfileService {
   val version = "RegFilePlugin v0.5"
