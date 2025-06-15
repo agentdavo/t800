@@ -28,20 +28,20 @@ class FpuVCU extends Area {
   io.specialResult := MuxCase(B(0, 64 bits), Seq(
     isNaN -> genNaN,
     isInfinity -> genInfinity(op1Class.sign || op2Class.sign),
-    isDenormal -> B(0, 64 bits), // Multi-pass
+    isDenormal -> B(0, 64 bits),
     isZero -> B(0, 64 bits)
   ))
 
-  // Comparison logic
-  val op1Real = io.op1.asSInt.toReal // Placeholder
-  val op2Real = io.op2.asSInt.toReal // Placeholder
+  // Comparison logic using AFix
+  val op1Afix = AFix(op1Class.mantissa.asUInt, 52 bit, 0 exp)
+  val op2Afix = AFix(op2Class.mantissa.asUInt, 52 bit, 0 exp)
   io.comparisonResult := False
   when(!io.isSpecial) {
     switch(io.opcode) {
-      is(Opcodes.SecondaryEnum.FPGT) { io.comparisonResult := op1Real > op2Real }
-      is(Opcodes.SecondaryEnum.FPEQ) { io.comparisonResult := op1Real === op2Real }
-      is(Opcodes.SecondaryEnum.FPGE) { io.comparisonResult := op1Real >= op2Real }
-      is(Opcodes.SecondaryEnum.FPLG) { io.comparisonResult := op1Real < op2Real || op1Real > op2Real }
+      is(Opcodes.SecondaryEnum.FPGT) { io.comparisonResult := op1Afix > op2Afix }
+      is(Opcodes.SecondaryEnum.FPEQ) { io.comparisonResult := op1Afix === op2Afix }
+      is(Opcodes.SecondaryEnum.FPGE) { io.comparisonResult := op1Afix >= op2Afix }
+      is(Opcodes.SecondaryEnum.FPLG) { io.comparisonResult := op1Afix < op2Afix || op1Afix > op2Afix }
       is(Opcodes.SecondaryEnum.FPORDERED) { io.comparisonResult := !isNaN && !isInfinity }
       is(Opcodes.SecondaryEnum.FPNAN) { io.comparisonResult := isNaN }
       is(Opcodes.SecondaryEnum.FPNOTFINITE) { io.comparisonResult := !isInfinity }
