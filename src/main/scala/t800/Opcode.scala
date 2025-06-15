@@ -311,6 +311,8 @@ object Opcode {
   }
 
   object SecondaryOpcode extends SpinalEnum {
+
+    // format: off
   
     // No Prefix (Table B.2)
     val REV, LB, BSUB, ENDP, DIFF, ADD, GCALL, IN, PROD, GT, WSUB, OUT, SUB, STARTP, OUTBYTE, OUTWORD,
@@ -335,6 +337,8 @@ object Opcode {
     SWAPTIMER, SWAPQUEUE, STOPCH, VOUT, VIN, SWAPBFR, SETHDR, SETCHMODE, INITVLCB, WRITEHDR, READHDR,
     DISG, ENBG, GRANT, STMOVE2DINIT, CAUSEERROR, UNMKRC, MKRC, IRDSQ, ERDSQ, STRESPTR, LDRESPTR, DEVMOVE,
     ICL, FDCL, ICA, FDCA, NOP, LDPRODID = newElement()
+
+    // format: on
 
     defaultEncoding = SpinalEnumEncoding("static")(
 	

@@ -8,7 +8,7 @@ import spinal.core.fiber.Retainer
 import t800.{Opcodes, Global}
 import t800.plugins.{ChannelSrv, ChannelTxCmd, LinkBusSrv, LinkBusArbiterSrv}
 import t800.plugins.schedule.SchedSrv
-import t800.plugins.fpu.FpuSrv
+import t800.plugins.fpu.{FpuSrv, FpOp}
 import t800.plugins.timers.TimerSrv
 import t800.plugins.pipeline.PipelineSrv
 import scala.util.Try

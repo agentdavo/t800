@@ -5,6 +5,29 @@ import spinal.lib._
 import spinal.lib.misc.pipeline._
 import t800.Global
 
+case class FpCmd() extends Bundle {
+  val op = FpOp()
+  val opa = UInt(Global.WORD_BITS bits)
+  val opb = UInt(Global.WORD_BITS bits)
+}
+
+object FpOp extends SpinalEnum {
+  val ADD, SUB, MUL, DIV = newElement()
+}
+
+trait FpuSrv {
+  def pipe: Flow[FpCmd]
+  def rsp: Flow[UInt]
+  def send(op: FpOp.E, a: UInt, b: UInt): Unit = {
+    pipe.valid := True
+    pipe.payload.op := op
+    pipe.payload.opa := a
+    pipe.payload.opb := b
+  }
+  def resultValid: Bool = rsp.valid
+  def result: UInt = rsp.payload
+}
+
 trait FpuService {
   def push(operand: Bits): Unit // Push to FA/FB
   def pushAfix(operand: AFix): Unit // Push AFix operand
