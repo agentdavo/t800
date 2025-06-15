@@ -66,6 +66,13 @@ class FpuPlugin extends FiberPlugin with PipelineService {
     val rangeReducer = new FpuRangeReducer
     val vcu = new FpuVCU
 
+    // Default adder handshake
+    adder.io.cmd.valid := False
+    adder.io.cmd.payload.a := B(0, 64 bits)
+    adder.io.cmd.payload.b := B(0, 64 bits)
+    adder.io.cmd.payload.sub := False
+    adder.io.cmd.payload.rounding := status.roundingMode
+
     // Microcode state
     val microcode = new Area {
       val state = Reg(UInt(3 bits)) init 0
@@ -150,11 +157,13 @@ class FpuPlugin extends FiberPlugin with PipelineService {
             memBmb.cmd.address := regfile.read(RegName.Areg, 0).asUInt
             when(memBmb.rsp.valid) {
               val loaded = real32ToReal64(memBmb.rsp.data(31 downto 0))
-              adder.io.op1 := fa
-              adder.io.op2 := loaded
-              adder.io.isAdd := True
-              result := adder.io.result
-              busy := adder.io.cycles > 0
+              adder.io.cmd.valid := True
+              adder.io.cmd.payload.a := fa
+              adder.io.cmd.payload.b := loaded
+              adder.io.cmd.payload.sub := False
+              adder.io.cmd.payload.rounding := status.roundingMode
+              result := adder.io.rsp.payload
+              busy := !adder.io.rsp.valid
               microcode.maxCycles := 2
             }
           }
@@ -207,19 +216,23 @@ class FpuPlugin extends FiberPlugin with PipelineService {
 
           // Arithmetic ops
           is(Opcodes.SecondaryEnum.FPADD) {
-            adder.io.op1 := fa
-            adder.io.op2 := fb
-            adder.io.isAdd := True
-            result := adder.io.result
-            busy := adder.io.cycles > 0
+            adder.io.cmd.valid := True
+            adder.io.cmd.payload.a := fa
+            adder.io.cmd.payload.b := fb
+            adder.io.cmd.payload.sub := False
+            adder.io.cmd.payload.rounding := status.roundingMode
+            result := adder.io.rsp.payload
+            busy := !adder.io.rsp.valid
             microcode.maxCycles := 2
           }
           is(Opcodes.SecondaryEnum.FPSUB) {
-            adder.io.op1 := fa
-            adder.io.op2 := fb
-            adder.io.isAdd := False
-            result := adder.io.result
-            busy := adder.io.cycles > 0
+            adder.io.cmd.valid := True
+            adder.io.cmd.payload.a := fa
+            adder.io.cmd.payload.b := fb
+            adder.io.cmd.payload.sub := True
+            adder.io.cmd.payload.rounding := status.roundingMode
+            result := adder.io.rsp.payload
+            busy := !adder.io.rsp.valid
             microcode.maxCycles := 2
           }
           is(Opcodes.SecondaryEnum.FPMUL) {
