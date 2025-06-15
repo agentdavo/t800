@@ -8,21 +8,15 @@ import spinal.core.fiber.Retainer
 import t800.{Global, Opcodes}
 import t800.plugins.{PipelineSrv, RegfileService, Fetch}
 import t800.plugins.registers.RegName
+import t800.plugins.pipeline.{PipelineService, PipelineSrv}
 
 /** Assembles groups of up to eight instructions from the fetch stage,
   * respecting pipeline stage constraints and dependencies,
   * for delivery to the PrimaryInstrPlugin (decode) stage.
   */
 class GrouperPlugin extends FiberPlugin with PipelineService {
-  val version = "GrouperPlugin v0.4"
+  val version = "GrouperPlugin v0.5"
   private val retain = Retainer()
-  private var instrVec: Vec[Bits] = null
-  private var instrCount: UInt = null
-  private var groupValid: Bool = null
-  private var groupFlow: Flow[GroupedInstructions] = null
-  private var links: Seq[Link] = Seq()
-
-  override def getLinks(): Seq[Link] = links
 
   during setup new Area {
     println(s"[${this.getDisplayName()}] setup start")
@@ -38,6 +32,14 @@ class GrouperPlugin extends FiberPlugin with PipelineService {
     })
     println(s"[${this.getDisplayName()}] setup end")
   }
+
+  private var instrVec: Vec[Bits] = null
+  private var instrCount: UInt = null
+  private var groupValid: Bool = null
+  private var groupFlow: Flow[GroupedInstructions] = null
+  private var links: Seq[Link] = Seq()
+
+  override def getLinks(): Seq[Link] = links
 
   during build new Area {
     println(s"[${this.getDisplayName()}] build start")

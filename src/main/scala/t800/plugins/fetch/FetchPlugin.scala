@@ -7,16 +7,16 @@ import spinal.lib.misc.pipeline._
 import spinal.lib.bus.bmb.{Bmb, BmbParameter, BmbAccessParameter, BmbQueue, BmbDownSizerBridge}
 import spinal.core.fiber.Retainer
 import t800.{Global, T800}
-import t800.plugins.{SystemBusSrv, PipelineSrv, RegfileService}
+import t800.plugins.{SystemBusSrv, RegfileService}
 import t800.plugins.registers.RegName
 import t800.plugins.fetch.Service.InstrFetchSrv
+import t800.plugins.pipeline.{PipelineService, PipelineSrv}
 
 /** Instruction fetch unit with T9000-style Instruction Prefetch Buffer (IPB) supporting eight-instruction dispatch. */
-
 class FetchPlugin extends FiberPlugin with PipelineService {
   setName("fetch")
   val elaborationLock = Retainer()
-  val version = "FetchPlugin v1.6"
+  val version = "FetchPlugin v1.7"
   report(L"Initializing $version")
 
   during setup new Area {

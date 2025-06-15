@@ -1,26 +1,17 @@
-package t800.plugins
+package t800.plugins.pipeline
 
 import spinal.core._
 import spinal.lib.misc.pipeline._
 import spinal.core.fiber.Retainer
 import spinal.lib.misc.plugin._
 import t800.Global
+import t800.plugins.pipeline.PipelineSrv
 
 /** Defines the global CPU pipeline structure and exposes stage handles. */
-trait PipelineSrv {
-  def fetch: CtrlLink
-  def decode: CtrlLink
-  def execute: CtrlLink
-  def memory: CtrlLink
-  def writeBack: CtrlLink
-  def OPCODE: Payload[Bits]
-  def IPTR: Payload[UInt]
-  def MEM_ADDR: Payload[UInt]
-  def MEM_DATA: Payload[Bits]
-}
-
 class PipelinePlugin extends FiberPlugin {
-  val version = "PipelinePlugin v0.1"
+  val version = "PipelinePlugin v0.2"
+  private val retain = Retainer()
+
   private var pipeline: StageCtrlPipeline = null
   private var fetchReg: CtrlLink = null
   private var decodeReg: CtrlLink = null
@@ -29,8 +20,9 @@ class PipelinePlugin extends FiberPlugin {
   private var writeBackReg: CtrlLink = null
 
   during setup new Area {
+    println(s"[${this.getDisplayName()}] setup start")
     report(L"Initializing $version")
-    println(s"[${PipelinePlugin.this.getDisplayName()}] setup start")
+    retain()
     pipeline = new StageCtrlPipeline()
     fetchReg = pipeline.ctrl(0)
     decodeReg = pipeline.ctrl(1)
@@ -46,20 +38,11 @@ class PipelinePlugin extends FiberPlugin {
       stage(Global.MEM_ADDR)
       stage(Global.MEM_DATA)
     }
-    println(s"[${PipelinePlugin.this.getDisplayName()}] setup end")
+    println(s"[${this.getDisplayName()}] setup end")
   }
-  def fetch: CtrlLink = fetchReg
-  def decode: CtrlLink = decodeReg
-  def execute: CtrlLink = executeReg
-  def memory: CtrlLink = memoryReg
-  def writeBack: CtrlLink = writeBackReg
-  def OPCODE: Payload[Bits] = Global.OPCODE
-  def IPTR: Payload[UInt] = Global.IPTR
-  def MEM_ADDR: Payload[UInt] = Global.MEM_ADDR
-  def MEM_DATA: Payload[Bits] = Global.MEM_DATA
 
   during build new Area {
-    println(s"[${PipelinePlugin.this.getDisplayName()}] build start")
+    println(s"[${this.getDisplayName()}] build start")
     pipeline.build()
     addService(new PipelineSrv {
       override def fetch = fetchReg
@@ -72,6 +55,6 @@ class PipelinePlugin extends FiberPlugin {
       override def MEM_ADDR = Global.MEM_ADDR
       override def MEM_DATA = Global.MEM_DATA
     })
-    println(s"[${PipelinePlugin.this.getDisplayName()}] build end")
+    println(s"[${this.getDisplayName()}] build end")
   }
 }

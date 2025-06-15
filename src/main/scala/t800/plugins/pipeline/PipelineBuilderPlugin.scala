@@ -1,12 +1,17 @@
-package t800.plugins
+package t800.plugins.pipeline
 
 import spinal.core._
 import spinal.lib.misc.plugin.{PluginHost, FiberPlugin}
+import spinal.lib.misc.pipeline._
 import spinal.core.fiber.Retainer
 import t800.{Global, T800}
+import t800.plugins.fetch.FetchPlugin
+import t800.plugins.grouper.GrouperPlugin
+import t800.plugins.decode.PrimaryInstrPlugin
+import t800.plugins.pipeline.PipelineSrv
 
 class PipelineBuilderPlugin extends FiberPlugin {
-  val version = "PipelineBuilderPlugin v0.3"
+  val version = "PipelineBuilderPlugin v0.5"
   private val retain = Retainer()
 
   during setup new Area {

@@ -9,22 +9,22 @@ import spinal.lib.bus.bmb.{Bmb, BmbParameter, BmbDownSizerBridge, BmbUnburstify}
 import t800.{Global, Opcodes, T800}
 import t800.plugins.{PipelineSrv, RegfileService, Fetch, GrouperPlugin, GroupedInstrSrv}
 import t800.plugins.registers.RegName
+import t800.plugins.pipeline.{PipelineService, PipelineSrv}
 
 /** Implements primary instruction decoding and execution, receiving opcodes from FetchPlugin or GrouperPlugin, and accessing 128-bit system bus via BMB. */
-
-class PrimaryInstrPlugin extends FiberPlugin {
-  val version = "PrimaryInstrPlugin v0.5"
+class PrimaryInstrPlugin extends FiberPlugin with PipelineService {
+  val version = "PrimaryInstrPlugin v0.6"
   private val retain = Retainer()
 
   during setup new Area {
+    println(s"[${this.getDisplayName()}] setup start")
     report(L"Initializing $version")
     retain()
-    println(s"[${PrimaryInstrPlugin.this.getDisplayName()}] setup start")
-    println(s"[${PrimaryInstrPlugin.this.getDisplayName()}] setup end")
+    println(s"[${this.getDisplayName()}] setup end")
   }
 
   during build new Area {
-    println(s"[${PrimaryInstrPlugin.this.getDisplayName()}] build start")
+    println(s"[${this.getDisplayName()}] build start")
     retain.await()
     val regfile = Plugin[RegfileService]
     val pipe = Plugin[PipelineSrv]
@@ -76,7 +76,6 @@ class PrimaryInstrPlugin extends FiberPlugin {
     memBmb.cmd.context := 0
 
     // Instruction execution (single-issue for now, group processing TBD)
-    
     switch(primary) {
       is(Opcodes.PrimaryEnum.PFIX) {
         accumulated := (accumulated | nibble.resized) << 4
@@ -207,10 +206,12 @@ class PrimaryInstrPlugin extends FiberPlugin {
       }
     }
 
-    println(s"[${PrimaryInstrPlugin.this.getDisplayName()}] build end")
+    println(s"[${this.getDisplayName()}] build end")
   }
-}
 
-trait SystemBusSrv {
-  def bus: Bmb
+  override def getLinks(): Seq[Link] = Seq()
+
+  trait SystemBusSrv {
+    def bus: Bmb
+  }
 }

@@ -5,21 +5,25 @@ import spinal.lib._
 import spinal.lib.misc.database.Database
 import spinal.lib.misc.plugin.{PluginHost, FiberPlugin, Hostable}
 import spinal.lib.bus.bmb.{Bmb, BmbParameter, BmbAccessParameter}
-import t800.SystemBusSrv
-import t800.plugins._
+import t800.plugins.transputer.TransputerPlugin
+import t800.plugins.pipeline.{PipelinePlugin, PipelineBuilderPlugin}
+import t800.plugins.SystemBusSrv
 
 object T800 {
 
   /** Create an empty database, populated by TransputerPlugin. */
   def defaultDatabase(): Database = new Database
 
-  /** Parameters for the 128-bit system bus, using Global.AddrBits. */
+  /** Parameters for the 128-bit system bus, using Global.ADDR_BITS. */
   val systemBusParam = BmbParameter(
-    addressWidth = Global.AddrBits,
-    dataWidth = 128,
-    sourceWidth = 4,
-    contextWidth = 0,
-    lengthWidth = 4
+    access = BmbAccessParameter(
+      addressWidth = Global.ADDR_BITS,
+      dataWidth = 128,
+      sourceWidth = 4,
+      contextWidth = 0,
+      lengthWidth = 4
+    ),
+    sourceCount = 1
   )
 
   /** Standard plugin stack for T800, aligned with T9000 architecture. */
@@ -27,7 +31,7 @@ object T800 {
 
   /** Minimal plugin set used by unit tests. */
   def unitPlugins(): Seq[FiberPlugin] =
-    Seq(new transputer.TransputerPlugin(), new PipelinePlugin, new PipelineBuilderPlugin)
+    Seq(new TransputerPlugin, new PipelinePlugin, new PipelineBuilderPlugin)
 
   /** Convenience constructor returning an empty T800. */
   def apply(): T800 = new T800(Database.get)
@@ -50,7 +54,6 @@ class T800Core extends Component {
   val core = T800(T800.defaultPlugins())
 }
 
-/** Unit variant with only the TransputerPlugin, used by minimal tests. */
 class T800Unit(db: Database = T800.defaultDatabase()) extends Component {
   val core = Database(db).on(T800(T800.unitPlugins()))
 }
