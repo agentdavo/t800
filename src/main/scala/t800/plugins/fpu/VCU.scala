@@ -15,26 +15,34 @@ class FpuVCU extends Area {
     val comparisonResult = out Bool()
   }
 
-  // IEEE-754 classification
+  // IEEE-754 parsing and classification
+  val op1Parsed = parseIeee754(io.op1)
+  val op2Parsed = parseIeee754(io.op2)
   val op1Class = classifyIeee754(io.op1)
   val op2Class = classifyIeee754(io.op2)
-  val isNaN = op1Class.isNaN || op2Class.isNaN
-  val isInfinity = op1Class.isInfinity || op2Class.isInfinity
-  val isDenormal = op1Class.isDenormal || op2Class.isDenormal
-  val isZero = op1Class.isZero || op2Class.isZero
+
+  // Recompute basic categories using parsed fields
+  val isNaN = (op1Parsed.exponent === 0x7FF && op1Parsed.mantissa =/= 0) ||
+               (op2Parsed.exponent === 0x7FF && op2Parsed.mantissa =/= 0)
+  val isInfinity = (op1Parsed.exponent === 0x7FF && op1Parsed.mantissa === 0) ||
+                   (op2Parsed.exponent === 0x7FF && op2Parsed.mantissa === 0)
+  val isDenormal = (op1Parsed.exponent === 0 && op1Parsed.mantissa =/= 0) ||
+                    (op2Parsed.exponent === 0 && op2Parsed.mantissa =/= 0)
+  val isZero = (op1Parsed.exponent === 0 && op1Parsed.mantissa === 0) ||
+               (op2Parsed.exponent === 0 && op2Parsed.mantissa === 0)
 
   io.isSpecial := isNaN || isInfinity || isDenormal || isZero
   io.trapEnable := isNaN || isDenormal || (io.opcode === Opcodes.SecondaryEnum.FPCHKERR && isInfinity)
   io.specialResult := MuxCase(B(0, 64 bits), Seq(
     isNaN -> genNaN,
-    isInfinity -> genInfinity(op1Class.sign || op2Class.sign),
+    isInfinity -> genInfinity(op1Parsed.sign || op2Parsed.sign),
     isDenormal -> B(0, 64 bits),
     isZero -> B(0, 64 bits)
   ))
 
   // Comparison logic using AFix
-  val op1Afix = AFix(op1Class.mantissa.asUInt, 52 bit, 0 exp)
-  val op2Afix = AFix(op2Class.mantissa.asUInt, 52 bit, 0 exp)
+  val op1Afix = AFix(op1Parsed.mantissa.asUInt, 52 bit, 0 exp)
+  val op2Afix = AFix(op2Parsed.mantissa.asUInt, 52 bit, 0 exp)
   io.comparisonResult := False
   when(!io.isSpecial) {
     switch(io.opcode) {
