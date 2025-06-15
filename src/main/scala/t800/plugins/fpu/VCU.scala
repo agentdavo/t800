@@ -12,6 +12,7 @@ class FpuVCU extends Component {
     val isSpecial = out Bool ()
     val specialResult = out Bits (64 bits)
     val trapEnable = out Bool ()
+    val trapType = out UInt (4 bits)
     val comparisonResult = out Bool ()
   }
 
@@ -36,16 +37,35 @@ class FpuVCU extends Component {
   private val posInf = B(BigInt("7ff0000000000000", 16), 64 bits)
   private val negInf = B(BigInt("fff0000000000000", 16), 64 bits)
   private val nanVal = B(BigInt("7ff8000000000000", 16), 64 bits)
-  private def genNaN: Bits = nanVal
-  private def genInfinity(sign: Bool): Bits = Mux(sign, negInf, posInf)
+  private def canonicalNaN: Bits = nanVal
+  private def signedInfinity(sign: Bool): Bits = Mux(sign, negInf, posInf)
+  private def signedZero(sign: Bool): Bits = sign ## B(0, 63 bits)
+
+  private def normalizeDenormal(value: Bits): Bits = {
+    val sign = value(63)
+    val mantissa = value(51 downto 0)
+    val shift = CountLeadingZeroes(mantissa)
+    val exponent = (S(1) - shift.asSInt).resized(11)
+    val normMantissa = (mantissa |<< shift)(51 downto 0)
+    sign ## exponent.asBits(10 downto 0) ## normMantissa
+  }
 
   io.isSpecial := isNaN || isInfinity || isDenormal || isZero
   io.trapEnable := isNaN || isDenormal || (io.opcode === B(0x83, 8 bits) && isInfinity)
-  val zero64 = B(0, 64 bits)
+  io.trapType := U(0)
+  when(io.trapEnable) { io.trapType := U(0x4) }
   io.specialResult := Mux(
     isNaN,
-    genNaN,
-    Mux(isInfinity, genInfinity(op1Class.sign || op2Class.sign), zero64)
+    canonicalNaN,
+    Mux(
+      isInfinity,
+      signedInfinity(op1Class.sign || op2Class.sign),
+      Mux(
+        isDenormal,
+        normalizeDenormal(Mux(op1Class.isDenormal, io.op1, io.op2)),
+        signedZero(op1Class.sign || op2Class.sign)
+      )
+    )
   )
 
   // Ordering transform for direct UInt comparison
