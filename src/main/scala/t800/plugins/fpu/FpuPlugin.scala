@@ -1,4 +1,4 @@
-package t800.plugins
+package t800.plugins.fpu
 
 import spinal.core._
 import spinal.lib._
@@ -7,6 +7,7 @@ import spinal.lib.misc.pipeline._
 import spinal.core.fiber.Retainer
 import spinal.lib.misc.plugin._
 import t800.Global
+import t800.plugins.fpu._
 
 object FpOp extends SpinalEnum {
   val ADD, SUB, MUL, DIV, INVALID = newElement()

@@ -2,12 +2,14 @@ package t800.plugins.cache
 
 import spinal.core._
 import spinal.core.fiber._
+import spinal.lib._
 import spinal.lib.misc.plugin._
 import spinal.lib.misc.pipeline._
 import spinal.lib.misc.database._
 import spinal.lib.bus.bmb.{Bmb, BmbParameter, BmbAccessParameter, BmbOnChipRamMultiPort, BmbUnburstify, BmbArbiter, BmbDecoder, BmbDownSizerBridge}
 import t800.plugins.pmi.PmiPlugin
 import t800.plugins.{AddressTranslationSrv, WorkspaceCacheSrv}
+import t800.plugins.cache.CacheAccessSrv
 import spinal.lib.bus.misc.{AddressMapping, SizeMapping}
 
 // The MainCachePlugin implements four BmbOnChipRamMultiPort banks (4 KB each, 32-bit data/32-bit address, two read ports)
@@ -34,6 +36,13 @@ class MainCachePlugin extends FiberPlugin {
       def read(addr: Bits): Bits = srv.service.dataOut // placeholder
       def write(addr: Bits, data: Bits): Unit = {}
     })
+    val cacheIf = new CacheAccessSrv {
+      override val req = Flow(CacheReq())
+      override val rsp = Flow(CacheRsp())
+    }
+    cacheIf.req.setIdle()
+    cacheIf.rsp.setIdle()
+    addService(cacheIf)
   }
 
   buildBefore(

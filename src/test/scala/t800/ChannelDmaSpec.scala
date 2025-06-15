@@ -8,6 +8,7 @@ import t800.plugins._
 import spinal.lib.misc.plugin.PluginHost
 import t800.plugins.schedule.SchedulerPlugin
 import t800.{DummyTimerPlugin, DummyFpuPlugin}
+import t800.plugins.grouper.GrouperPlugin
 
 class ChannelDmaSpec extends AnyFunSuite {
   test("DMA opcode transfers bytes") {

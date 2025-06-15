@@ -9,6 +9,7 @@ import t800.plugins.schedule.SchedulerPlugin
 import spinal.lib.misc.plugin.PluginHost
 
 import t800.{DummyTimerPlugin, DummyFpuPlugin}
+import t800.plugins.grouper.GrouperPlugin
 
 class OprLdlSpec extends AnyFunSuite {
   test("LDL loads from workspace") {

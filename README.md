@@ -69,6 +69,10 @@ t800/
 │  │     ├─ decode/             # PrimaryInstrPlugin
 │  │     ├─ execute/            # SecondaryInstrPlugin
 │  │     ├─ schedule/           # SchedulerPlugin
+│  │     ├─ fpu/                # FpuPlugin
+│  │     ├─ grouper/            # InstrGrouperPlugin
+│  │     ├─ timers/             # TimerPlugin
+│  │     ├─ transputer/         # TransputerPlugin
 │  │     └─ ...
 │  └─ test/scala/t800/
 │      ├─ T800CoreSim.scala

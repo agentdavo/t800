@@ -26,49 +26,6 @@ trait StackSrv {
   def write(offset: SInt, data: UInt): Unit
 }
 
-/** Service for floating-point unit operations. */
-trait FpuSrv {
-  def pipe: Flow[FpCmd]
-  def rsp: Flow[UInt]
-
-  /** Issue a new FPU command. */
-  def send(op: FpOp.E, a: UInt, b: UInt): Unit = {
-    pipe.valid := True
-    pipe.payload.op := op
-    pipe.payload.opa := a
-    pipe.payload.opb := b
-  }
-
-  /** Result of the previously issued command. */
-  def result: UInt = rsp.payload
-
-  /** True when a result is available. */
-  def resultValid: Bool = rsp.valid
-}
-
-
-/** Service for timer management, integrated with TimerPlugin. */
-trait TimerSrv {
-  def hi: UInt
-  def lo: UInt
-
-  /** Request to set the timers to a new value. */
-  def set(value: UInt): Unit
-
-  /** Resume the high priority counter. */
-  def enableHi(): Unit
-
-  /** Resume the low priority counter. */
-  def enableLo(): Unit
-
-  /** Halt the high priority counter. */
-  def disableHi(): Unit
-
-  /** Halt the low priority counter. */
-  def disableLo(): Unit
-}
-
-
 /** Service for data bus operations, integrated with MainCachePlugin and PmiPlugin. */
 trait DataBusSrv {
   def rdCmd: Flow[t800.MemReadCmd] // BMB-based read command
@@ -149,13 +106,4 @@ trait ChannelPinsSrv {
 
 trait ChannelDmaSrv {
   def cmd: Stream[ChannelTxCmd]
-}
-
-case class GroupedInstructions() extends Bundle {
-  val instructions = Vec(Bits(t800.Global.OPCODE_BITS bits), 8)
-  val count = UInt(4 bits)
-}
-
-trait GroupedInstrSrv {
-  def groups: Flow[GroupedInstructions]
 }
