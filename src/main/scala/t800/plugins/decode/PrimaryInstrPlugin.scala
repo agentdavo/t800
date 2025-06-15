@@ -3,145 +3,214 @@ package t800.plugins.decode
 import spinal.core._
 import spinal.lib._
 import spinal.lib.misc.pipeline._
-import spinal.lib.misc.plugin.{Plugin, PluginHost}
+import spinal.lib.misc.plugin.FiberPlugin
 import spinal.core.fiber.Retainer
-import t800.{Opcodes, Global}
-import t800.plugins.{LinkBusSrv, LinkBusArbiterSrv}
+import spinal.lib.bus.bmb.{Bmb, BmbParameter, BmbDownSizerBridge, BmbUnburstify}
+import t800.{Global, Opcodes, T800}
+import t800.plugins.{PipelineSrv, RegfileService, Fetch, GrouperPlugin, GroupedInstrSrv}
+import t800.plugins.registers.RegName
 
-/** Implements basic ALU instructions and connects to the global pipeline. */
+/** Implements primary instruction decoding and execution, receiving opcodes from FetchPlugin or GrouperPlugin, and accessing 128-bit system bus via BMB. */
+
 class PrimaryInstrPlugin extends FiberPlugin {
-  val version = "PrimaryInstrPlugin v0.1"
+  val version = "PrimaryInstrPlugin v0.5"
   private val retain = Retainer()
 
   during setup new Area {
     report(L"Initializing $version")
-    println(s"[${PrimaryInstrPlugin.this.getDisplayName()}] setup start")
     retain()
+    println(s"[${PrimaryInstrPlugin.this.getDisplayName()}] setup start")
     println(s"[${PrimaryInstrPlugin.this.getDisplayName()}] setup end")
   }
 
   during build new Area {
     println(s"[${PrimaryInstrPlugin.this.getDisplayName()}] build start")
     retain.await()
-    implicit val h: PluginHost = host
-    val stack = Plugin[StackSrv]
+    val regfile = Plugin[RegfileService]
     val pipe = Plugin[PipelineSrv]
-    val mem = Plugin[LinkBusSrv]
-    val arb = Plugin[LinkBusArbiterSrv]
+    val systemBus = Plugin[SystemBusSrv].bus // 128-bit BMB system bus
+    val grouper = try Plugin[GroupedInstrSrv] catch { case _: Exception => null } // Optional GrouperPlugin
 
-    val inst = pipe.execute(Global.OPCODE)
+    // Define 32-bit BMB parameters for memory access
+    val memParam = BmbParameter(
+      access = BmbAccessParameter(
+        addressWidth = Global.ADDR_BITS,
+        dataWidth = 32,
+        lengthWidth = 0, // Single-beat transactions
+        sourceWidth = 1,
+        contextWidth = 0
+      )
+    )
+
+    // BMB pipeline for memory operations
+    val memBmb = Bmb(memParam)
+    val unburstify = BmbUnburstify(memParam)
+    val downSizer = BmbDownSizerBridge(
+      inputParameter = T800.systemBusParam,
+      outputParameter = memParam
+    )
+    memBmb >> unburstify.io.input
+    unburstify.io.output >> downSizer.io.input
+    downSizer.io.output >> systemBus
+
+    // Select input: grouped or single opcode
+    val inst = if (grouper != null) {
+      pipe.execute(GrouperPlugin.GROUP_INSTR)(0) // First opcode from group
+    } else {
+      pipe.execute(Global.OPCODE) // Single opcode from FetchPlugin
+    }
+    val groupCount = if (grouper != null) pipe.execute(GrouperPlugin.GROUP_COUNT) else U(1)
     val nibble = inst(3 downto 0).asUInt
-    val accumulated = stack.O | nibble.resized
-    val primary = Opcodes.Enum.Primary()
+    val accumulated = Reg(UInt(32 bits)) init 0 // Temporary operand accumulator
+    val primary = Opcodes.PrimaryEnum()
     primary.assignFromBits(inst(7 downto 4))
 
-    arb.exeRd.valid := False
-    arb.exeRd.payload.addr := U(0)
-    arb.exeWr.valid := False
-    arb.exeWr.payload.addr := U(0)
-    arb.exeWr.payload.data := B(0, Global.WORD_BITS bits)
+    // Memory command/response handling
+    memBmb.cmd.valid := False
+    memBmb.cmd.opcode := 0 // Read by default
+    memBmb.cmd.address := U(0)
+    memBmb.cmd.length := 0 // Single-beat
+    memBmb.cmd.data := B(0, 32 bits)
+    memBmb.cmd.mask := B"1111" // Full 32-bit write
+    memBmb.cmd.source := 0
+    memBmb.cmd.context := 0
 
+    // Instruction execution (single-issue for now, group processing TBD)
+    
     switch(primary) {
-      is(Opcodes.Enum.Primary.PFIX) {
-        stack.O := (accumulated << 4).resized
+      is(Opcodes.PrimaryEnum.PFIX) {
+        accumulated := (accumulated | nibble.resized) << 4
       }
-      is(Opcodes.Enum.Primary.NFIX) {
-        stack.O := ((~accumulated) << 4).resized
+      is(Opcodes.PrimaryEnum.NFIX) {
+        accumulated := ((~accumulated) | nibble.resized) << 4
       }
-      is(Opcodes.Enum.Primary.LDC) {
+      is(Opcodes.PrimaryEnum.LDC) {
         val operand = accumulated.asSInt
-        stack.C := stack.B
-        stack.B := stack.A
-        stack.A := operand.asUInt
-        stack.O := 0
+        regfile.write(RegName.Creg, regfile.read(RegName.Breg, 0), 0, shadow = false)
+        regfile.write(RegName.Breg, regfile.read(RegName.Areg, 0), 0, shadow = false)
+        regfile.write(RegName.Areg, operand.asUInt, 0, shadow = false)
+        accumulated := 0
       }
-      is(Opcodes.Enum.Primary.LDL) {
+      is(Opcodes.PrimaryEnum.LDL) {
         val operand = accumulated.asSInt
-        stack.C := stack.B
-        stack.B := stack.A
-        stack.A := stack.read(operand)
-        stack.O := 0
+        val addr = regfile.read(RegName.WdescReg, 0).asUInt + operand
+        memBmb.cmd.valid := True
+        memBmb.cmd.opcode := 0 // Read
+        memBmb.cmd.address := addr.resized
+        pipe.execute.haltWhen(!memBmb.rsp.valid)
+        when(pipe.execute.down.isFiring) {
+          regfile.write(RegName.Creg, regfile.read(RegName.Breg, 0), 0, shadow = false)
+          regfile.write(RegName.Breg, regfile.read(RegName.Areg, 0), 0, shadow = false)
+          regfile.write(RegName.Areg, memBmb.rsp.data.asUInt, 0, shadow = false)
+          accumulated := 0
+        }
       }
-      is(Opcodes.Enum.Primary.STL) {
+      is(Opcodes.PrimaryEnum.STL) {
         val operand = accumulated.asSInt
-        stack.write(operand, stack.A)
-        stack.A := stack.B
-        stack.B := stack.C
-        stack.O := 0
+        val addr = regfile.read(RegName.WdescReg, 0).asUInt + operand
+        memBmb.cmd.valid := True
+        memBmb.cmd.opcode := 1 // Write
+        memBmb.cmd.address := addr.resized
+        memBmb.cmd.data := regfile.read(RegName.Areg, 0).asBits
+        pipe.execute.haltWhen(!memBmb.rsp.valid)
+        when(pipe.execute.down.isFiring) {
+          regfile.write(RegName.Areg, regfile.read(RegName.Breg, 0), 0, shadow = false)
+          regfile.write(RegName.Breg, regfile.read(RegName.Creg, 0), 0, shadow = false)
+          accumulated := 0
+        }
       }
-      is(Opcodes.Enum.Primary.LDLP) {
+      is(Opcodes.PrimaryEnum.LDLP) {
         val operand = accumulated
-        stack.C := stack.B
-        stack.B := stack.A
-        stack.A := stack.WPtr + operand
-        stack.O := 0
+        regfile.write(RegName.Creg, regfile.read(RegName.Breg, 0), 0, shadow = false)
+        regfile.write(RegName.Breg, regfile.read(RegName.Areg, 0), 0, shadow = false)
+        regfile.write(RegName.Areg, regfile.read(RegName.WdescReg, 0).asUInt + operand, 0, shadow = false)
+        accumulated := 0
       }
-      is(Opcodes.Enum.Primary.LDNLP) {
-        stack.A := stack.A + (stack.O |<< 2)
-        stack.O := 0
+      is(Opcodes.PrimaryEnum.LDNLP) {
+        regfile.write(RegName.Areg, regfile.read(RegName.Areg, 0).asUInt + (accumulated |<< 2), 0, shadow = false)
+        accumulated := 0
       }
-      is(Opcodes.Enum.Primary.ADC) {
+      is(Opcodes.PrimaryEnum.ADC) {
         val operand = accumulated
-        stack.A := stack.A + operand
-        stack.O := 0
+        regfile.write(RegName.Areg, regfile.read(RegName.Areg, 0).asUInt + operand, 0, shadow = false)
+        accumulated := 0
       }
-      is(Opcodes.Enum.Primary.EQC) {
+      is(Opcodes.PrimaryEnum.EQC) {
         val operand = accumulated
-        stack.A := (stack.A === operand).asUInt.resized
-        stack.O := 0
+        regfile.write(RegName.Areg, (regfile.read(RegName.Areg, 0) === operand).asUInt.resized, 0, shadow = false)
+        accumulated := 0
       }
-      is(Opcodes.Enum.Primary.J) {
+      is(Opcodes.PrimaryEnum.J) {
         val operand = accumulated.asSInt
-        stack.IPtr := (stack.IPtr.asSInt + operand).asUInt
-        stack.O := 0
+        regfile.write(RegName.IptrReg, (regfile.read(RegName.IptrReg, 0).asSInt + operand).asUInt, 0, shadow = false)
+        accumulated := 0
       }
-      is(Opcodes.Enum.Primary.CJ) {
+      is(Opcodes.PrimaryEnum.CJ) {
         val operand = accumulated.asSInt
-        when(stack.A === 0) {
-          stack.IPtr := (stack.IPtr.asSInt + operand).asUInt
+        when(regfile.read(RegName.Areg, 0) === 0) {
+          regfile.write(RegName.IptrReg, (regfile.read(RegName.IptrReg, 0).asSInt + operand).asUInt, 0, shadow = false)
         } otherwise {
-          stack.A := stack.B
-          stack.B := stack.C
+          regfile.write(RegName.Areg, regfile.read(RegName.Breg, 0), 0, shadow = false)
+          regfile.write(RegName.Breg, regfile.read(RegName.Creg, 0), 0, shadow = false)
         }
-        stack.O := 0
+        accumulated := 0
       }
-      is(Opcodes.Enum.Primary.LDNL) {
-        val addr = stack.A + accumulated
-        arb.exeRd.valid := True
-        arb.exeRd.payload.addr := addr.resized
-        pipe.execute.haltWhen(!mem.rdRsp.valid)
+      is(Opcodes.PrimaryEnum.LDNL) {
+        val addr = regfile.read(RegName.Areg, 0).asUInt + accumulated
+        memBmb.cmd.valid := True
+        memBmb.cmd.opcode := 0 // Read
+        memBmb.cmd.address := addr.resized
+        pipe.execute.haltWhen(!memBmb.rsp.valid)
         when(pipe.execute.down.isFiring) {
-          stack.A := mem.rdRsp.payload.asUInt
-          stack.O := 0
+          regfile.write(RegName.Areg, memBmb.rsp.data.asUInt, 0, shadow = false)
+          accumulated := 0
         }
       }
-      is(Opcodes.Enum.Primary.STNL) {
-        val addr = stack.A + accumulated
-        arb.exeWr.valid := True
-        arb.exeWr.payload.addr := addr.resized
-        arb.exeWr.payload.data := stack.B.asBits
+      is(Opcodes.PrimaryEnum.STNL) {
+        val addr = regfile.read(RegName.Areg, 0).asUInt + accumulated
+        memBmb.cmd.valid := True
+        memBmb.cmd.opcode := 1 // Write
+        memBmb.cmd.address := addr.resized
+        memBmb.cmd.data := regfile.read(RegName.Breg, 0).asBits
+        pipe.execute.haltWhen(!memBmb.rsp.valid)
         when(pipe.execute.down.isFiring) {
-          stack.A := stack.C
-          stack.O := 0
+          regfile.write(RegName.Areg, regfile.read(RegName.Creg, 0), 0, shadow = false)
+          accumulated := 0
         }
       }
-      is(Opcodes.Enum.Primary.CALL) {
+      is(Opcodes.PrimaryEnum.CALL) {
         val operand = accumulated.asSInt
-        stack.write(S(-1), stack.C)
-        stack.write(S(-2), stack.B)
-        stack.write(S(-3), stack.A)
-        stack.write(S(-4), stack.IPtr + 1)
-        stack.WPtr := (stack.WPtr.asSInt - 4).asUInt
-        stack.A := stack.IPtr + 1
-        stack.IPtr := (stack.IPtr.asSInt + operand).asUInt
-        stack.O := 0
+        val addr = regfile.read(RegName.WdescReg, 0).asUInt + S(-4)
+        memBmb.cmd.valid := True
+        memBmb.cmd.opcode := 1 // Write
+        memBmb.cmd.address := addr.resized
+        memBmb.cmd.data := (regfile.read(RegName.IptrReg, 0) + 1).asBits
+        pipe.execute.haltWhen(!memBmb.rsp.valid)
+        when(pipe.execute.down.isFiring) {
+          regfile.write(RegName.WdescReg, (regfile.read(RegName.WdescReg, 0).asSInt - 4).asUInt, 0, shadow = false)
+          regfile.write(RegName.Areg, regfile.read(RegName.IptrReg, 0) + 1, 0, shadow = false)
+          regfile.write(RegName.IptrReg, (regfile.read(RegName.IptrReg, 0).asSInt + operand).asUInt, 0, shadow = false)
+          accumulated := 0
+        }
       }
-      is(Opcodes.Enum.Primary.AJW) {
+      is(Opcodes.PrimaryEnum.AJW) {
         val operand = accumulated.asSInt
-        stack.WPtr := (stack.WPtr.asSInt + operand).asUInt
-        stack.O := 0
+        regfile.write(RegName.WdescReg, (regfile.read(RegName.WdescReg, 0).asSInt + operand).asUInt, 0, shadow = false)
+        accumulated := 0
+      }
+      is(Opcodes.PrimaryEnum.OPR) {
+        // Defer to SecondaryInstrPlugin
+        accumulated := 0
+      }
+      default {
+        accumulated := 0
       }
     }
+
     println(s"[${PrimaryInstrPlugin.this.getDisplayName()}] build end")
   }
+}
+
+trait SystemBusSrv {
+  def bus: Bmb
 }
