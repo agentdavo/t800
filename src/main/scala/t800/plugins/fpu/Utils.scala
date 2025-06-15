@@ -5,7 +5,7 @@ import spinal.lib._
 
 object Utils {
   case class Ieee754Format(sign: Bool, exponent: SInt, mantissa: Bits)
-  
+
   def parseIeee754(value: Bits): Ieee754Format = {
     val sign = value(63)
     val exponent = value(62 downto 52).asSInt
@@ -17,9 +17,14 @@ object Utils {
     sign ## exponent.asBits ## mantissa
   }
 
-  def roundIeee754(mantissa: Bits, mode: Bits): Bits = {
-    // Placeholder: Implement nearest, zero, positive, minus modes
-    mantissa
+  def roundIeee754(mantissa: AFix, mode: Bits): AFix = {
+    val roundType = mode.mux(
+      0 -> RoundType.ROUNDTOEVEN,
+      1 -> RoundType.FLOORTOZERO,
+      2 -> RoundType.CEIL,
+      3 -> RoundType.FLOOR
+    )
+    mantissa.round(0, roundType)
   }
 
   case class Ieee754Class(isNaN: Bool, isInfinity: Bool, isDenormal: Bool, isZero: Bool, sign: Bool)
@@ -37,28 +42,30 @@ object Utils {
   def genInfinity(sign: Bool): Bits = sign ## B"11111111111" ## B(0, 52 bits)
 
   def real32ToReal64(value: Bits): Bits = {
-    val sign = value(31)
-    val exponent = value(30 downto 23).asSInt + 1023 - 127
-    val mantissa = value(22 downto 0) @@ B(0, 29 bits)
+    val afix = AFix(value.asUInt, 32 bit, 0 exp)
+    val parsed = parseIeee754(afix.raw)
+    val sign = parsed.sign
+    val exponent = parsed.exponent + 1023 - 127
+    val mantissa = parsed.mantissa(22 downto 0) @@ B(0, 29 bits)
     packIeee754(sign, exponent, mantissa)
   }
 
   def real64ToReal32(value: Bits, roundMode: Bits): Bits = {
-    val parsed = parseIeee754(value)
+    val afix = AFix(value.asSInt, 64 bit, 0 exp)
+    val parsed = parseIeee754(afix.raw)
     val sign = parsed.sign
     val exponent = parsed.exponent - 1023 + 127
-    val mantissa = parsed.mantissa(51 downto 29)
-    val rounded = roundIeee754(mantissa, roundMode)
-    sign ## exponent.asBits ## rounded
+    val mantissa = roundIeee754(AFix(parsed.mantissa.asUInt, 52 bit, 0 exp), roundMode).raw(51 downto 29)
+    sign ## exponent.asBits ## mantissa
   }
 
   def realToInt32(value: Bits): SInt = {
-    // Placeholder
-    value.asSInt
+    val afix = AFix(value.asSInt, 64 bit, 0 exp)
+    afix.asSInt
   }
 
   def int32ToReal32(value: SInt): Bits = {
-    // Placeholder
-    B(0, 32 bits)
+    val afix = AFix(value, 0 exp)
+    packIeee754(afix.isNegative(), 127, afix.raw(31 downto 9))
   }
 }
