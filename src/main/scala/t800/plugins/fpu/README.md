@@ -17,6 +17,27 @@ FpuControlSrv
     getErrorFlags: Bits: Retrieves error flags (overflow, underflow, etc.).
     clearErrorFlags: Clears error flags.
 
+Vector Control Unit (VCU)
+
+    Detects NaNs, infinities, denormals and zeros in either operand.
+    Outputs `specialResult` (NaN, ±Infinity or 0) and raises `trapEnable`
+    for invalid or denormal values. `comparisonResult` provides ordered
+    comparisons when no special value is present.
+    The FpuPlugin uses these signals to bypass arithmetic units when a
+    special result is required.
+
+Trap Types
+
+    0x1: Invalid memory access (MemoryManagementPlugin).
+    0x2: Stack extension needed (MemoryManagementPlugin).
+    0x4: FPU invalid/privileged operation (FpuPlugin and MMU).
+
+Special values
+
+    The Utils object exposes `genNaN` and `genInfinity(sign)` helpers.
+    These 64-bit constants are supplied to the VCU and can also be pushed
+    to FA/FB via `FpuService.push`.
+
 Supported Instructions
 
     Load/Store: fpldnlsn, fpldnldb, fpldnladdsn, fpstnlsn, etc.
