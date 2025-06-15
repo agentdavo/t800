@@ -46,6 +46,9 @@ lazy val t800 = (project in file("."))
         "Param.scala",
         "Generate.scala",
         "SystemBusSrv.scala",
+        "Services.scala",
+        "PipelinePlugin.scala",
+        "PipelineBuilderPlugin.scala",
         "transputer/TransputerPlugin.scala",
       )
       val srcDir = (Compile / scalaSource).value

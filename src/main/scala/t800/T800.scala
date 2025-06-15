@@ -6,6 +6,7 @@ import spinal.lib.misc.database.Database
 import spinal.lib.misc.plugin.{PluginHost, FiberPlugin, Hostable}
 import spinal.lib.bus.bmb.{Bmb, BmbParameter, BmbAccessParameter}
 import t800.SystemBusSrv
+import t800.plugins._
 
 object T800 {
 
@@ -25,7 +26,8 @@ object T800 {
   def defaultPlugins(): Seq[FiberPlugin] = Param().plugins()
 
   /** Minimal plugin set used by unit tests. */
-  def unitPlugins(): Seq[FiberPlugin] = Param().plugins()
+  def unitPlugins(): Seq[FiberPlugin] =
+    Seq(new transputer.TransputerPlugin(), new PipelinePlugin, new PipelineBuilderPlugin)
 
   /** Convenience constructor returning an empty T800. */
   def apply(): T800 = new T800(Database.get)
