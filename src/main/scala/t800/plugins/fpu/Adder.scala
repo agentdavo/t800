@@ -39,7 +39,7 @@ class FpuAdder extends Area {
     val expDiff = op1Parsed.exponent - op2Parsed.exponent
     val alignShift = expDiff.abs.asUInt
     val maxExponent = Mux(expDiff >= 0, op1Parsed.exponent, op2Parsed.exponent)
-    val mantissa2Shifted = op2Afix >> alignShift.toInt
+    val mantissa2Shifted = op2Afix >> alignShift.asUInt
 
     val mantissaSum = Mux(io.isAdd, op1Afix + mantissa2Shifted, op1Afix - mantissa2Shifted)
     val sumSign = op1Parsed.sign
@@ -47,7 +47,7 @@ class FpuAdder extends Area {
 
     // Normalization
     val normShift = leadingOne(mantissaSum.raw)
-    val normMantissa = mantissaSum << normShift.toInt
+    val normMantissa = mantissaSum << normShift.asUInt
     val normExponent = maxExponent - normShift.asSInt
 
     // Rounding

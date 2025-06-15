@@ -62,7 +62,8 @@ lazy val t800 = (project in file("."))
     },
     Test / unmanagedSources := {
       val srcDir = (Test / scalaSource).value
-      (srcDir ** "InitTransputerSpec.scala").get
+      val keep = Seq("InitTransputerSpec.scala", "FpuAdderSpec.scala")
+      keep.flatMap(n => (srcDir ** n).get)
     },
     libraryDependencies ++=
       Seq(
