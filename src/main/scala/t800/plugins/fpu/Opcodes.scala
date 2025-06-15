@@ -10,77 +10,134 @@ case class FpCmd() extends Bundle {
 }
 
 object FpOp extends SpinalEnum(binarySequential) {
-  val NONE, FPLDNLSN, FPLDNLDB, FPLDNLSNI, FPLDNLDBI, FPLDZEROSN, FPLDZERODB,
-      FPLDNLADDSN, FPLDNLADDDB, FPLDNLMULSN, FPLDNLMULDB, FPSTNLSN, FPSTNLDB, FPSTNLI32,
-      FPENTRY, FPREV, FPDUP, FPRN, FPRZ, FPRP, FPRM, FPCHKERR, FPTESTERR, FPSETERR, FPCLRERR,
-      FPGT, FPEQ, FPORDERED, FPNAN, FPNOTFINITE, FPCHKI32, FPCHKI64,
-      FPR32TOR64, FPR64TOR32, FPRTOI32, FPI32TOR32, FPI32TOR64, FPB32TOR64, FPNOROUND, FPINT,
-      FPADD, FPSUB, FPMUL, FPDIV, FPABS, FPEXPINC32, FPEXPDEC32, FPMULBY2, FPDIVBY2,
-      FPUSQRTFIRST, FPUSQRTSTEP, FPUSQRTLAST, FPREMFIRST, FPREMSTEP, FPREM, FPSQRT, FPRANGE,
-      FPGE, FPLG = newElement()
+  
+  // Table 11.24: Load/Store Operations
+  object LoadStore {
+    val FPLDNLSN, FPLDNLDB, FPLDNLSNI, FPLDNLDBI, FPLDZEROSN, FPLDZERODB,
+        FPLDNLADDSN, FPLDNLADDDB, FPLDNLMULSN, FPLDNLMULDB, FPSTNLSN, FPSTNLDB,
+        FPSTNLI32 = newElement()
+  }
+
+  // Table 11.25: General Operations
+  object General {
+    val FPENTRY, FPREV, FPDUP = newElement()
+  }
+
+  // Table 11.26: Rounding Operations
+  object Rounding {
+    val FPRN, FPRZ, FPRP, FPRM = newElement()
+  }
+
+  // Table 11.27: Error Operations
+  object Error {
+    val FPCHKERR, FPTESTERR, FPSETERR, FPCLRERR = newElement()
+  }
+
+  // Table 11.28: Comparison Operations
+  object Comparison {
+    val FPGT, FPEQ, FPORDERED, FPNAN, FPNOTFINITE, FPCHKI32, FPCHKI64 = newElement()
+  }
+
+  // Table 11.29: Conversion Operations
+  object Conversion {
+    val FPR32TOR64, FPR64TOR32, FPRTOI32, FPI32TOR32, FPI32TOR64, FPB32TOR64,
+        FPNOROUND, FPINT = newElement()
+  }
+
+  // Table 11.30: Arithmetic Operations
+  object Arithmetic {
+    val FPADD, FPSUB, FPMUL, FPDIV, FPABS, FPEXPINC32, FPEXPDEC32, FPMULBY2,
+        FPDIVBY2 = newElement()
+  }
+
+  // Table 11.31: T805 Compatibility Operations
+  object T805Compatibility {
+    val FPUSQRTFIRST, FPUSQRTSTEP, FPUSQRTLAST, FPREMFIRST, FPREMSTEP = newElement()
+  }
+
+  // Table 11.32: Additional Operations
+  object Additional {
+    val FPREM, FPSQRT, FPRANGE, FPGE, FPLG = newElement()
+  }
+
+  val NONE = newElement()
 
   def fromOpcode(opcode: Bits): FpOp.C = {
     val op = FpOp()
     op := MuxCase(FpOp.NONE, Seq(
-      (opcode === B"10001110") -> FpOp.FPLDNLSN,
-      (opcode === B"10001010") -> FpOp.FPLDNLDB,
-      (opcode === B"10000110") -> FpOp.FPLDNLSNI,
-      (opcode === B"10000010") -> FpOp.FPLDNLDBI,
-      (opcode === B"10011111") -> FpOp.FPLDZEROSN,
-      (opcode === B"10100000") -> FpOp.FPLDZERODB,
-      (opcode === B"10101010") -> FpOp.FPLDNLADDSN,
-      (opcode === B"10100110") -> FpOp.FPLDNLADDDB,
-      (opcode === B"10101100") -> FpOp.FPLDNLMULSN,
-      (opcode === B"10101000") -> FpOp.FPLDNLMULDB,
-      (opcode === B"10001000") -> FpOp.FPSTNLSN,
-      (opcode === B"10000100") -> FpOp.FPSTNLDB,
-      (opcode === B"10011110") -> FpOp.FPSTNLI32,
-      (opcode === Opcodes.Secondary.FPENTRY) -> FpOp.FPENTRY,
-      (opcode === Opcodes.Secondary.FPREV) -> FpOp.FPREV,
-      (opcode === Opcodes.Secondary.FPDUP) -> FpOp.FPDUP,
-      (opcode === Opcodes.Secondary.FPRN) -> FpOp.FPRN,
-      (opcode === Opcodes.Secondary.FPRZ) -> FpOp.FPRZ,
-      (opcode === Opcodes.Secondary.FPRP) -> FpOp.FPRP,
-      (opcode === Opcodes.Secondary.FPRM) -> FpOp.FPRM,
-      (opcode === Opcodes.Secondary.FPCHKERR) -> FpOp.FPCHKERR,
-      (opcode === Opcodes.Secondary.FPTESTERR) -> FpOp.FPTESTERR,
-      (opcode === Opcodes.Secondary.FPSETERR) -> FpOp.FPSETERR,
-      (opcode === Opcodes.Secondary.FPCLRERR) -> FpOp.FPCLRERR,
-      (opcode === Opcodes.Secondary.FPGT) -> FpOp.FPGT,
-      (opcode === Opcodes.Secondary.FPEQ) -> FpOp.FPEQ,
-      (opcode === Opcodes.Secondary.FPORDERED) -> FpOp.FPORDERED,
-      (opcode === Opcodes.Secondary.FPNAN) -> FpOp.FPNAN,
-      (opcode === Opcodes.Secondary.FPNOTFINITE) -> FpOp.FPNOTFINITE,
-      (opcode === Opcodes.Secondary.FPCHKI32) -> FpOp.FPCHKI32,
-      (opcode === Opcodes.Secondary.FPCHKI64) -> FpOp.FPCHKI64,
-      (opcode === Opcodes.Secondary.FPR32TOR64) -> FpOp.FPR32TOR64,
-      (opcode === Opcodes.Secondary.FPR64TOR32) -> FpOp.FPR64TOR32,
-      (opcode === Opcodes.Secondary.FPRTOI32) -> FpOp.FPRTOI32,
-      (opcode === Opcodes.Secondary.FPI32TOR32) -> FpOp.FPI32TOR32,
-      (opcode === Opcodes.Secondary.FPI32TOR64) -> FpOp.FPI32TOR64,
-      (opcode === Opcodes.Secondary.FPB32TOR64) -> FpOp.FPB32TOR64,
-      (opcode === Opcodes.Secondary.FPNOROUND) -> FpOp.FPNOROUND,
-      (opcode === Opcodes.Secondary.FPINT) -> FpOp.FPINT,
-      (opcode === Opcodes.Secondary.FPADD) -> FpOp.FPADD,
-      (opcode === Opcodes.Secondary.FPSUB) -> FpOp.FPSUB,
-      (opcode === Opcodes.Secondary.FPMUL) -> FpOp.FPMUL,
-      (opcode === Opcodes.Secondary.FPDIV) -> FpOp.FPDIV,
-      (opcode === Opcodes.Secondary.FPABS) -> FpOp.FPABS,
-      (opcode === Opcodes.Secondary.FPEXPINC32) -> FpOp.FPEXPINC32,
-      (opcode === Opcodes.Secondary.FPEXPDEC32) -> FpOp.FPEXPDEC32,
-      (opcode === Opcodes.Secondary.FPMULBY2) -> FpOp.FPMULBY2,
-      (opcode === Opcodes.Secondary.FPDIVBY2) -> FpOp.FPDIVBY2,
-      (opcode === B"01000001") -> FpOp.FPUSQRTFIRST,
-      (opcode === B"01000010") -> FpOp.FPUSQRTSTEP,
-      (opcode === B"01000011") -> FpOp.FPUSQRTLAST,
-      (opcode === Opcodes.Secondary.FPREMFIRST) -> FpOp.FPREMFIRST,
-      (opcode === Opcodes.Secondary.FPREMSTEP) -> FpOp.FPREMSTEP,
-      (opcode === Opcodes.Secondary.FPREM) -> FpOp.FPREM,
-      (opcode === Opcodes.Secondary.FPSQRT) -> FpOp.FPSQRT,
-      (opcode === Opcodes.Secondary.FPRANGE) -> FpOp.FPRANGE,
-      (opcode === Opcodes.Secondary.FPGE) -> FpOp.FPGE,
-      (opcode === Opcodes.Secondary.FPLG) -> FpOp.FPLG
+      // Load/Store
+      (opcode === B"8E") -> LoadStore.FPLDNLSN,
+      (opcode === B"8A") -> LoadStore.FPLDNLDB,
+      (opcode === B"86") -> LoadStore.FPLDNLSNI,
+      (opcode === B"82") -> LoadStore.FPLDNLDBI,
+      (opcode === B"9F") -> LoadStore.FPLDZEROSN,
+      (opcode === B"A0") -> LoadStore.FPLDZERODB,
+      (opcode === B"AA") -> LoadStore.FPLDNLADDSN,
+      (opcode === B"A6") -> LoadStore.FPLDNLADDDB,
+      (opcode === B"AC") -> LoadStore.FPLDNLMULSN,
+      (opcode === B"A8") -> LoadStore.FPLDNLMULDB,
+      (opcode === B"88") -> LoadStore.FPSTNLSN,
+      (opcode === B"84") -> LoadStore.FPSTNLDB,
+      (opcode === B"9E") -> LoadStore.FPSTNLI32,
+      // General
+      (opcode === B"AB") -> General.FPENTRY,
+      (opcode === B"A4") -> General.FPREV,
+      (opcode === B"A3") -> General.FPDUP,
+      // Rounding
+      (opcode === B"D0") -> Rounding.FPRN,
+      (opcode === B"06") -> Rounding.FPRZ,
+      (opcode === B"04") -> Rounding.FPRP,
+      (opcode === B"05") -> Rounding.FPRM,
+      // Error
+      (opcode === B"83") -> Error.FPCHKERR,
+      (opcode === B"9C") -> Error.FPTESTERR,
+      (opcode === B"CB") -> Error.FPSETERR,
+      (opcode === B"0C") -> Error.FPCLRERR,
+      // Comparison
+      (opcode === B"94") -> Comparison.FPGT,
+      (opcode === B"95") -> Comparison.FPEQ,
+      (opcode === B"92") -> Comparison.FPORDERED,
+      (opcode === B"91") -> Comparison.FPNAN,
+      (opcode === B"93") -> Comparison.FPNOTFINITE,
+      (opcode === B"0E") -> Comparison.FPCHKI32,
+      (opcode === B"0F") -> Comparison.FPCHKI64,
+      // Conversion
+      (opcode === B"07") -> Conversion.FPR32TOR64,
+      (opcode === B"08") -> Conversion.FPR64TOR32,
+      (opcode === B"90" && !isT805Context) -> Conversion.FPRTOI32, // Disambiguate
+      (opcode === B"96") -> Conversion.FPI32TOR32,
+      (opcode === B"98") -> Conversion.FPI32TOR64,
+      (opcode === B"9A") -> Conversion.FPB32TOR64,
+      (opcode === B"00") -> Conversion.FPNOROUND,
+      (opcode === B"A1") -> Conversion.FPINT,
+      // Arithmetic
+      (opcode === B"57") -> Arithmetic.FPADD, // Corrected from S7
+      (opcode === B"59") -> Arithmetic.FPSUB, // Corrected from S9
+      (opcode === B"5B") -> Arithmetic.FPMUL, // Corrected from SB
+      (opcode === B"5C") -> Arithmetic.FPDIV, // Corrected from SC
+      (opcode === B"DB") -> Arithmetic.FPABS,
+      (opcode === B"DA") -> Arithmetic.FPEXPINC32,
+      (opcode === B"D9") -> Arithmetic.FPEXPDEC32,
+      (opcode === B"D2") -> Arithmetic.FPMULBY2,
+      (opcode === B"D1") -> Arithmetic.FPDIVBY2,
+      
+      // T805 Compatibility
+      (opcode === B"01000001") -> T805Compatibility.FPUSQRTFIRST,
+      (opcode === B"01000010") -> T805Compatibility.FPUSQRTSTEP,
+      (opcode === B"01000011") -> T805Compatibility.FPUSQRTLAST,
+      (opcode === B"5F") -> T805Compatibility.FPREMFIRST,
+      (opcode === B"90" && isT805Context) -> T805Compatibility.FPREMSTEP, // Disambiguate
+      
+      // Additional
+      (opcode === B"CF") -> Additional.FPREM,
+      (opcode === B"D3") -> Additional.FPSQRT,
+      (opcode === B"5D") -> Additional.FPRANGE,
+      (opcode === B"97") -> Additional.FPGE,
+      (opcode === B"9B") -> Additional.FPLG
     ))
     op
   }
+
+  // Placeholder for T805 context disambiguation (e.g., pipeline state or prefix)
+  def isT805Context: Bool = False // To be implemented based on pipeline state
 }
