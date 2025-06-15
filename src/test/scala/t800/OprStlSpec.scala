@@ -5,8 +5,10 @@ import spinal.core.sim._
 import org.scalatest.funsuite.AnyFunSuite
 import t800.plugins._
 import spinal.lib._
+import t800.plugins.schedule.SchedulerPlugin
 import spinal.lib.misc.plugin.PluginHost
 import t800.{DummyTimerPlugin, DummyFpuPlugin}
+import t800.plugins.grouper.GrouperPlugin
 
 class OprStlSpec extends AnyFunSuite {
   test("STL stores A and updates stack") {

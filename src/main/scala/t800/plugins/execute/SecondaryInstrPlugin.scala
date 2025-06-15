@@ -1,12 +1,15 @@
-package t800.plugins
+package t800.plugins.execute
 
 import spinal.core._
 import spinal.lib._
 import spinal.lib.misc.pipeline._
-import spinal.lib.misc.plugin.{FiberPlugin, Plugin, PluginHost}
+import spinal.lib.misc.plugin.{Plugin, PluginHost}
 import spinal.core.fiber.Retainer
 import t800.{Opcodes, Global}
-import t800.plugins.{ChannelSrv, SchedSrv, ChannelTxCmd, LinkBusSrv, LinkBusArbiterSrv}
+import t800.plugins.{ChannelSrv, ChannelTxCmd, LinkBusSrv, LinkBusArbiterSrv}
+import t800.plugins.schedule.SchedSrv
+import t800.plugins.fpu.FpuSrv
+import t800.plugins.timers.TimerSrv
 import scala.util.Try
 
 /** Implements basic ALU instructions and connects to the global pipeline. */

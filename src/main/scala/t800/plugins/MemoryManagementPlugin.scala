@@ -4,6 +4,10 @@ import spinal.core._
 import spinal.core.fiber._
 import spinal.lib.misc.plugin._
 import spinal.lib.misc.pipeline._
+import t800.plugins.pmi.PmiPlugin
+import t800.plugins.cache.{MainCachePlugin, WorkspaceCachePlugin}
+import t800.plugins.AddressTranslationSrv
+import t800.plugins.schedule.SchedulerPlugin
 import t800.Global
 
 /** Service for trap handling, providing details of errors and control. */
@@ -151,10 +155,8 @@ class MemoryManagementPlugin extends FiberPlugin {
       }
     }
 
-    // Translate addresses for other plugins
-    host[MainCachePlugin].srv.addr := translateAddress(host[MainCachePlugin].srv.addr)
-    host[WorkspaceCachePlugin].srv.addrA := translateAddress(host[WorkspaceCachePlugin].srv.addrA)
-    host[WorkspaceCachePlugin].srv.addrB := translateAddress(host[WorkspaceCachePlugin].srv.addrB)
-    host[PmiPlugin].srv.addr := translateAddress(host[PmiPlugin].srv.addr)
+    host.addService(new AddressTranslationSrv {
+      def translate(addr: Bits): Bits = translateAddress(addr)
+    })
   }
 }

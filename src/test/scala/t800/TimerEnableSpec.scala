@@ -4,6 +4,7 @@ import spinal.core._
 import spinal.core.sim._
 import org.scalatest.funsuite.AnyFunSuite
 import t800.plugins._
+import t800.plugins.timers.TimerSrv
 import t800.Global
 import spinal.lib.misc.plugin.{PluginHost, FiberPlugin, Plugin}
 

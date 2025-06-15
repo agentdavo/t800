@@ -37,9 +37,32 @@ lazy val t800 = (project in file("."))
     name := "t800",
     Compile / scalaSource := baseDirectory.value / "src" / "main" / "scala",
     Test / scalaSource := baseDirectory.value / "src" / "test" / "scala",
+    // Limit sources for the minimal unit build
+    Compile / unmanagedSources := {
+      val keep = Set(
+        "Global.scala",
+        "Opcodes.scala",
+        "T800.scala",
+        "Param.scala",
+        "Generate.scala",
+        "SystemBusSrv.scala",
+        "transputer/TransputerPlugin.scala",
+      )
+      val srcDir = (Compile / scalaSource).value
+      val selected = (srcDir ** "*.scala").get.filter(f =>
+        f.getPath.contains("spinal/lib") || keep.exists(k => f.getPath.endsWith(k))
+      )
+      selected
+    },
+    Test / unmanagedSources := {
+      val srcDir = (Test / scalaSource).value
+      (srcDir ** "InitTransputerSpec.scala").get
+    },
     libraryDependencies ++=
-      Seq("org.scalatest" %% "scalatest" % "3.2.17" % Test) ++
-        (if (sourceBuild) Nil else Seq(spinalCoreDep, spinalLibDep, spinalPlugDep)),
+      Seq(
+        "org.scalatest" %% "scalatest" % "3.2.17" % Test,
+        "com.github.scopt" %% "scopt" % "4.1.0"
+      ) ++ (if (sourceBuild) Nil else Seq(spinalCoreDep, spinalLibDep, spinalPlugDep)),
     scalacOptions ++= Seq("-language:reflectiveCalls"),
     scalacOptions ++= Def.taskDyn {
       if (sourceBuild) {

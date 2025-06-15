@@ -4,6 +4,8 @@ import spinal.core._
 import spinal.lib._
 import spinal.lib.misc.plugin.FiberPlugin
 import t800.plugins._
+import t800.plugins.fpu.FpuSrv
+import t800.plugins.timers.TimerSrv
 
 /** Minimal timer plugin exposing [[TimerSrv]] without any logic. */
 class DummyTimerPlugin extends FiberPlugin {
