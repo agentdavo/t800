@@ -4,10 +4,10 @@ import spinal.core._
 import spinal.lib._
 import spinal.lib.misc.database.Database
 import spinal.lib.misc.plugin.{PluginHost, FiberPlugin, Hostable}
-import spinal.lib.bus.bmb.{Bmb, BmbParameter, BmbAccessParameter}
+import spinal.lib.bus.bmb.{Bmb, BmbParameter}
 import t800.plugins.transputer.TransputerPlugin
 import t800.plugins.pipeline.{PipelinePlugin, PipelineBuilderPlugin}
-import t800.plugins.SystemBusSrv
+import t800.SystemBusSrv
 
 object T800 {
 
@@ -15,15 +15,12 @@ object T800 {
   def defaultDatabase(): Database = new Database
 
   /** Parameters for the 128-bit system bus, using Global.ADDR_BITS. */
-  val systemBusParam = BmbParameter(
-    access = BmbAccessParameter(
-      addressWidth = Global.ADDR_BITS,
-      dataWidth = 128,
-      sourceWidth = 4,
-      contextWidth = 0,
-      lengthWidth = 4
-    ),
-    sourceCount = 1
+  def systemBusParam: BmbParameter = BmbParameter(
+    addressWidth = Global.AddrBitsValue,
+    dataWidth = 128,
+    sourceWidth = 4,
+    contextWidth = 0,
+    lengthWidth = 4
   )
 
   /** Standard plugin stack for T800, aligned with T9000 architecture. */

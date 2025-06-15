@@ -41,12 +41,13 @@ lazy val t800 = (project in file("."))
     Compile / unmanagedSources := {
       val keep = Set(
         "Global.scala",
-        "Opcodes.scala",
+        "Opcode.scala",
         "T800.scala",
         "Param.scala",
         "Generate.scala",
         "SystemBusSrv.scala",
-        "Services.scala",
+        "plugins/Service.scala",
+        "pipeline/Service.scala",
         "PipelinePlugin.scala",
         "PipelineBuilderPlugin.scala",
         "transputer/TransputerPlugin.scala",

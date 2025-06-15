@@ -7,7 +7,7 @@ import spinal.lib.misc.plugin.FiberPlugin
 import spinal.core.fiber.Retainer
 import spinal.lib.bus.bmb.{Bmb, BmbParameter, BmbDownSizerBridge, BmbUnburstify}
 import t800.{Global, Opcodes, T800}
-import t800.plugins.{PipelineSrv, RegfileService, Fetch, GrouperPlugin, GroupedInstrSrv}
+import t800.plugins.{RegfileService, Fetch, GrouperPlugin, GroupedInstrSrv}
 import t800.plugins.registers.RegName
 import t800.plugins.pipeline.{PipelineService, PipelineSrv}
 

@@ -6,7 +6,7 @@ import spinal.lib.misc.plugin.{PluginHost, FiberPlugin}
 import spinal.lib.misc.pipeline._
 import spinal.core.fiber.Retainer
 import t800.{Global, Opcodes}
-import t800.plugins.{PipelineSrv, RegfileService, Fetch}
+import t800.plugins.{RegfileService, Fetch}
 import t800.plugins.registers.RegName
 import t800.plugins.pipeline.{PipelineService, PipelineSrv}
 
@@ -86,7 +86,11 @@ class GrouperPlugin extends FiberPlugin with PipelineService {
       val opcode = fetchOpcodes(instrIndex)
       val isPrimary = Opcodes.PrimaryEnum().decode(opcode(7 downto 4))
       val isSecondary = isPrimary === Opcodes.PrimaryEnum.OPR
-      val secondaryOpcode = isSecondary ? Opcodes.SecondaryEnum().decode(opcode) | Opcodes.SecondaryEnum.REV
+      val secondaryOpcode = Mux(
+        cond = isSecondary,
+        whenTrue = Opcodes.SecondaryEnum().decode(opcode),
+        whenFalse = Opcodes.SecondaryEnum.REV
+      )
 
       // Determine stage usage
       val newUsage = StageUsage()
@@ -152,7 +156,7 @@ class GrouperPlugin extends FiberPlugin with PipelineService {
           groupValid := True
           canAddInstr := False
         }
-      } else {
+      } otherwise {
         canAddInstr := False
         groupValid := True
       }
