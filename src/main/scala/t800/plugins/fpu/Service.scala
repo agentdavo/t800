@@ -5,21 +5,17 @@ import spinal.lib._
 import spinal.lib.misc.pipeline._
 import t800.Global
 
-/** Command container for the simple FPU service. */
-case class FpCmd(op: FpOp.E = FpOp.ADD,
-                 opa: UInt = null,
-                 opb: UInt = null) extends Bundle {
-  /** Selected operation */
-  val op  = FpOp()
-  /** Operand A */
-  val opa = UInt(Global.WORD_BITS bits)
-  /** Operand B */
-  val opb = UInt(Global.WORD_BITS bits)
-}
+// Forward simple command and operation definitions from `Opcodes.scala`.
+// This avoids duplicate type names when both files are included in the build.
+import t800.plugins.fpu.{FpCmd => OpcodeCmd, FpOp}
 
-object FpOp extends SpinalEnum {
-  val ADD, SUB, MUL, DIV = newElement()
+/** Provide local aliases for command types to avoid duplicate definitions when this file and
+  * `Opcodes.scala` are both compiled.
+  */
+object FpuServiceTypes {
+  type FpCmd = OpcodeCmd
 }
+import FpuServiceTypes.FpCmd
 
 trait FpuSrv {
   def pipe: Flow[FpCmd]
@@ -27,8 +23,8 @@ trait FpuSrv {
   def send(op: FpOp.E, a: UInt, b: UInt): Unit = {
     pipe.valid := True
     pipe.payload.op := op
-    pipe.payload.opa := a
-    pipe.payload.opb := b
+    pipe.payload.a := a.asBits
+    pipe.payload.b := b.asBits
   }
   def resultValid: Bool = rsp.valid
   def result: UInt = rsp.payload
