@@ -2,13 +2,13 @@ package t800.plugins.fetch
 
 import spinal.core._
 import spinal.lib._
-import spinal.lib.misc.plugin.{Plugin, PluginHost, FiberPlugin}
+import spinal.lib.misc.plugin.{PluginHost, FiberPlugin}
 import spinal.lib.misc.pipeline._
 import spinal.lib.bus.bmb.{Bmb, BmbParameter, BmbAccessParameter, BmbQueue, BmbDownSizerBridge}
 import spinal.core.fiber.Retainer
 import t800.{Global, T800}
 import t800.plugins.{SystemBusSrv, PipelineSrv, RegfileService}
-import t800.plugins.regfile.RegName
+import t800.plugins.registers.RegName
 import t800.plugins.fetch.Service.InstrFetchSrv
 
 /** Instruction fetch unit with T9000-style Instruction Prefetch Buffer (IPB) supporting eight-instruction dispatch. */
@@ -16,7 +16,7 @@ import t800.plugins.fetch.Service.InstrFetchSrv
 class FetchPlugin extends FiberPlugin with PipelineService {
   setName("fetch")
   val elaborationLock = Retainer()
-  val version = "FetchPlugin v1.4"
+  val version = "FetchPlugin v1.5"
   report(L"Initializing $version")
   println(s"[${FetchPlugin.this.getDisplayName()}] build start")
 
@@ -53,9 +53,9 @@ class FetchPlugin extends FiberPlugin with PipelineService {
     val ipbQueue = BmbQueue(fetchParam, depth = ipbDepth)
     val ipbBuffer = Reg(Vec(Bits(32 bits), ipbDepth * 4)) init(Vec.fill(ipbDepth * 4)(0)) // 4 words per entry
     val ipbPtr = Reg(UInt(log2Up(ipbDepth) bits)) init(0)
-    val ipbFull = Reg(Bool()) init(False)
-    val ipbWordPtr = Reg(UInt(2 bits)) init(0) // Track within 128-bit burst
-    val ipbInstrPtr = Reg(UInt(3 bits)) init(0) // Track eight 8-bit instructions
+    val ipbFull = Reg(Bool()) init False
+    val ipbWordPtr = Reg(UInt(2 bits)) init 0 // Track within 128-bit burst
+    val ipbInstrPtr = Reg(UInt(3 bits)) init 0 // Track eight 8-bit instructions
 
     // Connect to down-sized BMB
     downSizer.io.output >> ipbQueue.io.input
@@ -109,8 +109,12 @@ class FetchPlugin extends FiberPlugin with PipelineService {
     pipe.fetch(FETCH_OPCODES) := opcodes
     DBKeys.FETCH_PC.set(currentPC)
     DBKeys.FETCH_OPCODES.set(opcodes)
+
+    // Output single opcode for non-grouped mode
+    pipe.fetch.insert(Global.OPCODE) := opcodes(0) // For PrimaryInstrPlugin if GrouperPlugin absent
+
     println(s"[${FetchPlugin.this.getDisplayName()}] build end")
   }
 
-  override def getLinks(): Seq[pipeline.Link] = Seq()
+  override def getLinks(): Seq[Link] = Seq()
 }
