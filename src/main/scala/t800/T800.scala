@@ -3,7 +3,7 @@ package t800
 import spinal.core._
 import spinal.lib._
 import spinal.lib.misc.database.Database
-import spinal.lib.misc.plugin.{PluginHost, FiberPlugin}
+import spinal.lib.misc.plugin.{PluginHost, FiberPlugin, Hostable}
 import spinal.lib.bus.bmb.{Bmb, BmbParameter, BmbAccessParameter}
 import t800.SystemBusSrv
 
@@ -26,36 +26,37 @@ object T800 {
 
   /** Minimal plugin set used by unit tests. */
   def unitPlugins(): Seq[FiberPlugin] = Param().plugins()
-}
 
-class T800(
-  val host: PluginHost,
-  plugins: Seq[FiberPlugin],
-  database: Database = T800.defaultDatabase()
-) extends Component {
-  val systemBus = master(Bmb(T800.systemBusParam))
+  /** Convenience constructor returning an empty T800. */
+  def apply(): T800 = new T800(Database.get)
 
-  Database(database).on {
-    host.addService(new SystemBusSrv { def bus: Bmb = systemBus })
-    host.asHostOf(plugins)
-    plugins.foreach(_.awaitBuild())
-    // Connect plugins to system bus
-    // Plugins with system bus I/O would normally connect here. Most are
-    // stubbed out in the minimal variant used for unit testing.
+  /** Convenience constructor wiring the given plugins. */
+  def apply(plugins: scala.collection.Seq[Hostable]): T800 = {
+    val t = new T800(Database.get)
+    t.host.asHostOf(plugins)
+    t
   }
 }
 
-class T800Core extends T800(new PluginHost, Param().plugins())
+class T800(val database: Database = new Database) extends Component {
+  val host = database on new PluginHost
+  val systemBus = master(Bmb(T800.systemBusParam))
+  host.addService(new SystemBusSrv { def bus: Bmb = systemBus })
+}
+
+class T800Core extends Component {
+  val core = T800(T800.defaultPlugins())
+}
 
 /** Unit variant with only the TransputerPlugin, used by minimal tests. */
-class T800Unit(db: Database = T800.defaultDatabase())
-    extends T800(new PluginHost, T800.unitPlugins(), db)
+class T800Unit(db: Database = T800.defaultDatabase()) extends Component {
+  val core = Database(db).on(T800(T800.unitPlugins()))
+}
 
 object T800CoreVerilog {
   def main(args: Array[String]): Unit = {
     val param = Param()
-    val host = new PluginHost
-    val core = new T800(host, param.plugins())
+    val core = Database(T800.defaultDatabase()).on(T800(param.plugins()))
     val report = SpinalVerilog(core)
     println(s"Verilog generated: ${report.toplevelName}")
   }

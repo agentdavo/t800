@@ -1,7 +1,6 @@
 package t800
 
 import spinal.core._
-import spinal.lib.misc.plugin.PluginHost
 import t800.plugins.transputer.TransputerPlugin
 
 /** Variant-aware entry point used by the build scripts. */
@@ -24,8 +23,7 @@ object TopVerilog {
 
     // Generate Verilog with default plugins
     val report = SpinalVerilog {
-      val host = new PluginHost
-      new T800(host, T800.defaultPlugins(), db)
+      Database(db).on(T800(T800.defaultPlugins()))
     }
     
     println(s"Verilog generated: ${report.toplevelName}")

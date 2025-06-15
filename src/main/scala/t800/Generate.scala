@@ -1,7 +1,7 @@
 package t800
 
 import spinal.core._
-import spinal.lib.misc.plugin.PluginHost
+import spinal.lib.misc.database.Database
 import scopt.OParser
 
 object Generate {
@@ -20,8 +20,7 @@ object Generate {
     OParser.parse(parser, args, Param()) match {
       case Some(p) =>
         val db = T800.defaultDatabase()
-        val host = new PluginHost
-        val core = new T800(host, p.plugins(), db)
+        val core = Database(db).on(T800(p.plugins()))
         val report = SpinalVerilog(core)
         println(s"Verilog generated: ${report.toplevelName}")
       case _ =>
