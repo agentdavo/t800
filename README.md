@@ -196,6 +196,12 @@ The compiler catches a wide range of design mistakes:
 
 Each report includes a stack trace to pinpoint the offending code.
 
+### Common runtime errors
+
+Scala executes the hardware description before Verilog generation. Assigning to a
+signal prior to its `val` declaration triggers a `NullPointerException` during
+elaboration. Always declare hardware objects before driving them.
+
 ---
 
 ## Simulation with SpinalSim
