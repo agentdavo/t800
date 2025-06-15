@@ -14,7 +14,7 @@ import t800.plugins.registers.RegName
   * for delivery to the PrimaryInstrPlugin (decode) stage.
   */
 class GrouperPlugin extends FiberPlugin with PipelineService {
-  val version = "GrouperPlugin v0.3"
+  val version = "GrouperPlugin v0.4"
   private val retain = Retainer()
   private var instrVec: Vec[Bits] = null
   private var instrCount: UInt = null
@@ -25,6 +25,7 @@ class GrouperPlugin extends FiberPlugin with PipelineService {
   override def getLinks(): Seq[Link] = links
 
   during setup new Area {
+    println(s"[${this.getDisplayName()}] setup start")
     report(L"Initializing $version")
     retain()
     instrVec = Vec.fill(8)(Reg(Bits(Global.OPCODE_BITS bits)) init 0)
@@ -35,9 +36,11 @@ class GrouperPlugin extends FiberPlugin with PipelineService {
     addService(new GroupedInstrSrv {
       override def groups: Flow[GroupedInstructions] = groupFlow
     })
+    println(s"[${this.getDisplayName()}] setup end")
   }
 
   during build new Area {
+    println(s"[${this.getDisplayName()}] build start")
     retain.await()
     implicit val h: PluginHost = host
     val pipe = Plugin[PipelineSrv]
@@ -55,11 +58,11 @@ class GrouperPlugin extends FiberPlugin with PipelineService {
 
     // Track pipeline stage usage
     case class StageUsage() extends Bundle {
-      val fetch = UInt(2 bits)         // Up to 2 LDL/LDLP
-      val address = UInt(2 bits)       // Up to 2 WSUB/LDNL/STNL
-      val load = UInt(2 bits)          // Up to 2 LDNL
-      val execute = UInt(1 bit)        // 1 ALU/FPU
-      val writeBranch = UInt(1 bit)    // 1 CJ/J/STNL
+      val fetch = UInt(2 bits) // Up to 2 LDL/LDLP
+      val address = UInt(2 bits) // Up to 2 WSUB/LDNL/STNL
+      val load = UInt(2 bits) // Up to 2 LDNL
+      val execute = UInt(1 bit) // 1 ALU/FPU
+      val writeBranch = UInt(1 bit) // 1 CJ/J/STNL
     }
     val currentUsage = Reg(StageUsage()) init StageUsage().getZero
     val canAddInstr = Reg(Bool()) init True
@@ -184,5 +187,6 @@ class GrouperPlugin extends FiberPlugin with PipelineService {
     groupFlow.payload.count := out.down(GROUP_COUNT)
 
     links = Seq(toDecode)
+    println(s"[${this.getDisplayName()}] build end")
   }
 }
