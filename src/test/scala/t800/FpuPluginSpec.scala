@@ -25,12 +25,10 @@ class FpuDut extends Component {
     plugin.awaitBuild()
   }
   val srv = host[FpuSrv]
-  srv.pipe.valid := io.cmdValid
-  srv.pipe.payload.op := io.op
-  srv.pipe.payload.opa := io.a
-  srv.pipe.payload.opb := io.b
-  io.rspValid := srv.rsp.valid
-  io.rsp := srv.rsp.payload
+  srv.pipe.valid := False
+  when(io.cmdValid) { srv.send(io.op, io.a, io.b) }
+  io.rspValid := srv.resultValid
+  io.rsp := srv.result
 }
 
 class FpuPluginSpec extends AnyFunSuite {

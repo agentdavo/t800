@@ -43,6 +43,14 @@ class DummyFpuPlugin extends FiberPlugin {
     addService(new FpuSrv {
       override def pipe: Flow[FpCmd] = pipeReg
       override def rsp: Flow[UInt] = rspReg
+      override def send(op: FpOp.E, a: UInt, b: UInt): Unit = {
+        pipeReg.valid := True
+        pipeReg.payload.op := op
+        pipeReg.payload.opa := a
+        pipeReg.payload.opb := b
+      }
+      override def resultValid: Bool = rspReg.valid
+      override def result: UInt = rspReg.payload
     })
   }
 
