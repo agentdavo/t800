@@ -1,4 +1,4 @@
-package t800.plugins.regfile
+package t800.plugins.registers
 
 import spinal.core._
 import t800.Global
