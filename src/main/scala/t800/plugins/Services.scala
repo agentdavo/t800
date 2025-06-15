@@ -49,16 +49,12 @@ trait LinkBusArbiterSrv {
 }
 
 /** Service for memory access, removed direct Mem access, integrated with BMB plugins. */
-trait MemAccessSrv {
-  def getCacheAccess(): t800.plugins.cache.MainCacheAccessSrv // Access MainCachePlugin service
-  def getPmiAccess(): t800.plugins.pmi.PmiAccessSrv // Access PmiPlugin service
-}
 
 /** Service for trap handling, integrated with MemoryManagementPlugin. */
 case class TrapHandlerSrv() extends Bundle {
-  val trapAddr = Bits(32 bits)      // Address where trap occurred
-  val trapType = Bits(4 bits)       // Type of trap (e.g., 0010: stack extension, 0100: privileged instr)
-  val trapEnable = Bool()           // Enable trap handling for current process
+  val trapAddr = Bits(32 bits) // Address where trap occurred
+  val trapType = Bits(4 bits) // Type of trap (e.g., 0010: stack extension, 0100: privileged instr)
+  val trapEnable = Bool() // Enable trap handling for current process
   val trapHandlerAddr = Bits(32 bits) // Address of trap handler (set by SchedulerPlugin)
   def setTrap(addr: Bits, typ: Bits): Unit = {
     trapAddr := addr
@@ -84,6 +80,7 @@ case class ChannelPins(count: Int) extends Bundle with LinkPins {
 }
 
 trait ChannelSrv {
+
   /** Return true when the transmit FIFO can accept a new word. */
   def txReady(link: UInt): Bool
 

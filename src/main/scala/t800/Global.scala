@@ -67,21 +67,13 @@ object Global extends AreaObject {
   val Link1Output = 0x80000004L
   val Link0Output = 0x80000000L
 
-  // Pipeline payloads
-  def IPTR: Payload[UInt] = Payload(UInt(IPTR_BITS bits))
-  def OPCODE: Payload[Bits] = Payload(Bits(OPCODE_BITS bits))
-  def MEM_ADDR: Payload[UInt] = Payload(UInt(ADDR_BITS bits))
-  def MEM_DATA: Payload[Bits] = Payload(Bits(WORD_BITS bits))
+  // Pipeline payloads (using defaults to avoid database dependency)
+  def IPTR: Payload[UInt] = Payload(UInt(AddrBitsValue bits))
+  def OPCODE: Payload[Bits] = Payload(Bits(8 bits))
+  def MEM_ADDR: Payload[UInt] = Payload(UInt(AddrBitsValue bits))
+  def MEM_DATA: Payload[Bits] = Payload(Bits(WordBits bits))
 
   // Memory command definitions, aligned with T9000
-  case class MemWriteCmd[T <: Data](
-    payloadType: HardType[T] = HardType(Bits(WORD_BITS bits)),
-    depth: Int = 1 << AddrBits
-  ) extends Bundle {
-    val address = UInt(log2Up(depth) bits)
-    val data = payloadType()
-  }
-
   case class MemRead[T <: Data](
     payloadType: HardType[T] = HardType(Bits(WORD_BITS bits)),
     depth: Int = 1 << AddrBits
@@ -279,4 +271,14 @@ object Global extends AreaObject {
       isValid := !WriteLock.isLocked(addr)
     }
   }
+}
+
+// Minimal memory command bundles used across services
+case class MemWriteCmd(depth: Int = 1 << Global.AddrBits) extends Bundle {
+  val address = UInt(log2Up(depth) bits)
+  val data = Bits(Global.WORD_BITS bits)
+}
+
+case class MemReadCmd(depth: Int = 1 << Global.AddrBits) extends Bundle {
+  val address = UInt(log2Up(depth) bits)
 }
