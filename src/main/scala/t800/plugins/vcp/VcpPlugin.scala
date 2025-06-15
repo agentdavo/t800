@@ -1,24 +1,22 @@
-package t800.plugins
+package t800.plugins.vcp
+
+import t800.plugins._
+import t800.plugins.schedule.SchedulerPlugin
 
 import spinal.core._
 import spinal.core.fiber._
 import spinal.lib.misc.plugin._
 import spinal.lib.misc.pipeline._
-import spinal.lib.bus.bmb.{Bmb, BmbParameter, BmbAccessParameter, BmbDownSizerBridge, BmbOnChipRamMultiPort, BmbQueue}
+import spinal.lib.bus.bmb.{
+  Bmb,
+  BmbParameter,
+  BmbAccessParameter,
+  BmbDownSizerBridge,
+  BmbOnChipRamMultiPort,
+  BmbQueue
+}
 import spinal.lib.com.spi.ddr.{SpiXdrMasterCtrl, SpiXdrParameter}
 import t800.Global
-
-/** Service for virtual channel management, extending ChannelSrv with VCP-specific functionality. */
-trait VcpSrv extends ChannelSrv {
-  def scheduleInput(channel: Int): Unit
-  def scheduleOutput(channel: Int): Unit
-  def getChannelState(channel: Int): Bits // e.g., INRI, OUTRO, SPEOPM, SPACK
-  def setVcpCommand(cmd: Bits): Unit
-  def getVcpStatus(): Bits
-  def sendPacket(channel: Int, data: Bits, isEnd: Bool): Unit
-  def receiveAck(channel: Int): Bool
-  def enqueueMessage(channel: Int, data: Bits): Unit
-}
 
 /** Plugin for T9000 Virtual Channel Processor (VCP) with four SpiXdrMasterCtrl links. */
 class VcpPlugin extends FiberPlugin {
@@ -31,7 +29,9 @@ class VcpPlugin extends FiberPlugin {
     val VCP_VLCB_BASE = Database.blocking[Bits]()
   }
 
-  lazy val VCP_CHANNEL_STATE = Payload(Vec(Bits(8 bits), 2 * Global.LINK_COUNT.toInt)) // INRI, OUTRO, SPEOPM, SPACK
+  lazy val VCP_CHANNEL_STATE = Payload(
+    Vec(Bits(8 bits), 2 * Global.LINK_COUNT.toInt)
+  ) // INRI, OUTRO, SPEOPM, SPACK
   lazy val VCP_STATUS = Payload(Bits(32 bits)) // VCPStatus register
   lazy val VCP_VLCB_BASE = Payload(Bits(32 bits)) // Base for VLCB memory
 
@@ -47,7 +47,8 @@ class VcpPlugin extends FiberPlugin {
       def getChannelState(channel: Int): Bits = channels(channel).getState()
       def setVcpCommand(cmd: Bits): Unit = vcpCommand := cmd
       def getVcpStatus(): Bits = vcpStatus
-      def sendPacket(channel: Int, data: Bits, isEnd: Bool): Unit = channels(channel).sendPacket(data, isEnd)
+      def sendPacket(channel: Int, data: Bits, isEnd: Bool): Unit =
+        channels(channel).sendPacket(data, isEnd)
       def receiveAck(channel: Int): Bool = channels(channel).receiveAck()
       def enqueueMessage(channel: Int, data: Bits): Unit = channels(channel).enqueueMessage(data)
     }
@@ -60,11 +61,13 @@ class VcpPlugin extends FiberPlugin {
   }
 
   during setup {
-    buildBefore(retains(
-      host[SchedulerPlugin].lock,
-      host[LinksPlugin].lock,
-      host[MemoryManagementPlugin].lock
-    ).lock)
+    buildBefore(
+      retains(
+        host[SchedulerPlugin].lock,
+        host[LinksPlugin].lock,
+        host[MemoryManagementPlugin].lock
+      ).lock
+    )
   }
 
   def connectToSystemBus(bus: Bmb): Unit = {
@@ -106,32 +109,34 @@ class VcpPlugin extends FiberPlugin {
 
     // VCP configuration registers
     val configSrv = host.find[Global.ConfigAccessSrv]
-    val vcpCommand = Reg(Bits(32 bits)) init(0) // #0804
-    val vcpStatus = Reg(Bits(32 bits)) init(0) // #0802
-    val hdrAreaBase = Reg(Bits(32 bits)) init(Global.InternalMemStart) // #0901
-    val link0HdrOffset = Reg(Bits(16 bits)) init(0) // #0808
-    val link1HdrOffset = Reg(Bits(16 bits)) init(0) // #080C
-    val link2HdrOffset = Reg(Bits(16 bits)) init(0) // #0810
-    val link3HdrOffset = Reg(Bits(16 bits)) init(0) // #0814
-    val link0MinHeader = Reg(Bits(16 bits)) init(0) // #0807
-    val link0MaxHeader = Reg(Bits(16 bits)) init(U"16'hFFFF") // #0806
-    val link1MinHeader = Reg(Bits(16 bits)) init(0) // #080B
-    val link1MaxHeader = Reg(Bits(16 bits)) init(U"16'hFFFF") // #080A
-    val link2MinHeader = Reg(Bits(16 bits)) init(0) // #080F
-    val link2MaxHeader = Reg(Bits(16 bits)) init(U"16'hFFFF") // #080E
-    val link3MinHeader = Reg(Bits(16 bits)) init(0) // #0813
-    val link3MaxHeader = Reg(Bits(16 bits)) init(U"16'hFFFF") // #0812
-    val link0Mode = Reg(Bits(3 bits)) init(0) // #0805
-    val link1Mode = Reg(Bits(3 bits)) init(0) // #0809
-    val link2Mode = Reg(Bits(3 bits)) init(0) // #080D
-    val link3Mode = Reg(Bits(3 bits)) init(0) // #0811
+    val vcpCommand = Reg(Bits(32 bits)) init (0) // #0804
+    val vcpStatus = Reg(Bits(32 bits)) init (0) // #0802
+    val hdrAreaBase = Reg(Bits(32 bits)) init (Global.InternalMemStart) // #0901
+    val link0HdrOffset = Reg(Bits(16 bits)) init (0) // #0808
+    val link1HdrOffset = Reg(Bits(16 bits)) init (0) // #080C
+    val link2HdrOffset = Reg(Bits(16 bits)) init (0) // #0810
+    val link3HdrOffset = Reg(Bits(16 bits)) init (0) // #0814
+    val link0MinHeader = Reg(Bits(16 bits)) init (0) // #0807
+    val link0MaxHeader = Reg(Bits(16 bits)) init (U"16'hFFFF") // #0806
+    val link1MinHeader = Reg(Bits(16 bits)) init (0) // #080B
+    val link1MaxHeader = Reg(Bits(16 bits)) init (U"16'hFFFF") // #080A
+    val link2MinHeader = Reg(Bits(16 bits)) init (0) // #080F
+    val link2MaxHeader = Reg(Bits(16 bits)) init (U"16'hFFFF") // #080E
+    val link3MinHeader = Reg(Bits(16 bits)) init (0) // #0813
+    val link3MaxHeader = Reg(Bits(16 bits)) init (U"16'hFFFF") // #0812
+    val link0Mode = Reg(Bits(3 bits)) init (0) // #0805
+    val link1Mode = Reg(Bits(3 bits)) init (0) // #0809
+    val link2Mode = Reg(Bits(3 bits)) init (0) // #080D
+    val link3Mode = Reg(Bits(3 bits)) init (0) // #0811
 
     // Spawn four SpiXdrMasterCtrl links with bit-level protocol
-    val spiParams = SpiXdrMasterCtrl.Parameters(
-      dataWidth = 8,
-      timerWidth = 12,
-      spi = SpiXdrParameter(dataWidth = 8, ioRate = 2, ssWidth = 4)
-    ).addFullDuplex(id = 0, rate = 1, ddr = true, dataWidth = 8)
+    val spiParams = SpiXdrMasterCtrl
+      .Parameters(
+        dataWidth = 8,
+        timerWidth = 12,
+        spi = SpiXdrParameter(dataWidth = 8, ioRate = 2, ssWidth = 4)
+      )
+      .addFullDuplex(id = 0, rate = 1, ddr = true, dataWidth = 8)
       .addHalfDuplex(id = 1, rate = 1, ddr = false, spiWidth = 8, dataWidth = 8)
 
     val linkParams = SpiXdrMasterCtrl.MemoryMappingParameters(
@@ -144,18 +149,18 @@ class VcpPlugin extends FiberPlugin {
     val links = for (i <- 0 until 4) yield new Area {
       val spiCtrl = SpiXdrMasterCtrl(linkParams, vcpBmbParam)
       val linkState = RegInit(U"001") // Reset state
-      val buffer = Reg(Bits(32 bits)) init(0) // Packet buffer
-      val packetHeader = Reg(Bits(16 bits)) init(0) // Header storage
-      val errorFlag = Reg(Bool()) init(False)
-      val dataLine = Reg(Bits(1 bits)) init(0) // Bit-level data
-      val strobeLine = Reg(Bits(1 bits)) init(0) // Bit-level strobe
+      val buffer = Reg(Bits(32 bits)) init (0) // Packet buffer
+      val packetHeader = Reg(Bits(16 bits)) init (0) // Header storage
+      val errorFlag = Reg(Bool()) init (False)
+      val dataLine = Reg(Bits(1 bits)) init (0) // Bit-level data
+      val strobeLine = Reg(Bits(1 bits)) init (0) // Bit-level strobe
 
       // Link protocol state machine
       val packetState = RegInit(U"00") // 00: Idle, 01: Sending SP, 10: Receiving, 11: Ack
-      val packetCount = Reg(UInt(8 bits)) init(0)
-      val isEnd = Reg(Bool()) init(False)
-      val tokenType = Reg(Bits(2 bits)) init(B"00") // 00: Data, 01: EOP, 10: EOM
-      val parityBit = Reg(Bool()) init(False)
+      val packetCount = Reg(UInt(8 bits)) init (0)
+      val isEnd = Reg(Bool()) init (False)
+      val tokenType = Reg(Bits(2 bits)) init (B"00") // 00: Data, 01: EOP, 10: EOM
+      val parityBit = Reg(Bool()) init (False)
 
       // Bit-level protocol simulation
       val bitClock = Counter(8) // 8-bit token cycle
@@ -173,7 +178,7 @@ class VcpPlugin extends FiberPlugin {
       // State transitions based on VCPCommand
       when(vcpCommand(0)) {
         linkState := U"001" // Reset
-        RegNext(True, init = False, when = vcpCommand(0), for 256 cycles) // Hold for 256 cycles
+        // TODO: implement proper hold for 256 cycles
       }
       when(vcpCommand(1) && linkState === U"001") { linkState := U"010" } // Start
       when(vcpCommand(2) && linkState === U"010") { linkState := U"100" } // Stop
@@ -188,7 +193,7 @@ class VcpPlugin extends FiberPlugin {
       when(packetState === U"00" && srv.txReady(U(i)) && linkState === U"010") {
         packetState := U"01" // Sending SP
         tokenType := B"00" // Data token for SP
-        parityBit := ~^B"00000000" // Parity for SP
+        parityBit := False // TODO: compute parity
         buffer := B"00000000" // Placeholder SP
         packetCount := 1
       }
@@ -197,8 +202,9 @@ class VcpPlugin extends FiberPlugin {
           spiCtrl.io.tx.push(buffer)
           packetCount := packetCount + 1
         } otherwise {
-          tokenType := isEnd ? B"10" : B"01" // EOM or EOP
-          parityBit := ~^(isEnd ? B"00000010" : B"00000001") // Parity for EOM/EOP
+          // Pick end-of-message or end-of-packet token
+          tokenType := Mux(isEnd, B"10", B"01")
+          parityBit := False // TODO: compute parity
           packetState := U"10" // Receiving
         }
       }
@@ -232,18 +238,18 @@ class VcpPlugin extends FiberPlugin {
 
     // Virtual link buffers (one per channel for first packet)
     val virtualBuffers = for (i <- 0 until 2 * Global.LINK_COUNT.toInt) yield new Area {
-      val buffer = Reg(Bits(32 bits)) init(0)
-      val valid = Reg(Bool()) init(False)
+      val buffer = Reg(Bits(32 bits)) init (0)
+      val valid = Reg(Bool()) init (False)
     }
 
     // Channel state machines (8 channels, 2 per link)
     val channels = for (i <- 0 until 2 * Global.LINK_COUNT.toInt) yield new Area {
-      val inri = Reg(UInt(2 bits)) init(0) // #in - #run(in)
-      val outro = Reg(UInt(2 bits)) init(0) // #out - #run(out)
-      val speopm = Reg(UInt(2 bits)) init(0) // #sp - (#cop + #com)
-      val spack = Reg(UInt(2 bits)) init(0) // #sp - #ack
+      val inri = Reg(UInt(2 bits)) init (0) // #in - #run(in)
+      val outro = Reg(UInt(2 bits)) init (0) // #out - #run(out)
+      val speopm = Reg(UInt(2 bits)) init (0) // #sp - (#cop + #com)
+      val spack = Reg(UInt(2 bits)) init (0) // #sp - #ack
       val linkIdx = i / 2
-      val vlcbAddr = Reg(Bits(32 bits)) init(0)
+      val vlcbAddr = Reg(Bits(32 bits)) init (0)
       val messageQueue = Stream(Bits(32 bits))
 
       // Safety conditions
@@ -288,9 +294,11 @@ class VcpPlugin extends FiberPlugin {
       def getState(): Bits = B"0" ## spack ## speopm ## outro ## inri
 
       // VLCB address calculation
-      val headerOffset = Mux(linkIdx === 0, link0HdrOffset,
-        Mux(linkIdx === 1, link1HdrOffset,
-          Mux(linkIdx === 2, link2HdrOffset, link3HdrOffset)))
+      val headerOffset = Mux(
+        linkIdx === 0,
+        link0HdrOffset,
+        Mux(linkIdx === 1, link1HdrOffset, Mux(linkIdx === 2, link2HdrOffset, link3HdrOffset))
+      )
       vlcbAddr := hdrAreaBase + ((U(i) - headerOffset.asUInt).resized << 5) // vlink.shift = 5
 
       // State updates from pipeline
@@ -330,7 +338,9 @@ class VcpPlugin extends FiberPlugin {
     when(vcpCommand(0)) { // Reset
       for (link <- links) { link.linkState := U"001" }
       vcpStatus := 0
-      for (channel <- channels) { channel.inri := 0; channel.outro := 0; channel.speopm := 0; channel.spack := 0 }
+      for (channel <- channels) {
+        channel.inri := 0; channel.outro := 0; channel.speopm := 0; channel.spack := 0
+      }
     }
     when(vcpStatus(0)) { // Error state
       for (link <- links) { link.linkState := U"101" } // Discarding

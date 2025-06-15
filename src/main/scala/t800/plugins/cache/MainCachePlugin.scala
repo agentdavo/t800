@@ -1,34 +1,21 @@
-package t800.plugins
+package t800.plugins.cache
 
 import spinal.core._
 import spinal.core.fiber._
+import spinal.lib._
 import spinal.lib.misc.plugin._
 import spinal.lib.misc.pipeline._
 import spinal.lib.misc.database._
-import spinal.lib.bus.bmb.{
-  Bmb,
-  BmbParameter,
-  BmbAccessParameter,
-  BmbOnChipRamMultiPort,
-  BmbUnburstify,
-  BmbArbiter,
-  BmbDecoder,
-  BmbDownSizerBridge
-}
+import spinal.lib.bus.bmb.{Bmb, BmbParameter, BmbAccessParameter, BmbOnChipRamMultiPort, BmbUnburstify, BmbArbiter, BmbDecoder, BmbDownSizerBridge}
+import t800.plugins.pmi.PmiPlugin
+import t800.plugins.{AddressTranslationSrv, WorkspaceCacheSrv}
+import t800.plugins.cache.CacheAccessSrv
 import spinal.lib.bus.misc.{AddressMapping, SizeMapping}
 
 // The MainCachePlugin implements four BmbOnChipRamMultiPort banks (4 KB each, 32-bit data/32-bit address, two read ports)
 // accessed via 32-bit unburstified BMB interfaces, mapped using BmbDecoder
 // Single-beat transactions ensure single-cycle, zero-latency access for cache hits, saving logic area
 // It uses BmbArbiter for pipeline arbitration and BmbDownSizerBridge for PMI refills, supporting two simultaneous CPU reads
-
-case class MainCacheAccessSrv() extends Bundle {
-  val addr = Bits(32 bits)
-  val dataOut = Bits(128 bits) // 16 bytes per line
-  val isHit = Bool()
-  val writeEnable = Bool()
-  val writeData = Bits(128 bits)
-}
 
 class MainCachePlugin extends FiberPlugin {
   val version = "MainCachePlugin v1.6"
@@ -45,6 +32,17 @@ class MainCachePlugin extends FiberPlugin {
   lazy val srv = during setup new Area {
     val service = MainCacheAccessSrv()
     addService(service)
+    addService(new MainCacheSrv {
+      def read(addr: Bits): Bits = srv.service.dataOut // placeholder
+      def write(addr: Bits, data: Bits): Unit = {}
+    })
+    val cacheIf = new CacheAccessSrv {
+      override val req = Flow(CacheReq())
+      override val rsp = Flow(CacheRsp())
+    }
+    cacheIf.req.setIdle()
+    cacheIf.rsp.setIdle()
+    addService(cacheIf)
   }
 
   buildBefore(
@@ -142,8 +140,9 @@ class MainCachePlugin extends FiberPlugin {
       val emptyLine = Reg(UInt(8 bits)) init (0)
 
       def read(addr: Bits, portIdx: Int): (Bool, Bits) = {
-        val lineIdx = addr(11 downto 4).asUInt
-        val tag = addr(31 downto 6)
+        val phys = Plugin[AddressTranslationSrv].translate(addr)
+        val lineIdx = phys(11 downto 4).asUInt
+        val tag = phys(31 downto 6)
         val isHit = validBits.readSync(lineIdx) && tagMem.readSync(lineIdx) === tag
         val ramAddr = addr(11 downto 2).asUInt
         val dataLow = ram.io.buses(portIdx).rsp.data
@@ -156,7 +155,7 @@ class MainCachePlugin extends FiberPlugin {
           fetch.haltWhen(True)
           pmiDownSizer.io.input.cmd.valid := True
           pmiDownSizer.io.input.cmd.opcode := 0 // Read
-          pmiDownSizer.io.input.cmd.address := addr
+          pmiDownSizer.io.input.cmd.address := phys
           pmiDownSizer.io.input.cmd.length := 0
           pmiDownSizer.io.input.cmd.data := 0
           val refillData = pmiDownSizer.io.output.rsp.data
@@ -177,8 +176,9 @@ class MainCachePlugin extends FiberPlugin {
       }
 
       def write(addr: Bits, data: Bits): Unit = {
-        val lineIdx = addr(11 downto 4).asUInt
-        val tag = addr(31 downto 6)
+        val phys = Plugin[AddressTranslationSrv].translate(addr)
+        val lineIdx = phys(11 downto 4).asUInt
+        val tag = phys(31 downto 6)
         val isHit = validBits.readSync(lineIdx) && tagMem.readSync(lineIdx) === tag
         val ramAddr = addr(11 downto 2).asUInt
 
@@ -195,16 +195,16 @@ class MainCachePlugin extends FiberPlugin {
           dirtyBits.write(lineIdx, True)
           if (!isRamMode) {
             pmiDownSizer.io.input.cmd.opcode := 1 // Write
-            pmiDownSizer.io.input.cmd.address := addr
+            pmiDownSizer.io.input.cmd.address := phys
             pmiDownSizer.io.input.cmd.data := data(63 downto 0)
             // Write-through to Workspace Cache
-            host[WorkspaceCachePlugin].write(addr, data)
+            Plugin[WorkspaceCacheSrv].write(phys, data)
           }
         } elsewhen (!isRamMode) {
           fetch.haltWhen(True)
           when(dirtyBits.readSync(emptyLine)) {
             pmiDownSizer.io.input.cmd.opcode := 1 // Write
-            pmiDownSizer.io.input.cmd.address := addr
+          pmiDownSizer.io.input.cmd.address := phys
             pmiDownSizer.io.input.cmd.data := ram.io.buses(0).rsp.data ## ram.io.buses(0).rsp.data
           }
           ram.io.buses(0).cmd.opcode := 1 // Write

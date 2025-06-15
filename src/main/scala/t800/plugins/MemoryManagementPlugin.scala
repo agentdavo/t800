@@ -4,6 +4,10 @@ import spinal.core._
 import spinal.core.fiber._
 import spinal.lib.misc.plugin._
 import spinal.lib.misc.pipeline._
+import t800.plugins.pmi.PmiPlugin
+import t800.plugins.cache.{MainCachePlugin, WorkspaceCachePlugin, CacheAccessSrv}
+import t800.plugins.AddressTranslationSrv
+import t800.plugins.schedule.SchedulerPlugin
 import t800.Global
 
 /** Service for trap handling, providing details of errors and control. */
@@ -64,6 +68,7 @@ class MemoryManagementPlugin extends FiberPlugin {
     val execute = pipeline.ctrl(3)
     val memory = pipeline.ctrl(4)
     val writeback = pipeline.ctrl(5)
+    val cacheIf = Plugin[CacheAccessSrv]
 
     // P-process mode, controlled by SchedulerPlugin
     val pProcessModeReg = Reg(Bool()) init(False)
@@ -117,6 +122,10 @@ class MemoryManagementPlugin extends FiberPlugin {
       decode.isValid, B"100", // Read
       B"000"
     )
+    cacheIf.req.valid := False
+    cacheIf.req.payload.addr := memAccessAddr.asBits
+    cacheIf.req.payload.data := decode(MEM_DATA)
+    cacheIf.req.payload.write := memAccessType(1)
     val regionIdx = OHToUInt(for (i <- 0 until 4) yield REGION_BASE(i) <= memAccessAddr && memAccessAddr < (REGION_BASE(i) + REGION_SIZE(i)))
     val isValidAccess = pProcessModeReg && MuxLookup(
       regionIdx,
@@ -151,10 +160,8 @@ class MemoryManagementPlugin extends FiberPlugin {
       }
     }
 
-    // Translate addresses for other plugins
-    host[MainCachePlugin].srv.addr := translateAddress(host[MainCachePlugin].srv.addr)
-    host[WorkspaceCachePlugin].srv.addrA := translateAddress(host[WorkspaceCachePlugin].srv.addrA)
-    host[WorkspaceCachePlugin].srv.addrB := translateAddress(host[WorkspaceCachePlugin].srv.addrB)
-    host[PmiPlugin].srv.addr := translateAddress(host[PmiPlugin].srv.addr)
+    host.addService(new AddressTranslationSrv {
+      def translate(addr: Bits): Bits = translateAddress(addr)
+    })
   }
 }

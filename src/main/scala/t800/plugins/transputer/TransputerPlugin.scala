@@ -1,14 +1,13 @@
-package t800.plugins
+package t800.plugins.transputer
 
 import spinal.core._
 import spinal.lib.misc.database.{Database, Element}
 import spinal.lib.misc.plugin.FiberPlugin
-import t800.plugins.Global
+import t800.Global
 
-/**
- * Centralized configuration plugin for T800, setting T9000-specific parameters in the Database.
- * Reads variant parameters from Database if set, else uses defaults.
- */
+/** Centralized configuration plugin for T800, setting T9000-specific parameters in the Database.
+  * Reads variant parameters from Database if set, else uses defaults.
+  */
 class TransputerPlugin(
   var wordBits: Int = Global.WordBits,
   var addrBits: Int = Global.AddrBitsValue,
@@ -20,13 +19,12 @@ class TransputerPlugin(
   var resetIptr: Long = Global.ResetIptr
 ) extends FiberPlugin {
   // Define pipeline constant keys
-  val FETCH_WIDTH = new Element[Int]()
-  val FETCH_BYTES = new Element[Int]()
-  val PIPELINE_STAGES = new Element[Int]()
+  val FETCH_WIDTH = Database.value[Int]()
+  val FETCH_BYTES = Database.value[Int]()
+  val PIPELINE_STAGES = Database.value[Int]()
 
   val logic = during build new Area {
-    // Ensure early execution
-    buildBefore(host.retain())
+    // Ensure early execution (no locks in minimal build)
 
     // Helper to get Database value or default
     def getOrElse[T](key: Element[T], default: T)(implicit db: Database): T = {

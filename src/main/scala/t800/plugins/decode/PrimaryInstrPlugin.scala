@@ -1,9 +1,9 @@
-package t800.plugins
+package t800.plugins.decode
 
 import spinal.core._
 import spinal.lib._
 import spinal.lib.misc.pipeline._
-import spinal.lib.misc.plugin.{FiberPlugin, Plugin, PluginHost}
+import spinal.lib.misc.plugin.{Plugin, PluginHost}
 import spinal.core.fiber.Retainer
 import t800.{Opcodes, Global}
 import t800.plugins.{LinkBusSrv, LinkBusArbiterSrv}

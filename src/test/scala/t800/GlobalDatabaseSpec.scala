@@ -5,6 +5,7 @@ import spinal.core.sim._
 import spinal.lib.misc.database.Database
 import org.scalatest.funsuite.AnyFunSuite
 import t800.plugins._
+import t800.plugins.timers.TimerPlugin
 import spinal.lib.misc.plugin.PluginHost
 
 class GlobalDatabaseSpec extends AnyFunSuite {
