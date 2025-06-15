@@ -5,36 +5,49 @@ import spinal.core.fiber._
 import spinal.lib._
 import spinal.lib.misc.plugin._
 import spinal.lib.misc.pipeline._
-import spinal.lib.misc.database._
 import spinal.lib.bus.bmb.{Bmb, BmbParameter, BmbAccessParameter, BmbOnChipRamMultiPort, BmbUnburstify, BmbArbiter, BmbDecoder, BmbDownSizerBridge}
 import t800.plugins.pmi.PmiPlugin
-import t800.plugins.{AddressTranslationSrv, WorkspaceCacheSrv}
-import t800.plugins.cache.CacheAccessSrv
-import spinal.lib.bus.misc.{AddressMapping, SizeMapping}
-
-// The MainCachePlugin implements four BmbOnChipRamMultiPort banks (4 KB each, 32-bit data/32-bit address, two read ports)
-// accessed via 32-bit unburstified BMB interfaces, mapped using BmbDecoder
-// Single-beat transactions ensure single-cycle, zero-latency access for cache hits, saving logic area
-// It uses BmbArbiter for pipeline arbitration and BmbDownSizerBridge for PMI refills, supporting two simultaneous CPU reads
+import t800.plugins.{AddressTranslationSrv, WorkspaceCacheSrv, PipelineSrv, SystemBusSrv, Fetch}
+import t800.{Global, T800}
 
 class MainCachePlugin extends FiberPlugin {
-  val version = "MainCachePlugin v1.6"
-  report(L"Initializing $version")
+  val version = "MainCachePlugin v1.7"
+  private val retain = Retainer()
+
+  during setup new Area {
+    println(s"[${this.getDisplayName()}] setup start")
+    report(L"Initializing $version")
+    retain()
+    println(s"[${this.getDisplayName()}] setup end")
+  }
 
   object DBKeys {
     val CACHE_ADDR = Database.blocking[Bits]()
     val CACHE_DATA = Database.blocking[Bits]()
   }
 
-  lazy val CACHE_ADDR = Payload(Bits(32 bits))
+  lazy val CACHE_ADDR = Payload(Bits(Global.ADDR_BITS bits))
   lazy val CACHE_DATA = Payload(Bits(128 bits))
 
   lazy val srv = during setup new Area {
-    val service = MainCacheAccessSrv()
+    val service = new MainCacheAccessSrv {
+      val addr = Reg(Bits(Global.ADDR_BITS bits)) init 0
+      val dataOut = Reg(Bits(128 bits)) init 0
+      val isHit = Reg(Bool()) init False
+      val writeEnable = Reg(Bool()) init False
+      val writeData = Reg(Bits(128 bits)) init 0
+    }
     addService(service)
     addService(new MainCacheSrv {
-      def read(addr: Bits): Bits = srv.service.dataOut // placeholder
-      def write(addr: Bits, data: Bits): Unit = {}
+      def read(addr: UInt): Bits = {
+        service.addr := addr.asBits
+        when(service.isHit) { service.dataOut } otherwise { B(0, 128 bits) }
+      }
+      def write(addr: UInt, data: Bits): Unit = {
+        service.addr := addr.asBits
+        service.writeEnable := True
+        service.writeData := data
+      }
     })
     val cacheIf = new CacheAccessSrv {
       override val req = Flow(CacheReq())
@@ -43,6 +56,7 @@ class MainCachePlugin extends FiberPlugin {
     cacheIf.req.setIdle()
     cacheIf.rsp.setIdle()
     addService(cacheIf)
+    service
   }
 
   buildBefore(
@@ -53,27 +67,29 @@ class MainCachePlugin extends FiberPlugin {
   )
 
   lazy val logic = during build new Area {
-    val fetch = host.find[StageCtrlPipeline].ctrl(0)
-    val memory = host.find[StageCtrlPipeline].ctrl(3)
+    println(s"[${this.getDisplayName()}] build start")
+    val pipe = host[PipelineSrv]
+    val fetch = pipe.ctrl(0) // Fetch stage
+    val memory = pipe.ctrl(3) // Memory stage
+    val systemBus = host[SystemBusSrv].bus // 128-bit BMB system bus
 
-    // BMB bus parameters (32-bit data, 32-bit address)
+    // BMB bus parameters (32-bit data, single-beat)
     val bmbParameter = BmbParameter(
       access = BmbAccessParameter(
-        addressWidth = 32,
+        addressWidth = Global.ADDR_BITS,
         dataWidth = 32,
-        lengthWidth = 2, // Single-beat transactions
-        sourceWidth = 0,
+        lengthWidth = 0, // Single-beat transactions
+        sourceWidth = 1,
         contextWidth = 0
-      ),
-      sourceCount = 1
+      )
     )
 
-    // Address mappings for four banks (bits 4:5)
+    // Address mappings for four banks (bits 5:4)
     val bankMappings = Seq(
-      SizeMapping(0x00000000L, 0x40000000L, B(0, 2 bits)), // Bank 0: addr[5:4] = 00
-      SizeMapping(0x00000000L, 0x40000000L, B(1, 2 bits)), // Bank 1: addr[5:4] = 01
-      SizeMapping(0x00000000L, 0x40000000L, B(2, 2 bits)), // Bank 2: addr[5:4] = 10
-      SizeMapping(0x00000000L, 0x40000000L, B(3, 2 bits)) // Bank 3: addr[5:4] = 11
+      SizeMapping(0x00000000L, 0x1000L), // Bank 0: addr[5:4] = 00
+      SizeMapping(0x1000L, 0x1000L),     // Bank 1: addr[5:4] = 01
+      SizeMapping(0x2000L, 0x1000L),     // Bank 2: addr[5:4] = 10
+      SizeMapping(0x3000L, 0x1000L)      // Bank 3: addr[5:4] = 11
     )
 
     // Arbiter for pipeline inputs (Fetch/Memory)
@@ -90,32 +106,18 @@ class MainCachePlugin extends FiberPlugin {
       capabilities = Seq.fill(4)(bmbParameter),
       pendingMax = 63
     )
-
-    // Connect pipeline to arbiter
-    arbiter.io.inputs(0).cmd.valid := fetch.isValid
-    arbiter.io.inputs(0).cmd.opcode := 0 // Read
-    arbiter.io.inputs(0).cmd.address := fetch(PC)
-    arbiter.io.inputs(0).cmd.length := 0
-    arbiter.io.inputs(0).cmd.data := 0
-    arbiter.io.inputs(0).rsp.ready := True
-
-    arbiter.io.inputs(1).cmd.valid := memory.isValid && srv.writeEnable
-    arbiter.io.inputs(1).cmd.opcode := 1 // Write
-    arbiter.io.inputs(1).cmd.address := memory(CACHE_ADDR)
-    arbiter.io.inputs(1).cmd.length := 0
-    arbiter.io.inputs(1).cmd.data := memory(CACHE_DATA)(31 downto 0)
-    arbiter.io.inputs(1).rsp.ready := True
+    arbiter.io.output >> decoder.io.input
 
     // Down-sizer for PMI refills
+    val pmiBmb = host[PmiPlugin].srv.bus
     val pmiDownSizer = BmbDownSizerBridge(
-      inputParameter = host[PmiPlugin].srv.p,
-      outputParameter =
-        BmbDownSizerBridge.outputParameterFrom(host[PmiPlugin].srv.p.access, 32).toBmbParameter()
+      inputParameter = T800.systemBusParam,
+      outputParameter = bmbParameter
     )
+    pmiDownSizer.io.output >> pmiBmb
 
     // Four cache banks, each with multi-port RAM
     case class CacheBank(portId: Int) extends Area {
-      // Multi-port RAM with two read ports
       val ram = BmbOnChipRamMultiPort(
         portsParameter = Seq.fill(2)(bmbParameter), // Two ports for simultaneous reads
         size = 4096 // 4 KB
@@ -125,11 +127,12 @@ class MainCachePlugin extends FiberPlugin {
       val unburstify = Seq.fill(2)(BmbUnburstify(bmbParameter))
       decoder.io.outputs(portId) >> unburstify(0).io.input // Port 0 (primary read/write)
       unburstify(0).io.output >> ram.io.buses(0)
-      unburstify(1).io.input.cmd.valid := fetch.isValid && fetch(PC)(5 downto 4).asUInt === portId
+      unburstify(1).io.input.cmd.valid := fetch.isValid && fetch(Fetch.FETCH_PC)(5 downto 4).asUInt === portId
       unburstify(1).io.input.cmd.opcode := 0 // Read (secondary read port)
-      unburstify(1).io.input.cmd.address := fetch(PC)
+      unburstify(1).io.input.cmd.address := fetch(Fetch.FETCH_PC)
       unburstify(1).io.input.cmd.length := 0
       unburstify(1).io.input.cmd.data := 0
+      unburstify(1).io.input.cmd.mask := B"1111"
       unburstify(1).io.input.rsp.ready := True
       unburstify(1).io.output >> ram.io.buses(1)
 
@@ -137,10 +140,10 @@ class MainCachePlugin extends FiberPlugin {
       val tagMem = Mem(Bits(26 bits), 256)
       val validBits = Mem(Bool(), 256)
       val dirtyBits = Mem(Bool(), 256)
-      val emptyLine = Reg(UInt(8 bits)) init (0)
+      val emptyLine = Reg(UInt(8 bits)) init 0
 
-      def read(addr: Bits, portIdx: Int): (Bool, Bits) = {
-        val phys = Plugin[AddressTranslationSrv].translate(addr)
+      def read(addr: UInt, portIdx: Int): (Bool, Bits) = {
+        val phys = host[AddressTranslationSrv].translate(addr.asBits)
         val lineIdx = phys(11 downto 4).asUInt
         val tag = phys(31 downto 6)
         val isHit = validBits.readSync(lineIdx) && tagMem.readSync(lineIdx) === tag
@@ -152,18 +155,19 @@ class MainCachePlugin extends FiberPlugin {
         when(isRamMode) {
           isHit := True
         } elsewhen (!isHit && !isRamMode) {
-          fetch.haltWhen(True)
+          fetch.haltIt()
           pmiDownSizer.io.input.cmd.valid := True
           pmiDownSizer.io.input.cmd.opcode := 0 // Read
-          pmiDownSizer.io.input.cmd.address := phys
+          pmiDownSizer.io.input.cmd.address := phys.asUInt
           pmiDownSizer.io.input.cmd.length := 0
           pmiDownSizer.io.input.cmd.data := 0
-          val refillData = pmiDownSizer.io.output.rsp.data
-          ram.io.buses(0).cmd.opcode := 1 // Write (use primary port)
-          ram.io.buses(0).cmd.address := lineIdx @@ U"2'b00"
+          pmiDownSizer.io.input.cmd.mask := B"1111"
+          val refillData = pmiDownSizer.io.input.rsp.data
+          ram.io.buses(0).cmd.opcode := 1 // Write
+          ram.io.buses(0).cmd.address := lineIdx @@ U"00"
           ram.io.buses(0).cmd.data := refillData(31 downto 0)
           when(ram.io.buses(0).rsp.valid) {
-            ram.io.buses(0).cmd.address := (lineIdx @@ U"2'b01") @@ U"2'b00"
+            ram.io.buses(0).cmd.address := (lineIdx @@ U"01") @@ U"00"
             ram.io.buses(0).cmd.data := refillData(63 downto 32)
           }
           tagMem.write(lineIdx, tag)
@@ -175,19 +179,19 @@ class MainCachePlugin extends FiberPlugin {
         (isHit, dataOut)
       }
 
-      def write(addr: Bits, data: Bits): Unit = {
-        val phys = Plugin[AddressTranslationSrv].translate(addr)
+      def write(addr: UInt, data: Bits): Unit = {
+        val phys = host[AddressTranslationSrv].translate(addr.asBits)
         val lineIdx = phys(11 downto 4).asUInt
         val tag = phys(31 downto 6)
         val isHit = validBits.readSync(lineIdx) && tagMem.readSync(lineIdx) === tag
         val ramAddr = addr(11 downto 2).asUInt
 
         when(isRamMode || isHit) {
-          ram.io.buses(0).cmd.opcode := 1 // Write (use primary port)
-          ram.io.buses(0).cmd.address := ramAddr @@ U"2'b00"
+          ram.io.buses(0).cmd.opcode := 1 // Write
+          ram.io.buses(0).cmd.address := ramAddr @@ U"00"
           ram.io.buses(0).cmd.data := data(31 downto 0)
           when(ram.io.buses(0).rsp.valid) {
-            ram.io.buses(0).cmd.address := (ramAddr + 1) @@ U"2'b00"
+            ram.io.buses(0).cmd.address := (ramAddr + 1) @@ U"00"
             ram.io.buses(0).cmd.data := data(63 downto 32)
           }
           tagMem.write(lineIdx, tag)
@@ -195,23 +199,24 @@ class MainCachePlugin extends FiberPlugin {
           dirtyBits.write(lineIdx, True)
           if (!isRamMode) {
             pmiDownSizer.io.input.cmd.opcode := 1 // Write
-            pmiDownSizer.io.input.cmd.address := phys
+            pmiDownSizer.io.input.cmd.address := phys.asUInt
             pmiDownSizer.io.input.cmd.data := data(63 downto 0)
-            // Write-through to Workspace Cache
-            Plugin[WorkspaceCacheSrv].write(phys, data)
+            pmiDownSizer.io.input.cmd.mask := B"1111"
+            host[WorkspaceCacheSrv].write(phys.asUInt, data(31 downto 0))
           }
         } elsewhen (!isRamMode) {
-          fetch.haltWhen(True)
+          fetch.haltIt()
           when(dirtyBits.readSync(emptyLine)) {
             pmiDownSizer.io.input.cmd.opcode := 1 // Write
-          pmiDownSizer.io.input.cmd.address := phys
+            pmiDownSizer.io.input.cmd.address := tagMem.readSync(emptyLine) @@ emptyLine @@ U"00"
             pmiDownSizer.io.input.cmd.data := ram.io.buses(0).rsp.data ## ram.io.buses(0).rsp.data
+            pmiDownSizer.io.input.cmd.mask := B"1111"
           }
           ram.io.buses(0).cmd.opcode := 1 // Write
-          ram.io.buses(0).cmd.address := emptyLine @@ U"2'b00"
+          ram.io.buses(0).cmd.address := emptyLine @@ U"00"
           ram.io.buses(0).cmd.data := data(31 downto 0)
           when(ram.io.buses(0).rsp.valid) {
-            ram.io.buses(0).cmd.address := (emptyLine @@ U"2'b01") @@ U"2'b00"
+            ram.io.buses(0).cmd.address := (emptyLine @@ U"01") @@ U"00"
             ram.io.buses(0).cmd.data := data(63 downto 32)
           }
           tagMem.write(emptyLine, tag)
@@ -222,38 +227,94 @@ class MainCachePlugin extends FiberPlugin {
       }
     }
 
+    // Connect arbiter inputs
+    arbiter.io.inputs(0).cmd.valid := fetch.isValid
+    arbiter.io.inputs(0).cmd.opcode := 0 // Read
+    arbiter.io.inputs(0).cmd.address := fetch(Fetch.FETCH_PC)
+    arbiter.io.inputs(0).cmd.length := 0
+    arbiter.io.inputs(0).cmd.data := 0
+    arbiter.io.inputs(0).cmd.mask := B"1111"
+    arbiter.io.inputs(0).rsp.ready := True
+
+    arbiter.io.inputs(1).cmd.valid := memory.isValid && srv.writeEnable
+    arbiter.io.inputs(1).cmd.opcode := 1 // Write
+    arbiter.io.inputs(1).cmd.address := srv.addr
+    arbiter.io.inputs(1).cmd.length := 0
+    arbiter.io.inputs(1).cmd.data := srv.writeData(31 downto 0)
+    arbiter.io.inputs(1).cmd.mask := B"1111"
+    arbiter.io.inputs(1).rsp.ready := True
+
+    // Cache banks
     val banks = for (i <- 0 until 4) yield CacheBank(i)
 
-    val cacheMode =
-      Reg(Bits(2 bits)) init (0) // 00: Full RAM, 01: Full Cache, 10: Half RAM/Half Cache
-    val isRamMode = cacheMode === 0 || (cacheMode === 2 && fetch(PC)(13) === 0)
+    val cacheMode = Reg(Bits(2 bits)) init 0 // 00: Full RAM, 01: Full Cache, 10: Half RAM/Half Cache
+    val isRamMode = cacheMode === 0 || (cacheMode === 2 && fetch(Fetch.FETCH_PC)(13) === 0)
 
-    val bankSel = fetch(PC)(5 downto 4).asUInt
-    val bankAddr = fetch(PC)(31 downto 6) @@ fetch(PC)(3 downto 0)
+    val bankSel = fetch(Fetch.FETCH_PC)(5 downto 4).asUInt
+    val bankAddr = fetch(Fetch.FETCH_PC)
 
     val bankHits = Vec(Bool(), 4)
     val bankDataOuts = Vec(Bits(128 bits), 4)
     for ((bank, i) <- banks.zipWithIndex) {
       when(bankSel === i) {
-        val (hit, dataOut) = bank.read(bankAddr, 0) // Primary read port
+        val (hit, dataOut) = bank.read(bankAddr.asUInt, 0) // Primary read port
         bankHits(i) := hit
         bankDataOuts(i) := dataOut
+        when(srv.writeEnable && srv.addr(5 downto 4).asUInt === i) {
+          bank.write(srv.addr.asUInt, srv.writeData)
+        }
       } otherwise {
         bankHits(i) := False
         bankDataOuts(i) := 0
       }
     }
 
-    val cacheLogic = new Area {
-      when(fetch.isValid) {
-        memory.insert(CACHE_ADDR) := fetch(PC)
-        memory.insert(CACHE_DATA) := bankDataOuts(bankSel)
-        srv.isHit := bankHits(bankSel)
+    // CacheAccessSrv integration
+    cacheIf.req.ready := True
+    cacheIf.rsp.valid := False
+    cacheIf.rsp.payload.data := 0
+    cacheIf.rsp.payload.valid := False
+    when(cacheIf.req.valid) {
+      val reqAddr = cacheIf.req.payload.address
+      val isWrite = cacheIf.req.payload.isWrite
+      val reqBank = reqAddr(5 downto 4).asUInt
+      when(isWrite) {
+        srv.writeEnable := True
+        srv.addr := reqAddr.asBits
+        srv.writeData := cacheIf.req.payload.data ## cacheIf.req.payload.data ## cacheIf.req.payload.data ## cacheIf.req.payload.data
+        banks(reqBank).write(reqAddr, srv.writeData)
+        cacheIf.rsp.valid := True
+        cacheIf.rsp.payload.valid := True
+      } otherwise {
+        srv.addr := reqAddr.asBits
+        val (hit, dataOut) = banks(reqBank).read(reqAddr, 0)
+        when(hit) {
+          cacheIf.rsp.valid := True
+          cacheIf.rsp.payload.data := dataOut(31 downto 0)
+          cacheIf.rsp.payload.valid := True
+        } otherwise {
+          fetch.haltIt()
+          val mainCacheData = pmiDownSizer.io.input.rsp.data
+          banks(reqBank).write(reqAddr, mainCacheData ## mainCacheData ## mainCacheData ## mainCacheData)
+          cacheIf.rsp.valid := True
+          cacheIf.rsp.payload.data := mainCacheData(31 downto 0)
+          cacheIf.rsp.payload.valid := True
+        }
       }
     }
 
-    when(srv.isHit && debugEn) {
+    // Pipeline integration
+    when(fetch.isValid) {
+      memory(CACHE_ADDR) := fetch(Fetch.FETCH_PC)
+      memory(CACHE_DATA) := bankDataOuts(bankSel)
+      srv.isHit := bankHits(bankSel)
+    }
+
+    // Debugging
+    when(srv.isHit) {
       report(L"MAIN_CACHE addr=$CACHE_ADDR hit=$isHit bank=$bankSel mode=$cacheMode")
     }
+
+    println(s"[${this.getDisplayName()}] build end")
   }
 }
