@@ -15,6 +15,7 @@ import t800.plugins.fpu.Utils._
 class FpuPlugin extends FiberPlugin with PipelineSrv {
   val version = "FpuPlugin v0.3"
   private val retain = Retainer()
+  private val fpPipe = new StageCtrlPipeline
 
   during setup new Area {
     println(s"[${this.getDisplayName()}] setup start")
@@ -27,6 +28,7 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
     println(s"[${this.getDisplayName()}] build start")
     retain.await()
     implicit val h: PluginHost = host
+    val s0 = fpPipe.ctrl(0)
     val pipe = Plugin[PipelineStageSrv]
     val regfile = Plugin[RegfileSrv]
     val systemBus = Plugin[SystemBusSrv].bus
@@ -106,11 +108,17 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
       B"10011110"
     )
 
+    s0.valid := pipe.execute.isValid && isFpuOp
+    s0.up.ready := s0.down.ready
+    s0.down.valid := s0.up.valid
+    pipe.execute.haltWhen(s0.isValid && !s0.down.ready)
+
     val result = Reg(Bits(64 bits)) init 0
     val resultAfix = Reg(AFix(UQ(56 bit, 0 bit))) init 0 // Extended for mul/div
     val busy = Reg(Bool()) init False
+    s0.down.ready := !busy
 
-    when(isFpuOp && pipe.execute.isValid && !busy) {
+    when(s0.isValid && !busy) {
       vcu.io.op1 := fa
       vcu.io.op2 := fb
       vcu.io.opcode := opcode
@@ -332,7 +340,7 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
         }
       }
 
-      when(pipe.execute.down.isFiring && !vcu.io.isSpecial) {
+      when(s0.down.isFiring && !vcu.io.isSpecial) {
         fa := result
         fb := fc
         fc := regfile.read(RegName.FPCreg, 0).asBits
@@ -373,6 +381,8 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
       def trapType: UInt = vcu.io.trapType
       def roundingMode: Bits = status.roundingMode
     })
+
+    fpPipe.build()
 
     println(s"[${this.getDisplayName()}] build end")
   }
