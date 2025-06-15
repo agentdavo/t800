@@ -1,4 +1,4 @@
-package t800.plugins.regfile
+package t800.plugins.registers
 
 import spinal.core._
 import spinal.core.fiber._
@@ -7,7 +7,7 @@ import spinal.lib.misc.plugin.FiberPlugin
 import t800.{Global, PipelineSrv}
 
 class RegFilePlugin extends FiberPlugin with RegfileService {
-  val version = "RegFilePlugin v0.4"
+  val version = "RegFilePlugin v0.5"
   val spec = T9000RegFileSpec()
   val physicalDepth = RegName.elements.size // ~35 registers
   val processCount = 4 // Support 4 processes (high/low priority, P-process)
@@ -26,9 +26,6 @@ class RegFilePlugin extends FiberPlugin with RegfileService {
   override def getPhysicalDepth = physicalDepth * processCount * 2 // Primary + shadow
   override def rfSpec = spec
 
-  // Register address mapping
-  private val regMap = RegName.elements.zipWithIndex.toMap
-
   case class WriteSpec(port: RegFileWrite, withReady: Boolean, sharingKey: Any, priority: Int)
   private val reads = ArrayBuffer[RegFileRead]()
   private val writes = ArrayBuffer[WriteSpec]()
@@ -46,7 +43,7 @@ class RegFilePlugin extends FiberPlugin with RegfileService {
   override def read(reg: RegName.C, processId: UInt, shadow: Boolean): Bits = {
     val port = newRead(withReady = false)
     port.valid := True
-    port.address := regMap(reg)
+    port.address := reg.toUInt.resize(addressWidth)
     port.processId := processId
     port.shadow := shadow
     port.data
@@ -55,7 +52,7 @@ class RegFilePlugin extends FiberPlugin with RegfileService {
   override def write(reg: RegName.C, data: Bits, processId: UInt, shadow: Boolean): Unit = {
     val port = newWrite(withReady = true)
     port.valid := True
-    port.address := regMap(reg)
+    port.address := reg.toUInt.resize(addressWidth)
     port.processId := processId
     port.shadow := shadow
     port.data := data
@@ -73,14 +70,19 @@ class RegFilePlugin extends FiberPlugin with RegfileService {
   override def writeStatusBit(field: StatusRegBits => Bool, value: Bool, processId: UInt, shadow: Boolean): Unit = {
     val readPort = newRead(withReady = false)
     readPort.valid := True
-    readPort.address := regMap(RegName.StatusReg)
+    readPort.address := U(RegName.StatusReg.id, addressWidth bits)
     readPort.processId := processId
     readPort.shadow := shadow
     val bits = readPort.data.as(StatusRegBits())
     val newBits = StatusRegBits()
     newBits := bits
     when(field(bits)) { newBits.reserved(field(bits).getBitOffset) := value }
-    write(RegName.StatusReg, newBits.asBits, processId, shadow)
+    val writePort = newWrite(withReady = true)
+    writePort.valid := True
+    writePort.address := U(RegName.StatusReg.id, addressWidth bits)
+    writePort.processId := processId
+    writePort.shadow := shadow
+    writePort.data := newBits.asBits
   }
 
   override def copyToShadow(processId: UInt): Unit = {
@@ -123,11 +125,11 @@ class RegFilePlugin extends FiberPlugin with RegfileService {
       port.address := w.bus.processId @@ w.bus.shadow.asUInt @@ w.bus.address
       port.data := w.bus.data
       // WdescReg: Ensure Reserved bit (bit 1) is 0
-      when(w.bus.address === regMap(RegName.WdescReg)) {
+      when(w.bus.address === U(RegName.WdescReg.id, addressWidth bits)) {
         port.data(1) := False
       }
       // 32-bit registers padded to 64
-      when(!w.bus.address.isOneOf(regMap(RegName.FPAreg), regMap(RegName.FPBreg), regMap(RegName.FPCreg))) {
+      when(!w.bus.address.isOneOf(U(RegName.FPAreg.id, addressWidth bits), U(RegName.FPBreg.id, addressWidth bits), U(RegName.FPCreg.id, addressWidth bits))) {
         port.data := w.bus.data(31 downto 0) @@ B(0, 32 bits)
       }
     }
@@ -138,7 +140,7 @@ class RegFilePlugin extends FiberPlugin with RegfileService {
       port.cmd.valid := r.valid
       port.cmd.payload := r.processId @@ r.shadow.asUInt @@ r.address
       r.data := port.rsp
-      when(!r.address.isOneOf(regMap(RegName.FPAreg), regMap(RegName.FPBreg), regMap(RegName.FPCreg))) {
+      when(!r.address.isOneOf(U(RegName.FPAreg.id, addressWidth bits), U(RegName.FPBreg.id, addressWidth bits), U(RegName.FPCreg.id, addressWidth bits))) {
         r.data := port.rsp(31 downto 0) @@ B(0, 32 bits)
       }
     }
@@ -186,7 +188,7 @@ class RegFilePlugin extends FiberPlugin with RegfileService {
         port.processId := counter(processIdWidth + addressWidth - 1 downto addressWidth)
         port.shadow := counter(addressWidth)
         port.address := counter(addressWidth - 1 downto 0)
-        port.data := (counter(addressWidth - 1 downto 0) === regMap(RegName.IptrReg)).mux(
+        port.data := (counter(addressWidth - 1 downto 0) === U(RegName.IptrReg.id, addressWidth bits)).mux(
           U(Global.RESET_IPTR, 32 bits) @@ B(0, 32 bits), spec.initialValue
         )
         counter := counter + 1
