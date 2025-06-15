@@ -51,6 +51,7 @@ lazy val t800 = (project in file("."))
         "plugins/registers/Service.scala",
         "plugins/registers/RegFilePlugin.scala",
         "plugins/fpu/VCU.scala",
+        "plugins/fpu/Adder.scala",
         "PipelinePlugin.scala",
         "PipelineBuilderPlugin.scala",
         "transputer/TransputerPlugin.scala",
@@ -63,7 +64,12 @@ lazy val t800 = (project in file("."))
     },
     Test / unmanagedSources := {
       val srcDir = (Test / scalaSource).value
-      val keep = Seq("InitTransputerSpec.scala", "Real32ToReal64Spec.scala", "FpuVCUSpec.scala")
+      val keep = Seq(
+        "InitTransputerSpec.scala",
+        "Real32ToReal64Spec.scala",
+        "FpuVCUSpec.scala",
+        "FpuAdderSpec.scala"
+      )
       keep.flatMap(p => (srcDir ** p).get)
     },
     libraryDependencies ++=
