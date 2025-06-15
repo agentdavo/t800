@@ -2,11 +2,13 @@ package t800.plugins.cache
 
 import spinal.core._
 import spinal.core.fiber._
+import spinal.lib._
 import spinal.lib.misc.plugin._
 import spinal.lib.misc.pipeline._
 import spinal.lib.misc.database._
 import spinal.lib.bus.bmb.{Bmb, BmbParameter, BmbAccessParameter, BmbOnChipRamMultiPort}
 import t800.plugins.{AddressTranslationSrv, MainCacheSrv}
+import t800.plugins.cache.CacheAccessSrv
 import spinal.lib.bus.misc.SingleMapping
 
 // The WorkspaceCachePlugin implements a 32-word triple-ported cache (two reads, one write per cycle)
@@ -33,6 +35,13 @@ class WorkspaceCachePlugin extends FiberPlugin {
   lazy val srv = during setup new Area {
     val service = WorkspaceCacheAccessSrv()
     addService(service)
+    val cacheIf = new CacheAccessSrv {
+      override val req = Flow(CacheReq())
+      override val rsp = Flow(CacheRsp())
+    }
+    cacheIf.req.setIdle()
+    cacheIf.rsp.setIdle()
+    addService(cacheIf)
   }
 
   buildBefore(retains(host[MainCachePlugin].lock).lock)
