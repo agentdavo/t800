@@ -6,19 +6,6 @@ import spinal.core.fiber.Retainer
 import spinal.lib.misc.plugin._
 import t800.Global
 
-/** Defines the global CPU pipeline structure and exposes stage handles. */
-trait PipelineSrv {
-  def fetch: CtrlLink
-  def decode: CtrlLink
-  def execute: CtrlLink
-  def memory: CtrlLink
-  def writeBack: CtrlLink
-  def OPCODE: Payload[Bits]
-  def IPTR: Payload[UInt]
-  def MEM_ADDR: Payload[UInt]
-  def MEM_DATA: Payload[Bits]
-}
-
 class PipelinePlugin extends FiberPlugin {
   val version = "PipelinePlugin v0.1"
   private var pipeline: StageCtrlPipeline = null
