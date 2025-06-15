@@ -58,8 +58,9 @@ class FpuDivRoot extends Area {
 
     compressedRemainder := reduceRemainder(partialRemainder, quotientDigit, divisor)
     partialRemainder := compressedRemainder
+    remainder := compressedRemainder
 
-    quotient := quotient + (quotientDigit << (-iteration))
+    quotient := (quotient <<| 1) + AFix(quotientDigit.asBits.asSInt.resize(56), 56 bit, 0 exp)
     when(io.isSqrt) {
       when(quotientDigit === 0) {
         pcaMem.write(0, pcaMem.readAsync(0) << 1)
@@ -101,16 +102,18 @@ class FpuDivRoot extends Area {
     pcaMem.write(1, AFix(0, 56 bit, 0 exp))
     iteration := 0
     io.t805State := quotient.raw
+    io.cycles := 0
   } elsewhen(io.isT805Step) {
     iteration := iteration + 1
     io.t805State := quotient.raw
+    io.cycles := iteration
   } elsewhen(io.isT805Last && io.isSqrt) {
     io.result := packIeee754(op1Parsed.sign, op1Parsed.exponent, roundedResult.raw)
     io.resultAfix := roundedResult
-    io.cycles := 15
+    io.cycles := iteration
   } otherwise {
     io.result := packIeee754(op1Parsed.sign, op1Parsed.exponent, roundedResult.raw)
     io.resultAfix := roundedResult
-    io.cycles := maxIterations
+    io.cycles := iteration
   }
 }

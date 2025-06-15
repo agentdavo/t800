@@ -274,9 +274,48 @@ class FpuPlugin extends FiberPlugin with PipelineService {
             divRoot.io.isT805First := True
             microcode.t805State := divRoot.io.t805State
             microcode.isMultiCycle := True
-            microcode.maxCycles := 2
+            microcode.maxCycles := divRoot.io.cycles
+            busy := divRoot.io.cycles > 0
           }
-          // Other T805 ops
+          is(B"01000010") { // fpusqrtstep
+            divRoot.io.op1 := fa
+            divRoot.io.op2 := fa
+            divRoot.io.isSqrt := True
+            divRoot.io.isT805Step := True
+            microcode.t805State := divRoot.io.t805State
+            microcode.isMultiCycle := True
+            microcode.maxCycles := divRoot.io.cycles
+            busy := divRoot.io.cycles > 0
+          }
+          is(B"01000011") { // fpusqrtlast
+            divRoot.io.op1 := fa
+            divRoot.io.op2 := fa
+            divRoot.io.isSqrt := True
+            divRoot.io.isT805Last := True
+            microcode.isMultiCycle := True
+            microcode.maxCycles := divRoot.io.cycles
+            busy := divRoot.io.cycles > 0
+          }
+          is(B"5F") { // fpremfirst
+            divRoot.io.op1 := fa
+            divRoot.io.op2 := fb
+            divRoot.io.isRem := True
+            divRoot.io.isT805First := True
+            microcode.t805State := divRoot.io.t805State
+            microcode.isMultiCycle := True
+            microcode.maxCycles := divRoot.io.cycles
+            busy := divRoot.io.cycles > 0
+          }
+          is(B"90") { // fpremstep (context dependent)
+            divRoot.io.op1 := fa
+            divRoot.io.op2 := fb
+            divRoot.io.isRem := True
+            divRoot.io.isT805Step := True
+            microcode.t805State := divRoot.io.t805State
+            microcode.isMultiCycle := True
+            microcode.maxCycles := divRoot.io.cycles
+            busy := divRoot.io.cycles > 0
+          }
         }
       }
 
