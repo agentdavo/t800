@@ -13,7 +13,7 @@ import t800.plugins.pipeline.PipelineService
 import t800.plugins.fpu.Utils._
 
 class FpuPlugin extends FiberPlugin with PipelineService {
-  val version = "FpuPlugin v0.2"
+  val version = "FpuPlugin v0.3"
   private val retain = Retainer()
 
   during setup new Area {
@@ -29,21 +29,21 @@ class FpuPlugin extends FiberPlugin with PipelineService {
     implicit val h: PluginHost = host
     val pipe = Plugin[PipelineSrv]
     val regfile = Plugin[RegfileService]
-    val systemBus = Plugin[SystemBusSrv].bus // 128-bit BMB
+    val systemBus = Plugin[SystemBusSrv].bus
     val trap = Plugin[TrapHandlerSrv]
 
     // FPU register file
     val fa = Reg(Bits(64 bits)) init 0 // FPAreg
     val fb = Reg(Bits(64 bits)) init 0 // FPBreg
     val fc = Reg(Bits(64 bits)) init 0 // FPCreg
-    val tempA = Reg(Bits(64 bits)) init 0 // Multi-pass
-    val tempB = Reg(Bits(64 bits)) init 0 // Multi-pass
+    val tempA = Reg(Bits(64 bits)) init 0
+    val tempB = Reg(Bits(64 bits)) init 0
     val status = new Area {
       val roundingMode = Reg(Bits(2 bits)) init 0 // 00: nearest, 01: zero, 10: positive, 11: minus
       val errorFlags = Reg(Bits(5 bits)) init 0 // Overflow, underflow, inexact, invalid, denormal
     }
 
-    // BMB interface (64-bit for IEEE-754 double-precision)
+    // BMB interface
     val memParam = BmbParameter(
       access = BmbAccessParameter(
         addressWidth = Global.ADDR_BITS,
@@ -66,12 +66,13 @@ class FpuPlugin extends FiberPlugin with PipelineService {
     val rangeReducer = new FpuRangeReducer
     val vcu = new FpuVCU
 
-    // Microcode state machine
+    // Microcode state
     val microcode = new Area {
       val state = Reg(UInt(3 bits)) init 0
       val cycles = Reg(UInt(10 bits)) init 0
-      val maxCycles = UInt(10 bits)
-      val isMultiCycle = Bool()
+      val maxCycles = Reg(UInt(10 bits)) init 0
+      val isMultiCycle = Reg(Bool()) init False
+      val t805State = Reg(Bits(64 bits)) init 0 // For fpusqrtfirst, fpremfirst
     }
 
     // Opcode handling
@@ -96,46 +97,46 @@ class FpuPlugin extends FiberPlugin with PipelineService {
       B"10001110", B"10001010", B"10000110", B"10000010", B"10011111", B"10100000",
       B"10101010", B"10100110", B"10101100", B"10101000", B"10001000", B"10000100",
       B"10011110"
-    ) // Load/store opcodes
+    )
 
     val result = Reg(Bits(64 bits)) init 0
+    val resultAfix = Reg(AFix(UQ(56 bit, 0 bit))) init 0 // Extended for mul/div
     val busy = Reg(Bool()) init False
-    microcode.isMultiCycle := False
-    microcode.maxCycles := 0
 
     when(isFpuOp && pipe.execute.isValid && !busy) {
-      // VCU check
       vcu.io.op1 := fa
       vcu.io.op2 := fb
+      vcu.io.opcode := opcode
       val op1Parsed = parseIeee754(fa)
       val op2Parsed = parseIeee754(fb)
+      val op1Afix = AFix(op1Parsed.mantissa.asUInt, 52 bit, 0 exp)
+      val op2Afix = AFix(op2Parsed.mantissa.asUInt, 52 bit, 0 exp)
 
       when(vcu.io.isSpecial) {
         result := vcu.io.specialResult
         when(vcu.io.trapEnable) {
-          trap.trapType := 0x4 // IEEE-754 exception
+          trap.trapType := 0x4
           trap.trapAddr := pipe.execute(Fetch.FETCH_PC)
-          status.errorFlags(3) := True // Invalid
+          status.errorFlags(3) := True
         }
-        tempA := fa // Store for multi-pass
+        tempA := fa
         tempB := fb
       } otherwise {
-        // Dispatch instructions
         switch(opcode) {
           // Load/store
           is(B"10001110") { // fpldnlsn
             memBmb.cmd.valid := True
-            memBmb.cmd.opcode := 0 // Read
+            memBmb.cmd.opcode := 0
             memBmb.cmd.address := regfile.read(RegName.Areg, 0).asUInt
             when(memBmb.rsp.valid) {
-              fa := memBmb.rsp.data(31 downto 0) @@ B(0, 32 bits) // Sign-extend
+              fa := real32ToReal64(memBmb.rsp.data(31 downto 0))
               fb := fc
               fc := regfile.read(RegName.FPCreg, 0).asBits
             }
           }
           is(B"10001010") { // fpldnldb
             memBmb.cmd.valid := True
-            memBmb.cmd.opcode := 0 // Read
+            memBmb.cmd.opcode := 0
             memBmb.cmd.address := regfile.read(RegName.Areg, 0).asUInt
             when(memBmb.rsp.valid) {
               fa := memBmb.rsp.data(63 downto 0)
@@ -143,32 +144,26 @@ class FpuPlugin extends FiberPlugin with PipelineService {
               fc := regfile.read(RegName.FPCreg, 0).asBits
             }
           }
-          // Other load/store ops (similar logic)
-          is(B"10001000") { // fpstnlsn
+          is(B"10101010") { // fpldnladdsn
             memBmb.cmd.valid := True
-            memBmb.cmd.opcode := 1 // Write
+            memBmb.cmd.opcode := 0
             memBmb.cmd.address := regfile.read(RegName.Areg, 0).asUInt
-            memBmb.cmd.data := fa(31 downto 0)
+            when(memBmb.rsp.valid) {
+              val loaded = real32ToReal64(memBmb.rsp.data(31 downto 0))
+              adder.io.op1 := fa
+              adder.io.op2 := loaded
+              adder.io.isAdd := True
+              result := adder.io.result
+              busy := adder.io.cycles > 0
+              microcode.maxCycles := 2
+            }
           }
-          is(B"10000100") { // fpstnldb
-            memBmb.cmd.valid := True
-            memBmb.cmd.opcode := 1 // Write
-            memBmb.cmd.address := regfile.read(RegName.Areg, 0).asUInt
-            memBmb.cmd.data := fa
-          }
+          // Other load/store (similar logic)
 
           // General ops
-          is(Opcodes.SecondaryEnum.FPENTRY) { // fpentry
-            // Initialize FPU state (no-op in this context)
-          }
-          is(Opcodes.SecondaryEnum.FPREV) { // fprev
-            fa := fb
-            fb := fa
-          }
-          is(Opcodes.SecondaryEnum.FPDUP) { // fpdup
-            fc := fb
-            fb := fa
-          }
+          is(Opcodes.SecondaryEnum.FPENTRY) {}
+          is(Opcodes.SecondaryEnum.FPREV) { fa := fb; fb := fa }
+          is(Opcodes.SecondaryEnum.FPDUP) { fc := fb; fb := fa }
 
           // Rounding ops
           is(Opcodes.SecondaryEnum.FPRN) { status.roundingMode := 0 }
@@ -191,22 +186,24 @@ class FpuPlugin extends FiberPlugin with PipelineService {
           is(Opcodes.SecondaryEnum.FPCLRERR) { status.errorFlags := 0 }
 
           // Comparison ops
-          is(Opcodes.SecondaryEnum.FPGT) {
-            regfile.write(RegName.Areg, (op1Parsed.toReal > op2Parsed.toReal).asUInt, 0, shadow = false)
+          is(Opcodes.SecondaryEnum.FPGT, Opcodes.SecondaryEnum.FPEQ,
+             Opcodes.SecondaryEnum.FPGE, Opcodes.SecondaryEnum.FPLG,
+             Opcodes.SecondaryEnum.FPORDERED, Opcodes.SecondaryEnum.FPNAN,
+             Opcodes.SecondaryEnum.FPNOTFINITE) {
+            regfile.write(RegName.Areg, vcu.io.comparisonResult.asUInt, 0, shadow = false)
           }
-          is(Opcodes.SecondaryEnum.FPEQ) {
-            regfile.write(RegName.Areg, (op1Parsed.toReal === op2Parsed.toReal).asUInt, 0, shadow = false)
-          }
-          // Other comparisons (similar logic)
 
           // Conversion ops
-          is(Opcodes.SecondaryEnum.FPR32TOR64) {
-            result := fa(31 downto 0) @@ B(0, 32 bits) // Sign-extend
+          is(Opcodes.SecondaryEnum.FPR32TOR64) { result := real32ToReal64(fa(31 downto 0)) }
+          is(Opcodes.SecondaryEnum.FPR64TOR32) { result := real64ToReal32(fa, status.roundingMode) }
+          is(Opcodes.SecondaryEnum.FPRTOI32) {
+            val intVal = realToInt32(fa)
+            regfile.write(RegName.Areg, intVal.asUInt, 0, shadow = false)
           }
-          is(Opcodes.SecondaryEnum.FPR64TOR32) {
-            result := fa(31 downto 0)
+          is(Opcodes.SecondaryEnum.FPI32TOR32) {
+            result := int32ToReal32(regfile.read(RegName.Areg, 0).asSInt)
           }
-          // Other conversions (similar logic)
+          // Other conversions
 
           // Arithmetic ops
           is(Opcodes.SecondaryEnum.FPADD) {
@@ -269,11 +266,20 @@ class FpuPlugin extends FiberPlugin with PipelineService {
             microcode.maxCycles := 17
             microcode.isMultiCycle := True
           }
-          // Other arithmetic ops (similar logic)
+          // T805 compatibility
+          is(B"01000001") { // fpusqrtfirst
+            divRoot.io.op1 := fa
+            divRoot.io.op2 := fa
+            divRoot.io.isSqrt := True
+            divRoot.io.isT805First := True
+            microcode.t805State := divRoot.io.t805State
+            microcode.isMultiCycle := True
+            microcode.maxCycles := 2
+          }
+          // Other T805 ops
         }
       }
 
-      // Update stack
       when(pipe.execute.down.isFiring && !vcu.io.isSpecial) {
         fa := result
         fb := fc
@@ -292,16 +298,15 @@ class FpuPlugin extends FiberPlugin with PipelineService {
 
     // Service implementation
     addService(new FpuService {
-      def push(operand: Bits): Unit = {
-        fc := fb
-        fb := fa
-        fa := operand
-      }
+      def push(operand: Bits): Unit = { fc := fb; fb := fa; fa := operand }
+      def pushAfix(operand: AFix): Unit = { push(operand.raw) }
       def pop(): Bits = fa
+      def popAfix(): AFix = AFix(fa.asSInt, 0 exp)
       def execute(opcode: Bits, operands: Vec[Bits]): Bits = {
-        fa := operands(0)
-        fb := operands(1)
-        result
+        fa := operands(0); fb := operands(1); result
+      }
+      def executeAfix(opcode: Bits, operands: Vec[AFix]): AFix = {
+        fa := operands(0).raw; fb := operands(1).raw; resultAfix
       }
       def isBusy: Bool = busy
       def setRoundingMode(mode: Bits): Unit = { status.roundingMode := mode }
