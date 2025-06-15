@@ -45,7 +45,7 @@ class FpuVCU extends Component {
     val sign = value(63)
     val mantissa = value(51 downto 0)
     val shift = CountLeadingZeroes(mantissa)
-    val exponent = (U(1, 11 bits) - shift.resize(11)).asBits
+    val exponent = (S(1, 11 bits) - shift.asSInt.resize(11)).asBits
     val normMantissa = (mantissa |<< shift)(51 downto 0)
     sign ## exponent ## normMantissa
   }

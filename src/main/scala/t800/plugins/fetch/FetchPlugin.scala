@@ -7,13 +7,13 @@ import spinal.lib.misc.pipeline._
 import spinal.lib.bus.bmb.{Bmb, BmbParameter, BmbAccessParameter, BmbQueue, BmbDownSizerBridge}
 import spinal.core.fiber.Retainer
 import t800.{Global, T800}
-import t800.plugins.{SystemBusSrv, RegfileService}
+import t800.plugins.{SystemBusSrv, RegfileSrv}
 import t800.plugins.registers.RegName
 import t800.plugins.fetch.Service.InstrFetchSrv
-import t800.plugins.pipeline.{PipelineService, PipelineSrv}
+import t800.plugins.pipeline.{PipelineSrv, PipelineStageSrv}
 
 /** Instruction fetch unit with T9000-style Instruction Prefetch Buffer (IPB) supporting eight-instruction dispatch. */
-class FetchPlugin extends FiberPlugin with PipelineService {
+class FetchPlugin extends FiberPlugin with PipelineSrv {
   setName("fetch")
   val elaborationLock = Retainer()
   val version = "FetchPlugin v1.7"
@@ -30,8 +30,8 @@ class FetchPlugin extends FiberPlugin with PipelineService {
     elaborationLock.await()
     implicit val h: PluginHost = host
     val imem = Plugin[InstrFetchSrv]
-    val pipe = Plugin[PipelineSrv]
-    val regfile = Plugin[RegfileService]
+    val pipe = Plugin[PipelineStageSrv]
+    val regfile = Plugin[RegfileSrv]
     val systemBus = Plugin[SystemBusSrv].bus // 128-bit system bus
 
     // IPB parameters: 4 entries, 32-bit fetch width, 128-bit burst
@@ -67,7 +67,7 @@ class FetchPlugin extends FiberPlugin with PipelineService {
     ipbQueue.io.output.cmd.length := 3 // 4-word burst (128 bits)
 
     // Fetch logic
-    val currentPC = regfile.read(RegName.IptrReg, 0).asUInt // Use IptrReg from RegfileService
+    val currentPC = regfile.read(RegName.IptrReg, 0).asUInt // Use IptrReg from RegfileSrv
     val isSequential = currentPC === (RegNext(currentPC) + 4)
     when(!isSequential || !ipbFull) {
       // Flush and reload on non-sequential fetch

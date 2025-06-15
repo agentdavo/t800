@@ -10,7 +10,7 @@ import t800.plugins.{ChannelSrv, ChannelTxCmd, LinkBusSrv, LinkBusArbiterSrv}
 import t800.plugins.schedule.SchedSrv
 import t800.plugins.fpu.{FpuSrv, FpOp}
 import t800.plugins.timers.TimerSrv
-import t800.plugins.pipeline.PipelineSrv
+import t800.plugins.pipeline.PipelineStageSrv
 import scala.util.Try
 
 /** Implements basic ALU instructions and connects to the global pipeline. */
@@ -46,7 +46,7 @@ class SecondaryInstrPlugin extends FiberPlugin {
     retain.await()
     implicit val h: PluginHost = host
     val stack = Plugin[StackSrv]
-    val pipe = Plugin[PipelineSrv]
+    val pipe = Plugin[PipelineStageSrv]
     val mem = Plugin[LinkBusSrv]
     val arb = Plugin[LinkBusArbiterSrv]
     val timer = Plugin[TimerSrv]
