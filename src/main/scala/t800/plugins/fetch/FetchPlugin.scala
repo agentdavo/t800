@@ -16,13 +16,17 @@ import t800.plugins.fetch.Service.InstrFetchSrv
 class FetchPlugin extends FiberPlugin with PipelineService {
   setName("fetch")
   val elaborationLock = Retainer()
-  val version = "FetchPlugin v1.5"
+  val version = "FetchPlugin v1.6"
   report(L"Initializing $version")
-  println(s"[${FetchPlugin.this.getDisplayName()}] build start")
 
-  import Fetch._
+  during setup new Area {
+    println(s"[${this.getDisplayName()}] setup start")
+    elaborationLock()
+    println(s"[${this.getDisplayName()}] setup end")
+  }
 
   lazy val logic = during build new Area {
+    println(s"[${this.getDisplayName()}] build start")
     elaborationLock.await()
     implicit val h: PluginHost = host
     val imem = Plugin[InstrFetchSrv]
@@ -52,7 +56,7 @@ class FetchPlugin extends FiberPlugin with PipelineService {
     // IPB queue and buffer
     val ipbQueue = BmbQueue(fetchParam, depth = ipbDepth)
     val ipbBuffer = Reg(Vec(Bits(32 bits), ipbDepth * 4)) init(Vec.fill(ipbDepth * 4)(0)) // 4 words per entry
-    val ipbPtr = Reg(UInt(log2Up(ipbDepth) bits)) init(0)
+    val ipbPtr = Reg(UInt(log2Up(ipbDepth) bits)) init 0
     val ipbFull = Reg(Bool()) init False
     val ipbWordPtr = Reg(UInt(2 bits)) init 0 // Track within 128-bit burst
     val ipbInstrPtr = Reg(UInt(3 bits)) init 0 // Track eight 8-bit instructions
@@ -113,7 +117,7 @@ class FetchPlugin extends FiberPlugin with PipelineService {
     // Output single opcode for non-grouped mode
     pipe.fetch.insert(Global.OPCODE) := opcodes(0) // For PrimaryInstrPlugin if GrouperPlugin absent
 
-    println(s"[${FetchPlugin.this.getDisplayName()}] build end")
+    println(s"[${this.getDisplayName()}] build end")
   }
 
   override def getLinks(): Seq[Link] = Seq()
