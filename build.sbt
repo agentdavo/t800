@@ -86,3 +86,24 @@ lazy val t800 = (project in file("."))
 
 // --- 4 ▪ Aliases ---------------------------------------------------------
 addCommandAlias("coreVerilog", ";clean; runMain t800.TopVerilog")
+
+// --- 5 ▪ FPGA synthesis helpers ---------------------------------------
+lazy val synth = taskKey[Unit]("Run FPGA synthesis")
+lazy val report = taskKey[Unit]("Show nextpnr utilization")
+
+synth := {
+  import scala.sys.process._
+  val top = baseDirectory.value / "T800.v"
+  val lpf = baseDirectory.value / "constraints" / "ecp5.lpf"
+  val script = baseDirectory.value / "scripts" / "synth.tcl"
+  val cmd = Seq("tclsh", script.getAbsolutePath, top.getAbsolutePath, lpf.getAbsolutePath, "LFE5U-45F")
+  streams.value.log.info(cmd.mkString(" "))
+  cmd.!
+}
+
+report := {
+  val rpt = baseDirectory.value / "T800.rpt"
+  val s = streams.value
+  if (rpt.exists) IO.readLines(rpt).foreach(line => s.log.info(line))
+  else s.log.warn(s"Report not found: $rpt")
+}

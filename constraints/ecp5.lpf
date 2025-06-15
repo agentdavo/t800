@@ -1,0 +1,13 @@
+# Sample constraints for Colorlight 5A-75E board
+# Adjust pin names as needed for your design
+
+# 25 MHz oscillator
+LOCATE COMP "CLK25" SITE "P3";
+FREQUENCY PORT "CLK25" 25 MHz;
+IOBUF PORT "CLK25" IO_TYPE=LVCMOS33;
+
+# LEDs (example pins)
+LOCATE COMP "LED0" SITE "M1";
+LOCATE COMP "LED1" SITE "M2";
+IOBUF PORT "LED0" IO_TYPE=LVCMOS33;
+IOBUF PORT "LED1" IO_TYPE=LVCMOS33;
