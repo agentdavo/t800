@@ -1,4 +1,4 @@
-package t800.plugins
+package t800.plugins.mmu
 
 import spinal.core._
 import spinal.core.fiber._
