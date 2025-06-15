@@ -40,31 +40,37 @@ class FpuVCU extends Area {
   ))
 
   // Comparison logic
-  val op1Sign = op1Parsed.sign
-  val op2Sign = op2Parsed.sign
-  val op1Exponent = op1Parsed.exponent
-  val op2Exponent = op2Parsed.exponent
-  val op1Mantissa = AFix(op1Parsed.mantissa.asUInt, 52 bit, 0 exp)
-  val op2Mantissa = AFix(op2Parsed.mantissa.asUInt, 52 bit, 0 exp)
+  val op1Sign      = op1Parsed.sign
+  val op2Sign      = op2Parsed.sign
+  val op1Exponent  = op1Parsed.exponent.asUInt
+  val op2Exponent  = op2Parsed.exponent.asUInt
+  val op1Mantissa  = op1Parsed.mantissa.asUInt
+  val op2Mantissa  = op2Parsed.mantissa.asUInt
 
-  // Compare floating-point numbers: sign, exponent, mantissa
-  val op1Greater = (~op1Sign & op2Sign) || // op1 positive, op2 negative
-                   (op1Sign === op2Sign && op1Exponent > op2Exponent) || // Same sign, compare exponents
-                   (op1Sign === op2Sign && op1Exponent === op2Exponent && op1Mantissa > op2Mantissa) // Same sign/exponent, compare mantissas
-  val op1Equal = op1Sign === op2Sign && op1Exponent === op2Exponent && op1Mantissa === op2Mantissa
+  // Magnitude comparison (ignores sign)
+  val magGreater = (op1Exponent > op2Exponent) ||
+                   (op1Exponent === op2Exponent && op1Mantissa > op2Mantissa)
+  val magEqual   = op1Exponent === op2Exponent && op1Mantissa === op2Mantissa
+
+  val sameSign   = op1Sign === op2Sign
+
+  // Comparison according to IEEE-754 ordering
+  val op1Greater = Mux(sameSign,
+                       Mux(op1Sign, !magGreater && !magEqual, magGreater),
+                       !op1Sign && op2Sign)
+  val op1Equal   = (sameSign && magEqual) || (op1Class.isZero && op2Class.isZero)
+  val ordered    = !isNaN
 
   io.comparisonResult := False
-  when(!io.isSpecial) {
-    switch(io.opcode) {
-      is(FpOp.Comparison.FPGT.asBits) { io.comparisonResult := op1Greater }
-      is(FpOp.Comparison.FPEQ.asBits) { io.comparisonResult := op1Equal }
-      is(FpOp.Comparison.FPGE.asBits) { io.comparisonResult := op1Greater || op1Equal }
-      is(FpOp.Comparison.FPLG.asBits) { io.comparisonResult := !op1Equal }
-      is(FpOp.Comparison.FPORDERED.asBits) { io.comparisonResult := !isNaN } // Neither operand is NaN
-      is(FpOp.Comparison.FPNAN.asBits) { io.comparisonResult := isNaN } // Either operand is NaN
-      is(FpOp.Comparison.FPNOTFINITE.asBits) { io.comparisonResult := isInfinity || isDenormal } // Infinity or denormal
-      is(FpOp.Comparison.FPCHKI32.asBits) { io.comparisonResult := op1Exponent <= 126 } // Within int32 range
-      is(FpOp.Comparison.FPCHKI64.asBits) { io.comparisonResult := op1Exponent <= 1022 } // Within int64 range
-    }
+  switch(io.opcode) {
+    is(FpOp.Comparison.FPGT.asBits) { io.comparisonResult := ordered && op1Greater }
+    is(FpOp.Comparison.FPEQ.asBits) { io.comparisonResult := ordered && op1Equal }
+    is(FpOp.Comparison.FPGE.asBits) { io.comparisonResult := ordered && (op1Greater || op1Equal) }
+    is(FpOp.Comparison.FPLG.asBits) { io.comparisonResult := ordered && !op1Equal }
+    is(FpOp.Comparison.FPORDERED.asBits) { io.comparisonResult := ordered }
+    is(FpOp.Comparison.FPNAN.asBits) { io.comparisonResult := isNaN }
+    is(FpOp.Comparison.FPNOTFINITE.asBits) { io.comparisonResult := op1Class.isInfinity || op2Class.isInfinity || isNaN }
+    is(FpOp.Comparison.FPCHKI32.asBits) { io.comparisonResult := op1Exponent <= 126 }
+    is(FpOp.Comparison.FPCHKI64.asBits) { io.comparisonResult := op1Exponent <= 1022 }
   }
 }
