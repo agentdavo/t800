@@ -4,6 +4,7 @@ import spinal.core._
 import spinal.core.sim._
 import t800.plugins._
 import spinal.lib.misc.plugin.PluginHost
+import t800.plugins.schedule.SchedulerPlugin
 
 object HelloWorldSim {
 

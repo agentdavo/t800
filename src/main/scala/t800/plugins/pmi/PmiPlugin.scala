@@ -1,4 +1,7 @@
-package t800.plugins
+package t800.plugins.pmi
+
+import t800.plugins._
+import t800.plugins.cache.{MainCachePlugin, WorkspaceCachePlugin}
 
 import spinal.core._
 import spinal.core.fiber._
@@ -20,14 +23,6 @@ import spinal.lib.bus.misc.{AddressMapping, SizeMapping}
 // Supporting 16 devices (ssWidth = 4), mapped to 1/4 address space via BmbDecoder.
 // Uses burst transactions for high-bandwidth 16-byte DDR refills and single-beat octal SPI for configuration
 // Integrated with the Memory stage, ensuring low-latency access and scalability
-
-case class PmiAccessSrv() extends Bundle {
-  val addr = Bits(32 bits)
-  val dataIn = Bits(64 bits)
-  val dataOut = Bits(64 bits)
-  val writeEnable = Bool()
-  val isValid = Bool()
-}
 
 class PmiPlugin extends FiberPlugin {
   val version = "PmiPlugin v2.0"
@@ -123,23 +118,8 @@ class PmiPlugin extends FiberPlugin {
                 ssWidth = 4
               )
             )
-            .addFullDuplex(
-              id = 0,
-              rate = 1,
-              ddr = true,
-              dataWidth = 8,
-              lateSampling = true
-            ) // DDR for bursts
-            .addHalfDuplex(
-              id = 1,
-              rate = 1,
-              ddr = false,
-              spiWidth = 8,
-              dataWidth = 8,
-              readPinOffset = 0,
-              ouputHighWhenIdle = false,
-              lateSampling = true
-            ), // Octal SPI
+            .addFullDuplex(0, 1, true, 8) // DDR for bursts
+            .addHalfDuplex(1, 1, false, 8), // Octal SPI
           cmdFifoDepth = 32,
           rspFifoDepth = 32,
           xip = null

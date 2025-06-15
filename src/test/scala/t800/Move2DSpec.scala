@@ -5,6 +5,7 @@ import spinal.core.sim._
 import org.scalatest.funsuite.AnyFunSuite
 import t800.plugins._
 import spinal.lib.misc.plugin.PluginHost
+import t800.plugins.schedule.SchedulerPlugin
 
 class Move2DSpec extends AnyFunSuite {
   test("MOVE2DALL transfers 2D bytes") {

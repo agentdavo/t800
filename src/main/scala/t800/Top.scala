@@ -2,7 +2,7 @@ package t800
 
 import spinal.core._
 import spinal.lib.misc.plugin.PluginHost
-import t800.plugins._
+import t800.plugins.TransputerPlugin
 
 /** Variant-aware entry point used by the build scripts. */
 

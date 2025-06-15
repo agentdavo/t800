@@ -1,4 +1,4 @@
-package t800.plugins
+package t800.plugins.cache
 
 import spinal.core._
 import spinal.core.fiber._
@@ -6,24 +6,13 @@ import spinal.lib.misc.plugin._
 import spinal.lib.misc.pipeline._
 import spinal.lib.misc.database._
 import spinal.lib.bus.bmb.{Bmb, BmbParameter, BmbAccessParameter, BmbOnChipRamMultiPort}
+import t800.plugins.{AddressTranslationSrv, MainCacheSrv}
 import spinal.lib.bus.misc.SingleMapping
 
 // The WorkspaceCachePlugin implements a 32-word triple-ported cache (two reads, one write per cycle)
 // Providing zero-cycle read access in the Decode stage.
 // It is write-through to MainCachePlugin, organized as a circular buffer addressed by Wptr[4:0]
 // With invalidation on context switches/interrupts and roll-over, supporting two simultaneous CPU reads
-
-case class WorkspaceCacheAccessSrv() extends Bundle {
-  val addrA = Bits(32 bits) // Read port A
-  val addrB = Bits(32 bits) // Read port B
-  val dataOutA = Bits(32 bits)
-  val dataOutB = Bits(32 bits)
-  val writeAddr = Bits(32 bits)
-  val writeData = Bits(32 bits)
-  val writeEnable = Bool()
-  val isHitA = Bool()
-  val isHitB = Bool()
-}
 
 class WorkspaceCachePlugin extends FiberPlugin {
   val version = "WorkspaceCachePlugin v1.0"
@@ -100,7 +89,7 @@ class WorkspaceCachePlugin extends FiberPlugin {
     // Read port A
     ram.io.buses(0).cmd.valid := decode.isValid
     ram.io.buses(0).cmd.opcode := 0 // Read
-    ram.io.buses(0).cmd.address := srv.addrA
+    ram.io.buses(0).cmd.address := Plugin[AddressTranslationSrv].translate(srv.addrA)
     ram.io.buses(0).cmd.length := 0
     ram.io.buses(0).cmd.data := 0
     ram.io.buses(0).rsp.ready := True
@@ -109,7 +98,7 @@ class WorkspaceCachePlugin extends FiberPlugin {
     when(!srv.isHitA) {
       decode.haltWhen(True)
       // Fetch from Main Cache
-      val mainCacheData = host[MainCachePlugin].read(srv.addrA)
+      val mainCacheData = Plugin[MainCacheSrv].read(Plugin[AddressTranslationSrv].translate(srv.addrA))
       ram.io.buses(0).cmd.opcode := 1 // Write
       ram.io.buses(0).cmd.data := mainCacheData(31 downto 0)
       validBits(srv.addrA(4 downto 0).asUInt) := True
@@ -118,7 +107,7 @@ class WorkspaceCachePlugin extends FiberPlugin {
     // Read port B
     ram.io.buses(1).cmd.valid := decode.isValid
     ram.io.buses(1).cmd.opcode := 0 // Read
-    ram.io.buses(1).cmd.address := srv.addrB
+    ram.io.buses(1).cmd.address := Plugin[AddressTranslationSrv].translate(srv.addrB)
     ram.io.buses(1).cmd.length := 0
     ram.io.buses(1).cmd.data := 0
     ram.io.buses(1).rsp.ready := True
@@ -127,7 +116,7 @@ class WorkspaceCachePlugin extends FiberPlugin {
     when(!srv.isHitB) {
       decode.haltWhen(True)
       // Fetch from Main Cache
-      val mainCacheData = host[MainCachePlugin].read(srv.addrB)
+      val mainCacheData = Plugin[MainCacheSrv].read(Plugin[AddressTranslationSrv].translate(srv.addrB))
       ram.io.buses(1).cmd.opcode := 1 // Write
       ram.io.buses(1).cmd.data := mainCacheData(31 downto 0)
       validBits(srv.addrB(4 downto 0).asUInt) := True
@@ -136,15 +125,15 @@ class WorkspaceCachePlugin extends FiberPlugin {
     // Write port
     ram.io.buses(2).cmd.valid := srv.writeEnable
     ram.io.buses(2).cmd.opcode := 1 // Write
-    ram.io.buses(2).cmd.address := srv.writeAddr
+    ram.io.buses(2).cmd.address := Plugin[AddressTranslationSrv].translate(srv.writeAddr)
     ram.io.buses(2).cmd.length := 0
     ram.io.buses(2).cmd.data := srv.writeData
     ram.io.buses(2).rsp.ready := True
     when(srv.writeEnable) {
       validBits(srv.writeAddr(4 downto 0).asUInt) := True
       // Write-through to Main Cache
-      host[MainCachePlugin].write(
-        srv.writeAddr,
+      Plugin[MainCacheSrv].write(
+        Plugin[AddressTranslationSrv].translate(srv.writeAddr),
         srv.writeData ## srv.writeData ## srv.writeData ## srv.writeData
       )
     }

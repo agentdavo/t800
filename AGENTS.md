@@ -8,8 +8,10 @@
 
 | Path | Description |
 |------|-------------|
-| `src/main/scala/t800/plugins/` | Each file is a `FiberPlugin` subsystem |
-| `src/main/scala/t800/Top.scala` | Builds the `Database` + `PluginHost` and plugin list |
+| `src/main/scala/t800/plugins/` | One subfolder per `FiberPlugin`, each with `Service.scala` |
+| `src/main/scala/t800/Top.scala` | Legacy entry, superseded by `Generate.scala` |
+| `src/main/scala/t800/Param.scala` | Parameter case class selecting plugins |
+| `src/main/scala/t800/Generate.scala` | CLI that parses parameters and emits Verilog |
 | `src/test/scala/t800/` | ScalaTest units + SpinalSim benches |
 | `ext/SpinalHDL/` | Upstream library as git sub-module |
 | `doc/spinalHDL.txt` | SpinalSim + SpinalHDL documentation |
