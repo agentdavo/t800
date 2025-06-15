@@ -45,7 +45,6 @@ lazy val t800 = (project in file("."))
         "T800.scala",
         "Param.scala",
         "Generate.scala",
-        "SystemBusSrv.scala",
         "plugins/Service.scala",
         "pipeline/Service.scala",
         "plugins/registers/Service.scala",
