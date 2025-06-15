@@ -64,6 +64,8 @@ lazy val t800 = (project in file("."))
       val srcDir = (Test / scalaSource).value
       val keep = Seq("InitTransputerSpec.scala", "FpuAdderSpec.scala")
       keep.flatMap(n => (srcDir ** n).get)
+      val keep = Seq("InitTransputerSpec.scala", "Real32ToReal64Spec.scala")
+      keep.flatMap(p => (srcDir ** p).get)
     },
     libraryDependencies ++=
       Seq(

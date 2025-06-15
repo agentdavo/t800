@@ -15,6 +15,7 @@ class FpuDivRoot extends Area {
     val isT805Last = in Bool()
     val roundingMode = in Bits(2 bits)
     val result = out Bits(64 bits)
+    val resultAfix = out AFix(UQ(56 bit, 0 bit))
     val cycles = out UInt(10 bits)
     val t805State = out Bits(64 bits)
   }
@@ -22,8 +23,8 @@ class FpuDivRoot extends Area {
   // Parse IEEE-754 operands
   val op1Parsed = parseIeee754(io.op1)
   val op2Parsed = parseIeee754(io.op2)
-  val op1Afix = AFix(op1Parsed.mantissa.asUInt, 52 bit, 0 exp)
-  val op2Afix = AFix(op2Parsed.mantissa.asUInt, 52 bit, 0 exp)
+  val op1Afix = AFix(op1Parsed.mantissa.asUInt, 56 bit, 0 exp)
+  val op2Afix = AFix(op2Parsed.mantissa.asUInt, 56 bit, 0 exp)
 
   // SRT state
   val quotient = Reg(AFix(UQ(56 bit, 0 bit))) init 0
@@ -32,33 +33,84 @@ class FpuDivRoot extends Area {
   val iteration = Reg(UInt(10 bits)) init 0
   val maxIterations = Mux(io.isRem, 529, 15)
 
+  // PCA storage (optimized for BRAM)
+  val pcaMem = Mem(AFix(UQ(56 bit, 0 bit)), 2) // qPlus, qMinus
+  pcaMem.write(0, AFix(0, 56 bit, 0 exp)) // qPlus
+  pcaMem.write(1, AFix(0, 56 bit, 0 exp)) // qMinus
+
+  // SRT iteration
+  val partialRemainder = Reg(AFix(UQ(56 bit, 0 bit))) init remainder
+  val quotientDigit = Reg(SInt(2 bits)) init 0
+  val compressedRemainder = Reg(AFix(UQ(56 bit, 0 bit))) init 0
+
+  // Shared reduction logic
+  def reduceRemainder(p: AFix, q: SInt, d: AFix): AFix = {
+    val adjustment = Mux(io.isSqrt, pcaMem.readAsync(0) * q + (q * (2 pow (-iteration))), d * q)
+    (p << 1) - adjustment
+  }
+
+  when(iteration < maxIterations) {
+    val top3Digits = partialRemainder.raw(55 downto 53).asSInt
+    quotientDigit := MuxCase(0, Seq(
+      (top3Digits >= 2) -> 1,
+      (top3Digits <= -2) -> -1
+    ))
+
+    compressedRemainder := reduceRemainder(partialRemainder, quotientDigit, divisor)
+    partialRemainder := compressedRemainder
+
+    quotient := quotient + (quotientDigit << (-iteration))
+    when(io.isSqrt) {
+      when(quotientDigit === 0) {
+        pcaMem.write(0, pcaMem.readAsync(0) << 1)
+        pcaMem.write(1, (pcaMem.readAsync(0) << 1) + 1)
+      } elsewhen(quotientDigit === 1) {
+        pcaMem.write(0, (pcaMem.readAsync(0) << 1) + 1)
+        pcaMem.write(1, pcaMem.readAsync(0) << 1)
+      } elsewhen(quotientDigit === -1) {
+        pcaMem.write(0, pcaMem.readAsync(0) << 1)
+        pcaMem.write(1, (pcaMem.readAsync(0) << 1) + 1)
+      }
+    }
+
+    iteration := iteration + 1
+  }
+
+  // Post-correction, normalization, rounding
+  val finalQuotient = Reg(AFix(UQ(56 bit, 0 bit))) init quotient
+  val finalRemainder = Reg(AFix(UQ(56 bit, 0 bit))) init partialRemainder
+  when(finalRemainder.isNegative()) {
+    finalQuotient := quotient - 1
+    finalRemainder := partialRemainder + divisor
+  }
+
+  val roundType = io.roundingMode.mux(
+    0 -> RoundType.ROUNDTOEVEN,
+    1 -> RoundType.FLOORTOZERO,
+    2 -> RoundType.CEIL,
+    3 -> RoundType.FLOOR
+  )
+  val roundedResult = Mux(io.isRem, finalRemainder, finalQuotient).round(0, roundType).sat(2 pow 52 - 1, 0)
+
   // Microcode state
   when(io.isT805First) {
     quotient := 0
     remainder := op1Afix
+    partialRemainder := op1Afix
+    pcaMem.write(0, AFix(0, 56 bit, 0 exp))
+    pcaMem.write(1, AFix(0, 56 bit, 0 exp))
     iteration := 0
     io.t805State := quotient.raw
   } elsewhen(io.isT805Step) {
-    // SRT step (placeholder)
     iteration := iteration + 1
+    io.t805State := quotient.raw
   } elsewhen(io.isT805Last && io.isSqrt) {
-    io.result := packIeee754(op1Parsed.sign, op1Parsed.exponent, quotient.raw)
+    io.result := packIeee754(op1Parsed.sign, op1Parsed.exponent, roundedResult.raw)
+    io.resultAfix := roundedResult
     io.cycles := 15
   } otherwise {
-    when(iteration < maxIterations) {
-      // SRT step (placeholder)
-      iteration := iteration + 1
-    }
-    val roundType = io.roundingMode.mux(
-      0 -> RoundType.ROUNDTOEVEN,
-      1 -> RoundType.FLOORTOZERO,
-      2 -> RoundType.CEIL,
-      3 -> RoundType.FLOOR
-    )
-    io.result := Mux(io.isRem,
-      packIeee754(op1Parsed.sign, op1Parsed.exponent, remainder.round(0, roundType).raw),
-      packIeee754(op1Parsed.sign, op1Parsed.exponent, quotient.round(0, roundType).raw)
-    )
+    io.result := packIeee754(op1Parsed.sign, op1Parsed.exponent, roundedResult.raw)
+    io.resultAfix := roundedResult
     io.cycles := maxIterations
   }
 }

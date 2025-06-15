@@ -22,6 +22,17 @@ object Utils {
     Ieee754Format(sign, exponent, mantissa)
   }
 
+  /**
+    * Parse a 32-bit IEEE‑754 value keeping the original 23-bit mantissa.
+    */
+  def parseIeee75432(value: Bits): Ieee754Format = {
+    assert(value.getWidth == 32, "Input to parseIeee75432 must be 32 bits")
+    val sign = value(31)
+    val exponent = value(30 downto 23).asSInt
+    val mantissa = value(22 downto 0)
+    Ieee754Format(sign, exponent, mantissa)
+  }
+
   def packIeee754(sign: Bool, exponent: SInt, mantissa: Bits): Bits = {
     assert(mantissa.getWidth == 52, "Mantissa for packIeee754 must be 52 bits")
     sign ## exponent.asBits(10 downto 0) ## mantissa
@@ -66,11 +77,10 @@ object Utils {
   def genInfinity(sign: Bool): Bits = sign ## B"11111111111" ## B(0, 52 bits)
 
   def real32ToReal64(value: Bits): Bits = {
-    val extended = value.resize(64) // Sign-extend to 64 bits
-    val parsed = parseIeee754Single(value)
+    val parsed = parseIeee75432(value)
     val sign = parsed.sign
     val exponent = parsed.exponent + 1023 - 127
-    val mantissa = parsed.mantissa
+    val mantissa = parsed.mantissa @@ B(0, 29 bits)
     packIeee754(sign, exponent, mantissa)
   }
 
