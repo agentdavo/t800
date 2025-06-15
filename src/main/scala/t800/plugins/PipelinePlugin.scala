@@ -2,8 +2,8 @@ package t800.plugins
 
 import spinal.core._
 import spinal.lib.misc.pipeline._
-import spinal.lib.misc.plugin.FiberPlugin
 import spinal.core.fiber.Retainer
+import spinal.lib.misc.plugin._
 import t800.Global
 
 /** Defines the global CPU pipeline structure and exposes stage handles. */
@@ -27,7 +27,6 @@ class PipelinePlugin extends FiberPlugin {
   private var executeReg: CtrlLink = null
   private var memoryReg: CtrlLink = null
   private var writeBackReg: CtrlLink = null
-  private val retain = Retainer()
 
   during setup new Area {
     report(L"Initializing $version")
@@ -47,7 +46,6 @@ class PipelinePlugin extends FiberPlugin {
       stage(Global.MEM_ADDR)
       stage(Global.MEM_DATA)
     }
-    retain()
     println(s"[${PipelinePlugin.this.getDisplayName()}] setup end")
   }
   def fetch: CtrlLink = fetchReg
@@ -62,7 +60,6 @@ class PipelinePlugin extends FiberPlugin {
 
   during build new Area {
     println(s"[${PipelinePlugin.this.getDisplayName()}] build start")
-    retain.await()
     pipeline.build()
     addService(new PipelineSrv {
       override def fetch = fetchReg

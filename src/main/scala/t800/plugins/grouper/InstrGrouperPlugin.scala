@@ -1,12 +1,13 @@
-package t800.plugins
+package t800.plugins.grouper
 
 import spinal.core._
 import spinal.lib._
-import spinal.lib.misc.plugin.{FiberPlugin, Plugin, PluginHost}
+import spinal.lib.misc.plugin.{Plugin, PluginHost, FiberPlugin}
 import spinal.lib.misc.pipeline
 import spinal.lib.misc.pipeline._
 import spinal.core.fiber.Retainer
 import t800.Global
+import t800.plugins.grouper._
 
 /** Gather opcodes from the fetch stage and deliver them in groups of up to eight instructions on
   * the decode stage. Other plugins may read the grouped values through [[GroupedInstrSrv]].

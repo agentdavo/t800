@@ -63,10 +63,16 @@ t800/
 ├─ src/
 │  ├─ main/scala/t800/
 │  │  ├─ Top.scala              # creates Database + PluginHost, selects plugins
-│  │  └─ plugins/               # ⇐ one FiberPlugin per subsystem
-│  │     ├─ FpuPlugin.scala
-│  │     ├─ SchedulerPlugin.scala
-│  │     ├─ TimerPlugin.scala
+│  │  └─ plugins/               # ⇐ one subfolder per FiberPlugin
+│  │     ├─ fetch/              # FetchPlugin + Service.scala
+│  │     ├─ cache/              # MainCachePlugin, WorkspaceCachePlugin
+│  │     ├─ decode/             # PrimaryInstrPlugin
+│  │     ├─ execute/            # SecondaryInstrPlugin
+│  │     ├─ schedule/           # SchedulerPlugin
+│  │     ├─ fpu/                # FpuPlugin
+│  │     ├─ grouper/            # InstrGrouperPlugin
+│  │     ├─ timers/             # TimerPlugin
+│  │     ├─ transputer/         # TransputerPlugin
 │  │     └─ ...
 │  └─ test/scala/t800/
 │      ├─ T800CoreSim.scala
@@ -138,7 +144,12 @@ sudo ./scripts/setup_env.sh
 # Default plugin set
 sbt scalafmtAll
 sbt test
-sbt "runMain t800.TopVerilog"
+sbt "runMain t800.Generate --word-width 32 --link-count 4 --fpu true"
+
+# Parameters
+--word-width    CPU data width in bits
+--link-count    Number of communication links
+--fpu           Enable the floating-point unit
 
 # To build against the bundled SpinalHDL sources instead of published
 # artifacts, run with `SPINALHDL_FROM_SOURCE=1`:
@@ -150,7 +161,7 @@ sbt "runMain t800.TopVerilog"
 ## Contributing
 
 1. Pick a milestone from **AGENTS.md §5**.
-2. Work **inside** `src/main/scala/t800/plugins/`.
+2. Work **inside** `src/main/scala/t800/plugins/<name>/` for your plugin.
 3. Run `sbt scalafmtAll` and keep CI green:
 
 ```bash
@@ -184,6 +195,12 @@ The compiler catches a wide range of design mistakes:
 * Unreachable switch statements
 
 Each report includes a stack trace to pinpoint the offending code.
+
+### Common runtime errors
+
+Scala executes the hardware description before Verilog generation. Assigning to a
+signal prior to its `val` declaration triggers a `NullPointerException` during
+elaboration. Always declare hardware objects before driving them.
 
 ---
 

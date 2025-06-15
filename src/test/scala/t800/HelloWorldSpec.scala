@@ -5,6 +5,9 @@ import spinal.core.sim._
 import org.scalatest.funsuite.AnyFunSuite
 import t800.plugins._
 import spinal.lib.misc.plugin.PluginHost
+import t800.plugins.schedule.SchedulerPlugin
+import t800.plugins.timers.TimerPlugin
+import t800.plugins.grouper.GrouperPlugin
 
 class HelloWorldSpec extends AnyFunSuite {
   ignore("ROM program prints hello world") {

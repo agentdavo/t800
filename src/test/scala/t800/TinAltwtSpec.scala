@@ -5,7 +5,10 @@ import spinal.core.sim._
 import org.scalatest.funsuite.AnyFunSuite
 import spinal.lib.misc.plugin.PluginHost
 import t800.plugins._
+import t800.plugins.timers.TimerPlugin
+import t800.plugins.grouper.GrouperPlugin
 
+import t800.plugins.schedule.SchedulerPlugin
 class TinAltwtSpec extends AnyFunSuite {
   def buildRom(opcodes: Seq[Int]): Seq[BigInt] = {
     val bytes = opcodes.map(_.toByte)

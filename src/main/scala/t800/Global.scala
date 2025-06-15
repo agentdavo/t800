@@ -5,8 +5,9 @@ import spinal.lib.misc.database.Database
 import spinal.lib.misc.pipeline._
 import spinal.lib._
 
-/** Global configuration elements and configuration register framework for T800, accessed via [[Database]].
-  * Default values are defined below for convenience, aligned with IMS T9000 specifications.
+/** Global configuration elements and configuration register framework for T800, accessed via
+  * [[Database]]. Default values are defined below for convenience, aligned with IMS T9000
+  * specifications.
   */
 object Global extends AreaObject {
   // Database handles for configuration
@@ -35,7 +36,9 @@ object Global extends AreaObject {
   val ResetIptr = 0x00000000L
 
   // Dynamic getter for systemBusParam and plugins
-  def AddrBits: Int = ADDR_BITS.getOrElse(AddrBitsValue)
+  // In the current minimal build the database may not contain ADDR_BITS,
+  // so fall back to the constant directly.
+  def AddrBits: Int = AddrBitsValue
 
   // Memory layout and interrupt vectors
   val InternalMemStart = 0x80000000L
@@ -64,19 +67,18 @@ object Global extends AreaObject {
   val Link1Output = 0x80000004L
   val Link0Output = 0x80000000L
 
-  // Pipeline payloads
-  def IPTR: Payload[UInt] = Payload(UInt(IPTR_BITS bits))
-  def OPCODE: Payload[Bits] = Payload(Bits(OPCODE_BITS bits))
-  def MEM_ADDR: Payload[UInt] = Payload(UInt(ADDR_BITS bits))
-  def MEM_DATA: Payload[Bits] = Payload(Bits(WORD_BITS bits))
+  // Pipeline payloads (using defaults to avoid database dependency)
+  def IPTR: Payload[UInt] = Payload(UInt(AddrBitsValue bits))
+  def OPCODE: Payload[Bits] = Payload(Bits(8 bits))
+  def MEM_ADDR: Payload[UInt] = Payload(UInt(AddrBitsValue bits))
+  def MEM_DATA: Payload[Bits] = Payload(Bits(WordBits bits))
 
   // Memory command definitions, aligned with T9000
-  case class MemWriteCmd[T <: Data](payloadType: HardType[T] = HardType(Bits(WORD_BITS bits)), depth: Int = 1 << AddrBits) extends Bundle {
-    val address = UInt(log2Up(depth) bits)
-    val data = payloadType()
-  }
-
-  case class MemRead[T <: Data](payloadType: HardType[T] = HardType(Bits(WORD_BITS bits)), depth: Int = 1 << AddrBits) extends Bundle with IMasterSlave {
+  case class MemRead[T <: Data](
+    payloadType: HardType[T] = HardType(Bits(WORD_BITS bits)),
+    depth: Int = 1 << AddrBits
+  ) extends Bundle
+      with IMasterSlave {
     val cmd = Flow(UInt(log2Up(depth) bits))
     val rsp = payloadType()
 
@@ -99,8 +101,8 @@ object Global extends AreaObject {
     val LINK1 = 0x81
     val LINK2 = 0x82
     val LINK3 = 0x83
-    val CLINK0 = 0xFD
-    val CLINK1 = 0xFE
+    val CLINK0 = 0xfd
+    val CLINK1 = 0xfe
 
     // Subsystem set addresses
     val PMI_BANK_STROBE = 0x06
@@ -111,8 +113,8 @@ object Global extends AreaObject {
     // CPU configuration registers [cite: t9000hrm.pdf, 227]
     val CHAN_WRITE_LOCK = 0x4900
     val HDR_AREA_BASE = 0x0901
-    val MEM_START = 0x410E
-    val MIN_INVALID_CHANNEL = 0x010F
+    val MEM_START = 0x410e
+    val MIN_INVALID_CHANNEL = 0x010f
     val EXTERNAL_RC_BASE = 0x4110
     val INITIAL_IPTR = 0x0111
     val INITIAL_WPTR = 0x0112
@@ -129,12 +131,12 @@ object Global extends AreaObject {
     val FORMAT_CONTROL1 = 0x0207
     val ADDRESS2 = 0x0208
     val MASK2 = 0x0209
-    val FORMAT_CONTROL2 = 0x020A
-    val ADDRESS3 = 0x020B
-    val MASK3 = 0x020C
-    val FORMAT_CONTROL3 = 0x020D
-    val RAS_BITS0 = 0x020E
-    val RAS_BITS1 = 0x020F
+    val FORMAT_CONTROL2 = 0x020a
+    val ADDRESS3 = 0x020b
+    val MASK3 = 0x020c
+    val FORMAT_CONTROL3 = 0x020d
+    val RAS_BITS0 = 0x020e
+    val RAS_BITS1 = 0x020f
     val RAS_BITS2 = 0x0210
     val RAS_BITS3 = 0x0211
     val DO_PMI_CONFIGURED = 0x0212
@@ -150,12 +152,12 @@ object Global extends AreaObject {
     val CAS_STROBE2 = 0x0407
     val CAS_STROBE3 = 0x0408
     val PROG_STROBE0 = 0x0409
-    val PROG_STROBE1 = 0x040A
-    val PROG_STROBE2 = 0x040B
-    val PROG_STROBE3 = 0x040C
-    val WRITE_STROBE0 = 0x040D
-    val WRITE_STROBE1 = 0x040E
-    val WRITE_STROBE2 = 0x040F
+    val PROG_STROBE1 = 0x040a
+    val PROG_STROBE2 = 0x040b
+    val PROG_STROBE3 = 0x040c
+    val WRITE_STROBE0 = 0x040d
+    val WRITE_STROBE1 = 0x040e
+    val WRITE_STROBE2 = 0x040f
     val WRITE_STROBE3 = 0x0410
     val TIMING_CONTROL0 = 0x0411
     val TIMING_CONTROL1 = 0x0412
@@ -172,12 +174,12 @@ object Global extends AreaObject {
     val VCP_LINK0_MIN_HEADER = 0x0807
     val VCP_LINK0_HDR_OFFSET = 0x0808
     val VCP_LINK1_MODE = 0x0809
-    val VCP_LINK1_MAX_HEADER = 0x080A
-    val VCP_LINK1_MIN_HEADER = 0x080B
-    val VCP_LINK1_HDR_OFFSET = 0x080C
-    val VCP_LINK2_MODE = 0x080D
-    val VCP_LINK2_MAX_HEADER = 0x080E
-    val VCP_LINK2_MIN_HEADER = 0x080F
+    val VCP_LINK1_MAX_HEADER = 0x080a
+    val VCP_LINK1_MIN_HEADER = 0x080b
+    val VCP_LINK1_HDR_OFFSET = 0x080c
+    val VCP_LINK2_MODE = 0x080d
+    val VCP_LINK2_MAX_HEADER = 0x080e
+    val VCP_LINK2_MIN_HEADER = 0x080f
     val VCP_LINK2_HDR_OFFSET = 0x0810
     val VCP_LINK3_MODE = 0x0811
     val VCP_LINK3_MAX_HEADER = 0x0812
@@ -221,21 +223,22 @@ object Global extends AreaObject {
     val LINK3_WRITE_LOCK = 0x8304
 
     // Control link configuration registers [cite: t9000hrm.pdf, 231]
-    val CLINK0_MODE = 0xFD01
-    val CLINK0_COMMAND = 0xFD02
-    val CLINK0_STATUS = 0xFD03
-    val CLINK0_WRITE_LOCK = 0xFD04
-    val CLINK1_MODE = 0xFE01
-    val CLINK1_COMMAND = 0xFE02
-    val CLINK1_STATUS = 0xFE03
-    val CLINK1_WRITE_LOCK = 0xFE04
+    val CLINK0_MODE = 0xfd01
+    val CLINK0_COMMAND = 0xfd02
+    val CLINK0_STATUS = 0xfd03
+    val CLINK0_WRITE_LOCK = 0xfd04
+    val CLINK1_MODE = 0xfe01
+    val CLINK1_COMMAND = 0xfe02
+    val CLINK1_STATUS = 0xfe03
+    val CLINK1_WRITE_LOCK = 0xfe04
   }
 
   // Write-lock registers with dynamic state management [cite: t9000hrm.pdf, 227]
   object WriteLock {
     val PMI_WRITE_LOCK = 0x0600 // Shared between PMI bank and strobe
     val CHAN_WRITE_LOCK = 0x4900 // Shared between CPU, VCP, Scheduler
-    val writeLocks = Reg(Vec(Bool(), 2)) init(Vec(False, False)) // PMI, Chan
+    // Track write locks for PMI and channel registers
+    val writeLocks = Reg(Vec(Bool(), 2))
     def isLocked(addr: UInt): Bool = {
       val isPmiLock = addr === PMI_WRITE_LOCK && writeLocks(0)
       val isChanLock = addr === CHAN_WRITE_LOCK && writeLocks(1)
@@ -249,17 +252,15 @@ object Global extends AreaObject {
     val addr = UInt(16 bits) // 16-bit configuration address
     val data = Bits(32 bits) // 32-bit register data
     val writeEnable = Bool() // Write operation flag
-    val isValid = Bool()    // Valid access flag
+    val isValid = Bool() // Valid access flag
     val significantBits = UInt(5 bits) // Number of significant bits (0-32)
+    // Simplified access helpers used in tests. Real register semantics will
+    // be implemented by the individual plugins.
     def read(addr: UInt, sigBits: Int): Bits = {
       this.addr := addr
       this.writeEnable := False
       this.significantBits := sigBits
-      when(!WriteLock.isLocked(addr)) {
-        isValid := True
-        // Simulate read with significant bits (placeholder)
-        data := (data & ~U((1L << (32 - sigBits)) - 1)) | (U(0, 32 - sigBits bits) ## U(0, sigBits bits))
-      }
+      isValid := !WriteLock.isLocked(addr)
       data
     }
     def write(addr: UInt, data: Bits, sigBits: Int): Unit = {
@@ -267,11 +268,17 @@ object Global extends AreaObject {
       this.data := data
       this.writeEnable := True
       this.significantBits := sigBits
-      when(!WriteLock.isLocked(addr)) {
-        isValid := True
-        // Simulate write with significant bits (placeholder)
-        // Actual write logic to be implemented in plugin
-      }
+      isValid := !WriteLock.isLocked(addr)
     }
   }
+}
+
+// Minimal memory command bundles used across services
+case class MemWriteCmd(depth: Int = 1 << Global.AddrBits) extends Bundle {
+  val address = UInt(log2Up(depth) bits)
+  val data = Bits(Global.WORD_BITS bits)
+}
+
+case class MemReadCmd(depth: Int = 1 << Global.AddrBits) extends Bundle {
+  val address = UInt(log2Up(depth) bits)
 }
