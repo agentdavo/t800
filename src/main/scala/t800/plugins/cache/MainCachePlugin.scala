@@ -7,7 +7,8 @@ import spinal.lib.misc.plugin._
 import spinal.lib.misc.pipeline._
 import spinal.lib.bus.bmb.{Bmb, BmbParameter, BmbAccessParameter, BmbOnChipRamMultiPort, BmbUnburstify, BmbArbiter, BmbDecoder, BmbDownSizerBridge}
 import t800.plugins.pmi.PmiPlugin
-import t800.plugins.{AddressTranslationSrv, WorkspaceCacheSrv, PipelineSrv, SystemBusSrv, Fetch}
+import t800.plugins.{AddressTranslationSrv, WorkspaceCacheSrv, SystemBusSrv, Fetch}
+import t800.plugins.pipeline.PipelineSrv
 import t800.{Global, T800}
 
 class MainCachePlugin extends FiberPlugin {
