@@ -54,3 +54,20 @@ Integration
 
     Pipeline: Execute stage, parallel to PrimaryInstrPlugin and SecondaryInstrPlugin.
     Dependencies: RegFilePlugin (FPAreg, FPBreg, FPCreg), SystemBusSrv (128-bit BMB), TrapHandlerSrv.
+
+Using AFix
+
+    val fpu = host[FpuOpsSrv]
+
+    // Push fixed-point operands onto the FA/FB stack
+    fpu.pushAfix(AFix(1.0, 8 exp))
+    fpu.pushAfix(AFix(2.5, 8 exp))
+
+    // Pop the top of stack as AFix
+    val top: AFix = fpu.popAfix()
+
+    // Execute an addition using AFix operands
+    val sum: AFix = fpu.executeAfix(
+        FpOp.Arithmetic.FPADD,
+        Vec(AFix(0.5, 8 exp), AFix(1.25, 8 exp))
+    )
