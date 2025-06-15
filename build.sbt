@@ -50,6 +50,8 @@ lazy val t800 = (project in file("."))
         "plugins/registers/Service.scala",
         "plugins/registers/RegFilePlugin.scala",
         "plugins/fpu/VCU.scala",
+        "plugins/fpu/Service.scala",
+        "plugins/fpu/Opcodes.scala",
         "PipelinePlugin.scala",
         "PipelineBuilderPlugin.scala",
         "transputer/TransputerPlugin.scala",
