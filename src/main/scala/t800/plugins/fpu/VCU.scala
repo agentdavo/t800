@@ -27,6 +27,7 @@ class FpuVCU extends Component {
 
   val op1Class = classify(io.op1)
   val op2Class = classify(io.op2)
+
   val isNaN = op1Class.isNaN || op2Class.isNaN
   val isInfinity = op1Class.isInfinity || op2Class.isInfinity
   val isDenormal = op1Class.isDenormal || op2Class.isDenormal
