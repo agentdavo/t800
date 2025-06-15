@@ -3,48 +3,51 @@ package t800
 import spinal.core._
 import spinal.core.sim._
 import org.scalatest.funsuite.AnyFunSuite
+import t800.plugins.fpu.{FpuAdder, Adder}
 
-/** Simple test verifying dynamic right shift alignment. */
-class AlignDut extends Component {
+class FpuAdderDut extends Component {
   val io = new Bundle {
-    val mant1 = in UInt (53 bits)
-    val mant2 = in UInt (53 bits)
-    val expDiff = in SInt (11 bits)
-    val sum = out UInt (54 bits)
+    val cmd = slave Stream(Adder.Cmd())
+    val rsp = master Stream(Bits(64 bits))
   }
-  val alignShift = io.expDiff.abs
-  val m2Shifted = io.mant2 >> alignShift
-  io.sum := io.mant1.resize(54) + m2Shifted.resize(54)
+  val add = new FpuAdder
+  io.cmd >> add.io.cmd
+  add.io.rsp >> io.rsp
 }
 
 class FpuAdderSpec extends AnyFunSuite {
-  test("mantissa alignment when op1 exponent is greater") {
-    val compiled = SimConfig.compile(new AlignDut)
-    compiled.doSim { dut =>
+  private def run(a: Double, b: Double, sub: Boolean = false): Double = {
+    var res = 0.0
+    SimConfig.compile(new FpuAdderDut).doSim { dut =>
       dut.clockDomain.forkStimulus(10)
-      // 1.0 (mantissa 0x10000000000000)
-      dut.io.mant1 #= BigInt("10000000000000", 16)
-      // 0.25 (mantissa will be shifted by 2)
-      dut.io.mant2 #= BigInt("10000000000000", 16)
-      dut.io.expDiff #= 2
+      dut.io.cmd.valid #= true
+      dut.io.cmd.payload.a #= BigInt(java.lang.Double.doubleToRawLongBits(a))
+      dut.io.cmd.payload.b #= BigInt(java.lang.Double.doubleToRawLongBits(b))
+      dut.io.cmd.payload.sub #= sub
+      dut.io.cmd.payload.rounding #= 0
       dut.clockDomain.waitSampling()
-      val expected = BigInt("14000000000000", 16)
-      assert(dut.io.sum.toBigInt == expected)
+      dut.io.cmd.valid #= false
+      while(!dut.io.rsp.valid.toBoolean) dut.clockDomain.waitSampling()
+      res = java.lang.Double.longBitsToDouble(dut.io.rsp.payload.toLong)
     }
+    res
   }
 
-  test("mantissa alignment when op2 exponent is greater") {
-    val compiled = SimConfig.compile(new AlignDut)
-    compiled.doSim { dut =>
-      dut.clockDomain.forkStimulus(10)
-      // 0.5 (mantissa 0x10000000000000, but op1 exponent smaller by 1)
-      dut.io.mant1 #= BigInt("10000000000000", 16)
-      // 1.0 will remain unshifted
-      dut.io.mant2 #= BigInt("10000000000000", 16)
-      dut.io.expDiff #= -1
-      dut.clockDomain.waitSampling()
-      val expected = BigInt("18000000000000", 16)
-      assert(dut.io.sum.toBigInt == expected)
-    }
+  test("positive operands") {
+    assert(math.abs(run(1.25, 2.5) - 3.75) < 1e-12)
+  }
+
+  test("negative operand") {
+    assert(math.abs(run(-1.5, 0.75) - (-0.75)) < 1e-12)
+  }
+
+  test("large exponent gap") {
+    assert(run(1e20, 1.0) == 1e20)
+  }
+
+  test("denormals") {
+    val d = java.lang.Double.MIN_VALUE
+    assert(run(d, d) == d * 2)
   }
 }
+
