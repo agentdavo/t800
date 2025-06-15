@@ -6,16 +6,17 @@ import spinal.lib.misc.plugin.{Plugin, PluginHost, FiberPlugin}
 import spinal.lib.misc.pipeline._
 import spinal.lib.bus.bmb.{Bmb, BmbParameter, BmbAccessParameter, BmbQueue, BmbDownSizerBridge}
 import spinal.core.fiber.Retainer
-import t800.SystemBusSrv
-import t800.Global
-import t800.plugins.fetch.Fetch
-import t800.T800
+import t800.{Global, T800}
+import t800.plugins.{SystemBusSrv, PipelineSrv, RegfileService}
+import t800.plugins.regfile.RegName
+import t800.plugins.fetch.Service.InstrFetchSrv
 
 /** Instruction fetch unit with T9000-style Instruction Prefetch Buffer (IPB) supporting eight-instruction dispatch. */
+
 class FetchPlugin extends FiberPlugin with PipelineService {
   setName("fetch")
   val elaborationLock = Retainer()
-  val version = "FetchPlugin v1.2"
+  val version = "FetchPlugin v1.4"
   report(L"Initializing $version")
   println(s"[${FetchPlugin.this.getDisplayName()}] build start")
 
@@ -26,7 +27,7 @@ class FetchPlugin extends FiberPlugin with PipelineService {
     implicit val h: PluginHost = host
     val imem = Plugin[InstrFetchSrv]
     val pipe = Plugin[PipelineSrv]
-    val stack = Plugin[StackSrv]
+    val regfile = Plugin[RegfileService]
     val systemBus = Plugin[SystemBusSrv].bus // 128-bit system bus
 
     // IPB parameters: 4 entries, 32-bit fetch width, 128-bit burst
@@ -62,8 +63,8 @@ class FetchPlugin extends FiberPlugin with PipelineService {
     ipbQueue.io.output.cmd.length := 3 // 4-word burst (128 bits)
 
     // Fetch logic
-    val currentPC = stack.IPtr
-    val isSequential = currentPC === (RegNext(stack.IPtr) + 4)
+    val currentPC = regfile.read(RegName.IptrReg, 0).asUInt // Use IptrReg from RegfileService
+    val isSequential = currentPC === (RegNext(currentPC) + 4)
     when(!isSequential || !ipbFull) {
       // Flush and reload on non-sequential fetch
       ipbQueue.io.output.cmd.valid := True
@@ -99,7 +100,7 @@ class FetchPlugin extends FiberPlugin with PipelineService {
         ipbInstrPtr := 0
         when(ipbPtr === (ipbDepth - 1)) { ipbFull := False }
       }
-      stack.IPtr := stack.IPtr + 32 // Increment by 32 bytes (eight instructions)
+      // IPtr increment handled by PrimaryInstrPlugin
     }
 
     // Pipeline integration
