@@ -6,6 +6,7 @@ import org.scalatest.funsuite.AnyFunSuite
 import spinal.lib.misc.plugin.PluginHost
 import t800.plugins._
 import t800.{DummyTimerPlugin, DummyFpuPlugin}
+import t800.plugins.schedule.{SchedulerPlugin, SchedSrv}
 
 class SchedulerSaveSpec extends AnyFunSuite {
   test("LEND re-enqueues current workspace") {

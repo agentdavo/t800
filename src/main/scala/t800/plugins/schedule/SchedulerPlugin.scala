@@ -1,11 +1,11 @@
-package t800.plugins
+package t800.plugins.schedule
 
 import spinal.core._
 import spinal.lib._
-import spinal.lib.misc.plugin.FiberPlugin
 import spinal.lib.misc.pipeline._
 import spinal.core.fiber.Retainer
 import spinal.core.sim._
+import spinal.lib.misc.plugin._
 import t800.Global
 
 /** Minimal round-robin scheduler with high/low priority queues. */

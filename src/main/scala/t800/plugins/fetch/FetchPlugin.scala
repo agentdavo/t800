@@ -1,33 +1,33 @@
-package t800.plugins
+package t800.plugins.fetch
 
 import spinal.core._
 import spinal.lib._
 import spinal.lib.misc.plugin.{Plugin, PluginHost, FiberPlugin}
 import spinal.lib.misc.pipeline._
 import spinal.lib.bus.bmb.{Bmb, BmbParameter, BmbAccessParameter, BmbQueue, BmbDownSizerBridge}
+import spinal.core.fiber.Retainer
+import t800.SystemBusSrv
 import t800.Global
+import t800.plugins.fetch.Fetch
 import t800.T800
 
 /** Instruction fetch unit with T9000-style Instruction Prefetch Buffer (IPB) supporting eight-instruction dispatch. */
-class FetchPlugin extends FiberPlugin {
+class FetchPlugin extends FiberPlugin with PipelineService {
+  setName("fetch")
+  val elaborationLock = Retainer()
   val version = "FetchPlugin v1.2"
   report(L"Initializing $version")
   println(s"[${FetchPlugin.this.getDisplayName()}] build start")
 
-  object DBKeys {
-    val FETCH_PC = Database.blocking[Bits]()
-    val FETCH_OPCODES = Database.blocking[Vec[Bits]]()
-  }
+  import Fetch._
 
-  lazy val FETCH_PC = Payload(Bits(Global.ADDR_BITS bits))
-  lazy val FETCH_OPCODES = Payload(Vec(Bits(8 bits), 8)) // Eight 8-bit instructions
-
-  override def build(): Unit = {
+  lazy val logic = during build new Area {
+    elaborationLock.await()
     implicit val h: PluginHost = host
     val imem = Plugin[InstrFetchSrv]
     val pipe = Plugin[PipelineSrv]
     val stack = Plugin[StackSrv]
-    val systemBus = host.find[T800].systemBus // 128-bit system bus
+    val systemBus = Plugin[SystemBusSrv].bus // 128-bit system bus
 
     // IPB parameters: 4 entries, 32-bit fetch width, 128-bit burst
     val ipbDepth = 4
@@ -110,4 +110,6 @@ class FetchPlugin extends FiberPlugin {
     DBKeys.FETCH_OPCODES.set(opcodes)
     println(s"[${FetchPlugin.this.getDisplayName()}] build end")
   }
+
+  override def getLinks(): Seq[pipeline.Link] = Seq()
 }

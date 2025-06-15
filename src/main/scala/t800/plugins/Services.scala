@@ -2,7 +2,14 @@ package t800.plugins
 
 import spinal.core._
 import spinal.lib._
+import spinal.lib.misc.pipeline
 
+/** Service exposing pipeline links so plugins can build their logic. */
+trait PipelineService {
+  def getLinks(): Seq[pipeline.Link]
+}
+
+trait AddressTranslationSrv { def translate(addr: Bits): Bits }
 trait LinkPins
 trait DebugPins extends Area
 trait ExtMemPins extends Area
@@ -39,22 +46,6 @@ trait FpuSrv {
   def resultValid: Bool = rsp.valid
 }
 
-/** Service for process scheduling, integrated with SchedulerPlugin. */
-case class SchedCmd() extends Bundle {
-  val ptr = UInt(t800.Global.ADDR_BITS bits)
-  val high = Bool()
-}
-
-trait SchedSrv {
-  def newProc: Flow[SchedCmd]
-  def nextProc: UInt
-  def enqueue(ptr: UInt, high: Bool): Unit
-  def terminateCurrent(): Unit
-  def hiFront: UInt
-  def hiBack: UInt
-  def loFront: UInt
-  def loBack: UInt
-}
 
 /** Service for timer management, integrated with TimerPlugin. */
 trait TimerSrv {
@@ -77,11 +68,6 @@ trait TimerSrv {
   def disableLo(): Unit
 }
 
-/** Service for instruction fetch, integrated with MainCachePlugin. */
-trait InstrFetchSrv {
-  def cmd: Flow[t800.MemReadCmd] // BMB-based read command
-  def rsp: Flow[Bits] // Response from MainCachePlugin
-}
 
 /** Service for data bus operations, integrated with MainCachePlugin and PmiPlugin. */
 trait DataBusSrv {
@@ -107,8 +93,8 @@ trait LinkBusArbiterSrv {
 
 /** Service for memory access, removed direct Mem access, integrated with BMB plugins. */
 trait MemAccessSrv {
-  def getCacheAccess(): t800.plugins.MainCacheAccessSrv // Access MainCachePlugin service
-  def getPmiAccess(): t800.plugins.PmiAccessSrv // Access PmiPlugin service
+  def getCacheAccess(): t800.plugins.cache.MainCacheAccessSrv // Access MainCachePlugin service
+  def getPmiAccess(): t800.plugins.pmi.PmiAccessSrv // Access PmiPlugin service
 }
 
 /** Service for trap handling, integrated with MemoryManagementPlugin. */

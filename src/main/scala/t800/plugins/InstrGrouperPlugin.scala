@@ -2,7 +2,7 @@ package t800.plugins
 
 import spinal.core._
 import spinal.lib._
-import spinal.lib.misc.plugin.{FiberPlugin, Plugin, PluginHost}
+import spinal.lib.misc.plugin.{Plugin, PluginHost, FiberPlugin}
 import spinal.lib.misc.pipeline
 import spinal.lib.misc.pipeline._
 import spinal.core.fiber.Retainer
