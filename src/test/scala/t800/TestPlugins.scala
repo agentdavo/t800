@@ -36,7 +36,7 @@ class DummyFpuPlugin extends FiberPlugin {
   private var pipeReg: Flow[FpCmd] = null
   private var rspReg: Flow[UInt] = null
   during setup new Area {
-    pipeReg = Flow(new FpCmd())
+    pipeReg = Flow(FpCmd())
     pipeReg.setIdle()
     rspReg = Flow(UInt(Global.WordBits bits))
     rspReg.setIdle()
