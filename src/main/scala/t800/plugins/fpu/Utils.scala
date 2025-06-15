@@ -17,8 +17,8 @@ object Utils {
     sign ## exponent.asBits ## mantissa
   }
 
-  def roundIeee754(mantissa: Bits): Bits = {
-    // Placeholder for rounding logic
+  def roundIeee754(mantissa: Bits, mode: Bits): Bits = {
+    // Placeholder: Implement nearest, zero, positive, minus modes
     mantissa
   }
 
@@ -35,4 +35,30 @@ object Utils {
 
   def genNaN: Bits = B"0111111111111000000000000000000000000000000000000000000000000000"
   def genInfinity(sign: Bool): Bits = sign ## B"11111111111" ## B(0, 52 bits)
+
+  def real32ToReal64(value: Bits): Bits = {
+    val sign = value(31)
+    val exponent = value(30 downto 23).asSInt + 1023 - 127
+    val mantissa = value(22 downto 0) @@ B(0, 29 bits)
+    packIeee754(sign, exponent, mantissa)
+  }
+
+  def real64ToReal32(value: Bits, roundMode: Bits): Bits = {
+    val parsed = parseIeee754(value)
+    val sign = parsed.sign
+    val exponent = parsed.exponent - 1023 + 127
+    val mantissa = parsed.mantissa(51 downto 29)
+    val rounded = roundIeee754(mantissa, roundMode)
+    sign ## exponent.asBits ## rounded
+  }
+
+  def realToInt32(value: Bits): SInt = {
+    // Placeholder
+    value.asSInt
+  }
+
+  def int32ToReal32(value: SInt): Bits = {
+    // Placeholder
+    B(0, 32 bits)
+  }
 }
