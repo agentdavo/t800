@@ -17,6 +17,14 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
   private val retain = Retainer()
   private val fpPipe = new StageCtrlPipeline
 
+  // Pipeline payloads
+  lazy val RESULT      = Payload(Bits(64 bits))
+  lazy val RESULT_AFIX = Payload(AFix(UQ(56 bit, 0 bit)))
+  lazy val BUSY        = Payload(Bool())
+  lazy val CYCLE_CNT   = Payload(UInt(10 bits))
+  lazy val MAX_CYCLES  = Payload(UInt(10 bits))
+  lazy val T805_STATE  = Payload(Bits(64 bits))
+
   during setup new Area {
     println(s"[${this.getDisplayName()}] setup start")
     report(L"Initializing $version")
@@ -75,14 +83,7 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
     adder.io.cmd.payload.sub := False
     adder.io.cmd.payload.rounding := status.roundingMode
 
-    // Microcode state
-    val microcode = new Area {
-      val state = Reg(UInt(3 bits)) init 0
-      val cycles = Reg(UInt(10 bits)) init 0
-      val maxCycles = Reg(UInt(10 bits)) init 0
-      val isMultiCycle = Reg(Bool()) init False
-      val t805State = Reg(Bits(64 bits)) init 0 // For fpusqrtfirst, fpremfirst
-    }
+
 
     // Opcode handling
     val opcode = pipe.execute(Global.OPCODE)
@@ -113,12 +114,9 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
     s0.down.valid := s0.up.valid
     pipe.execute.haltWhen(s0.isValid && !s0.down.ready)
 
-    val result = Reg(Bits(64 bits)) init 0
-    val resultAfix = Reg(AFix(UQ(56 bit, 0 bit))) init 0 // Extended for mul/div
-    val busy = Reg(Bool()) init False
-    s0.down.ready := !busy
+    s0.down.ready := !s0(BUSY)
 
-    when(s0.isValid && !busy) {
+    when(s0.isValid && !s0(BUSY)) {
       vcu.io.op1 := fa
       vcu.io.op2 := fb
       vcu.io.opcode := opcode
@@ -128,7 +126,7 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
       val op2Afix = AFix(op2Parsed.mantissa.asUInt, 52 bit, 0 exp)
 
       when(vcu.io.isSpecial) {
-        result := vcu.io.specialResult
+        s0(RESULT) := vcu.io.specialResult
         when(vcu.io.trapEnable) {
           trap.trapType := vcu.io.trapType.asBits
           trap.trapAddr := pipe.execute(Fetch.FETCH_PC)
@@ -170,9 +168,9 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
               adder.io.cmd.payload.b := loaded
               adder.io.cmd.payload.sub := False
               adder.io.cmd.payload.rounding := status.roundingMode
-              result := adder.io.rsp.payload
-              busy := !adder.io.rsp.valid
-              microcode.maxCycles := 2
+              s0(RESULT) := adder.io.rsp.payload
+              s0(BUSY) := !adder.io.rsp.valid
+              s0(MAX_CYCLES) := 2
             }
           }
           // Other load/store (similar logic)
@@ -211,14 +209,14 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
           }
 
           // Conversion ops
-          is(Opcodes.SecondaryEnum.FPR32TOR64) { result := real32ToReal64(fa(31 downto 0)) }
-          is(Opcodes.SecondaryEnum.FPR64TOR32) { result := real64ToReal32(fa, status.roundingMode) }
+          is(Opcodes.SecondaryEnum.FPR32TOR64) { s0(RESULT) := real32ToReal64(fa(31 downto 0)) }
+          is(Opcodes.SecondaryEnum.FPR64TOR32) { s0(RESULT) := real64ToReal32(fa, status.roundingMode) }
           is(Opcodes.SecondaryEnum.FPRTOI32) {
             val intVal = realToInt32(fa)
             regfile.write(RegName.Areg, intVal.asUInt, 0, shadow = false)
           }
           is(Opcodes.SecondaryEnum.FPI32TOR32) {
-            result := int32ToReal32(regfile.read(RegName.Areg, 0).asSInt)
+            s0(RESULT) := int32ToReal32(regfile.read(RegName.Areg, 0).asSInt)
           }
           // Other conversions
 
@@ -229,9 +227,9 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
             adder.io.cmd.payload.b := fb
             adder.io.cmd.payload.sub := False
             adder.io.cmd.payload.rounding := status.roundingMode
-            result := adder.io.rsp.payload
-            busy := !adder.io.rsp.valid
-            microcode.maxCycles := 2
+            s0(RESULT) := adder.io.rsp.payload
+            s0(BUSY) := !adder.io.rsp.valid
+            s0(MAX_CYCLES) := 2
           }
           is(Opcodes.SecondaryEnum.FPSUB) {
             adder.io.cmd.valid := True
@@ -239,53 +237,53 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
             adder.io.cmd.payload.b := fb
             adder.io.cmd.payload.sub := True
             adder.io.cmd.payload.rounding := status.roundingMode
-            result := adder.io.rsp.payload
-            busy := !adder.io.rsp.valid
-            microcode.maxCycles := 2
+            s0(RESULT) := adder.io.rsp.payload
+            s0(BUSY) := !adder.io.rsp.valid
+            s0(MAX_CYCLES) := 2
           }
           is(Opcodes.SecondaryEnum.FPMUL) {
             multiplier.io.op1 := fa
             multiplier.io.op2 := fb
-            result := multiplier.io.result
-            busy := multiplier.io.cycles > 0
-            microcode.maxCycles := 3
+            s0(RESULT) := multiplier.io.result
+            s0(RESULT_AFIX) := multiplier.io.resultAfix
+            s0(BUSY) := multiplier.io.cycles > 0
+            s0(MAX_CYCLES) := 3
           }
           is(Opcodes.SecondaryEnum.FPDIV) {
             divRoot.io.op1 := fa
             divRoot.io.op2 := fb
             divRoot.io.isSqrt := False
             divRoot.io.isRem := False
-            result := divRoot.io.result
-            busy := divRoot.io.cycles > 0
-            microcode.maxCycles := 15
-            microcode.isMultiCycle := True
+            s0(RESULT) := divRoot.io.result
+            s0(RESULT_AFIX) := divRoot.io.resultAfix
+            s0(BUSY) := divRoot.io.cycles > 0
+            s0(MAX_CYCLES) := 15
           }
           is(Opcodes.SecondaryEnum.FPSQRT) {
             divRoot.io.op1 := fa
             divRoot.io.op2 := fa
             divRoot.io.isSqrt := True
             divRoot.io.isRem := False
-            result := divRoot.io.result
-            busy := divRoot.io.cycles > 0
-            microcode.maxCycles := 15
-            microcode.isMultiCycle := True
+            s0(RESULT) := divRoot.io.result
+            s0(RESULT_AFIX) := divRoot.io.resultAfix
+            s0(BUSY) := divRoot.io.cycles > 0
+            s0(MAX_CYCLES) := 15
           }
           is(Opcodes.SecondaryEnum.FPREM) {
             divRoot.io.op1 := fa
             divRoot.io.op2 := fb
             divRoot.io.isSqrt := False
             divRoot.io.isRem := True
-            result := divRoot.io.result
-            busy := divRoot.io.cycles > 0
-            microcode.maxCycles := 529
-            microcode.isMultiCycle := True
+            s0(RESULT) := divRoot.io.result
+            s0(RESULT_AFIX) := divRoot.io.resultAfix
+            s0(BUSY) := divRoot.io.cycles > 0
+            s0(MAX_CYCLES) := 529
           }
           is(Opcodes.SecondaryEnum.FPRANGE) {
             rangeReducer.io.op := fa
-            result := rangeReducer.io.result
-            busy := rangeReducer.io.cycles > 0
-            microcode.maxCycles := 17
-            microcode.isMultiCycle := True
+            s0(RESULT) := rangeReducer.io.result
+            s0(BUSY) := rangeReducer.io.cycles > 0
+            s0(MAX_CYCLES) := 17
           }
           // T805 compatibility
           is(B"01000001") { // fpusqrtfirst
@@ -293,66 +291,61 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
             divRoot.io.op2 := fa
             divRoot.io.isSqrt := True
             divRoot.io.isT805First := True
-            microcode.t805State := divRoot.io.t805State
-            microcode.isMultiCycle := True
-            microcode.maxCycles := divRoot.io.cycles
-            busy := divRoot.io.cycles > 0
+            s0(T805_STATE) := divRoot.io.t805State
+            s0(BUSY) := divRoot.io.cycles > 0
+            s0(MAX_CYCLES) := divRoot.io.cycles
           }
           is(B"01000010") { // fpusqrtstep
             divRoot.io.op1 := fa
             divRoot.io.op2 := fa
             divRoot.io.isSqrt := True
             divRoot.io.isT805Step := True
-            microcode.t805State := divRoot.io.t805State
-            microcode.isMultiCycle := True
-            microcode.maxCycles := divRoot.io.cycles
-            busy := divRoot.io.cycles > 0
+            s0(T805_STATE) := divRoot.io.t805State
+            s0(BUSY) := divRoot.io.cycles > 0
+            s0(MAX_CYCLES) := divRoot.io.cycles
           }
           is(B"01000011") { // fpusqrtlast
             divRoot.io.op1 := fa
             divRoot.io.op2 := fa
             divRoot.io.isSqrt := True
             divRoot.io.isT805Last := True
-            microcode.isMultiCycle := True
-            microcode.maxCycles := divRoot.io.cycles
-            busy := divRoot.io.cycles > 0
+            s0(BUSY) := divRoot.io.cycles > 0
+            s0(MAX_CYCLES) := divRoot.io.cycles
           }
           is(B"5F") { // fpremfirst
             divRoot.io.op1 := fa
             divRoot.io.op2 := fb
             divRoot.io.isRem := True
             divRoot.io.isT805First := True
-            microcode.t805State := divRoot.io.t805State
-            microcode.isMultiCycle := True
-            microcode.maxCycles := divRoot.io.cycles
-            busy := divRoot.io.cycles > 0
+            s0(T805_STATE) := divRoot.io.t805State
+            s0(BUSY) := divRoot.io.cycles > 0
+            s0(MAX_CYCLES) := divRoot.io.cycles
           }
           is(B"90") { // fpremstep (context dependent)
             divRoot.io.op1 := fa
             divRoot.io.op2 := fb
             divRoot.io.isRem := True
             divRoot.io.isT805Step := True
-            microcode.t805State := divRoot.io.t805State
-            microcode.isMultiCycle := True
-            microcode.maxCycles := divRoot.io.cycles
-            busy := divRoot.io.cycles > 0
+            s0(T805_STATE) := divRoot.io.t805State
+            s0(BUSY) := divRoot.io.cycles > 0
+            s0(MAX_CYCLES) := divRoot.io.cycles
           }
         }
       }
 
       when(s0.down.isFiring && !vcu.io.isSpecial) {
-        fa := result
+        fa := s0(RESULT)
         fb := fc
         fc := regfile.read(RegName.FPCreg, 0).asBits
       }
     }
 
-    // Microcode execution
-    when(microcode.isMultiCycle && busy) {
-      microcode.cycles := microcode.cycles + 1
-      when(microcode.cycles >= microcode.maxCycles) {
-        busy := False
-        microcode.cycles := 0
+    // Cycle counter
+    when(s0(BUSY)) {
+      s0(CYCLE_CNT) := s0(CYCLE_CNT) + 1
+      when(s0(CYCLE_CNT) >= s0(MAX_CYCLES)) {
+        s0(BUSY) := False
+        s0(CYCLE_CNT) := 0
       }
     }
 
@@ -363,12 +356,12 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
       def pop(): Bits = fa
       def popAfix(): AFix = AFix(fa.asSInt, 0 exp)
       def execute(opcode: Bits, operands: Vec[Bits]): Bits = {
-        fa := operands(0); fb := operands(1); result
+        fa := operands(0); fb := operands(1); s0(RESULT)
       }
       def executeAfix(opcode: Bits, operands: Vec[AFix]): AFix = {
-        fa := operands(0).raw; fb := operands(1).raw; resultAfix
+        fa := operands(0).raw; fb := operands(1).raw; s0(RESULT_AFIX)
       }
-      def isBusy: Bool = busy
+      def isBusy: Bool = s0(BUSY)
       def setRoundingMode(mode: Bits): Unit = { status.roundingMode := mode }
       def getErrorFlags: Bits = status.errorFlags
       def clearErrorFlags: Unit = { status.errorFlags := 0 }
