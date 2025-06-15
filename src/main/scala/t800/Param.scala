@@ -18,7 +18,7 @@ case class Param(
 
   def pluginsArea(hartId: Int = 0) = new Area {
     val plugins = ArrayBuffer[Hostable]()
-    plugins += new t800.plugins.TransputerPlugin(
+    plugins += new t800.plugins.transputer.TransputerPlugin(
       wordBits = wordWidth,
       linkCount = linkCount
     )

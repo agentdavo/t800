@@ -46,7 +46,7 @@ lazy val t800 = (project in file("."))
         "Param.scala",
         "Generate.scala",
         "SystemBusSrv.scala",
-        "TransputerPlugin.scala",
+        "transputer/TransputerPlugin.scala",
       )
       val srcDir = (Compile / scalaSource).value
       val selected = (srcDir ** "*.scala").get.filter(f =>

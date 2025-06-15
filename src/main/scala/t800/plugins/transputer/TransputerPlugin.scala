@@ -1,4 +1,4 @@
-package t800.plugins
+package t800.plugins.transputer
 
 import spinal.core._
 import spinal.lib.misc.database.{Database, Element}

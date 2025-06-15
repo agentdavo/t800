@@ -7,6 +7,7 @@ import spinal.lib.misc.plugin.PluginHost
 import t800.plugins._
 import t800.{DummyTimerPlugin, DummyFpuPlugin}
 import t800.plugins.schedule.{SchedulerPlugin, SchedSrv}
+import t800.plugins.grouper.GrouperPlugin
 
 class SchedulerSaveSpec extends AnyFunSuite {
   test("LEND re-enqueues current workspace") {
