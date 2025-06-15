@@ -8,7 +8,9 @@ import spinal.lib.misc.pipeline._
 import t800.plugins.pmi.PmiPlugin
 import t800.plugins.cache.{MainCachePlugin, WorkspaceCachePlugin, CacheAccessSrv}
 import t800.plugins.schedule.SchedulerPlugin
-import t800.{Global, Fetch}
+import t800.plugins.{TrapHandlerSrv, ConfigAccessSrv, AddressTranslationSrv, PipelineSrv, RegfileService, Fetch}
+import t800.plugins.registers.RegName
+import t800.{Global, T800}
 
 class MemoryManagementPlugin extends FiberPlugin {
   val version = "MemoryManagementPlugin v1.5"
@@ -78,6 +80,7 @@ class MemoryManagementPlugin extends FiberPlugin {
   lazy val logic = during build new Area {
     println(s"[${this.getDisplayName()}] build start")
     val pipe = host[PipelineSrv]
+    val regfile = host[RegfileService]
     val fetch = pipe.ctrl(0) // Fetch stage
     val decode = pipe.ctrl(2) // Decode stage
     val execute = pipe.ctrl(3) // Execute stage
