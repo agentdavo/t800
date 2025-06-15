@@ -4,11 +4,11 @@ import spinal.core._
 import spinal.lib._
 import spinal.lib.misc.pipeline._
 
-trait PipelineService {
+trait PipelineSrv {
   def getLinks(): Seq[Link]
 }
 
-trait PipelineSrv {
+trait PipelineStageSrv {
   def fetch: CtrlLink
   def decode: CtrlLink
   def execute: CtrlLink

@@ -56,8 +56,8 @@ case class ChannelTxCmd() extends Bundle {
 }
 
 case class ChannelPins(count: Int) extends Bundle with LinkPins {
-  val in = Vec(slave Stream(Bits(Global.WORD_BITS bits)), count)
-  val out = Vec(master Stream(Bits(Global.WORD_BITS bits)), count)
+  val in = Vec(slave Stream (Bits(Global.WORD_BITS bits)), count)
+  val out = Vec(master Stream (Bits(Global.WORD_BITS bits)), count)
 }
 
 trait ChannelSrv {

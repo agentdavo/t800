@@ -7,12 +7,12 @@ import spinal.lib.misc.pipeline._
 import spinal.core.fiber.Retainer
 import spinal.lib.bus.bmb.{Bmb, BmbParameter, BmbUnburstify, BmbDownSizerBridge}
 import t800.{Global, T800, Opcodes}
-import t800.plugins.{PipelineSrv, RegfileService, SystemBusSrv, TrapHandlerSrv}
+import t800.plugins.{RegfileSrv, SystemBusSrv, TrapHandlerSrv}
 import t800.plugins.registers.RegName
-import t800.plugins.pipeline.PipelineService
+import t800.plugins.pipeline.{PipelineSrv, PipelineStageSrv}
 import t800.plugins.fpu.Utils._
 
-class FpuPlugin extends FiberPlugin with PipelineService {
+class FpuPlugin extends FiberPlugin with PipelineSrv {
   val version = "FpuPlugin v0.3"
   private val retain = Retainer()
 
@@ -27,8 +27,8 @@ class FpuPlugin extends FiberPlugin with PipelineService {
     println(s"[${this.getDisplayName()}] build start")
     retain.await()
     implicit val h: PluginHost = host
-    val pipe = Plugin[PipelineSrv]
-    val regfile = Plugin[RegfileService]
+    val pipe = Plugin[PipelineStageSrv]
+    val regfile = Plugin[RegfileSrv]
     val systemBus = Plugin[SystemBusSrv].bus
     val trap = Plugin[TrapHandlerSrv]
 
@@ -349,7 +349,7 @@ class FpuPlugin extends FiberPlugin with PipelineService {
     }
 
     // Service implementation
-    addService(new FpuService {
+    addService(new FpuOpsSrv {
       def push(operand: Bits): Unit = { fc := fb; fb := fa; fa := operand }
       def pushAfix(operand: AFix): Unit = { push(operand.raw) }
       def pop(): Bits = fa

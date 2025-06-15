@@ -199,7 +199,7 @@ Plugins exchange data through small service traits:
 | `ChannelPinsSrv` | External channel link pins. |
 | `ChannelDmaSrv` | DMA command stream for channel transfers. |
 | `GroupedInstrSrv` | Flow of instruction groups (up to eight opcodes). |
-| `PipelineSrv` | Global pipeline stage handles and payloads. |
+| `PipelineStageSrv` | Global pipeline stage handles and payloads. |
 
 ---
 

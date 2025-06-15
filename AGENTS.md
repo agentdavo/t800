@@ -46,6 +46,9 @@ sbt "runMain t800.TopVerilog"
   addService(LinkPins(io.links))
   ```
 
+* All service trait names **must** end in `Srv`. Replace any older `Service`
+  suffixes accordingly (`RegfileSrv`, `FpuOpsSrv`, ...).
+
 * Dataflow inside a plugin **must** use Pipeline DSL (`Node`, `StageLink`, `CtrlLink`), not ad-hoc `RegNext`.
 
 * Each new opcode requires a unit test that drives bytes through fetch and checks A/B/C or memory.

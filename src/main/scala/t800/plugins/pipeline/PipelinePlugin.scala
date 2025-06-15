@@ -5,7 +5,7 @@ import spinal.lib.misc.pipeline._
 import spinal.core.fiber.Retainer
 import spinal.lib.misc.plugin._
 import t800.Global
-import t800.plugins.pipeline.PipelineSrv
+import t800.plugins.pipeline.PipelineStageSrv
 
 /** Defines the global CPU pipeline structure and exposes stage handles. */
 class PipelinePlugin extends FiberPlugin {
@@ -44,7 +44,7 @@ class PipelinePlugin extends FiberPlugin {
   during build new Area {
     println(s"[${this.getDisplayName()}] build start")
     pipeline.build()
-    addService(new PipelineSrv {
+    addService(new PipelineStageSrv {
       override def fetch = fetchReg
       override def decode = decodeReg
       override def execute = executeReg

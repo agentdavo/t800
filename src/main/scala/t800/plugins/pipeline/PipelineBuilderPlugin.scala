@@ -5,7 +5,7 @@ import spinal.lib.misc.plugin.{PluginHost, FiberPlugin}
 import spinal.lib.misc.pipeline._
 import spinal.core.fiber.Retainer
 import t800.{Global, T800}
-import t800.plugins.pipeline.PipelineSrv
+import t800.plugins.pipeline.PipelineStageSrv
 
 class PipelineBuilderPlugin extends FiberPlugin {
   val version = "PipelineBuilderPlugin v0.5"

@@ -7,12 +7,12 @@ import spinal.lib.misc.plugin.FiberPlugin
 import spinal.core.fiber.Retainer
 import spinal.lib.bus.bmb.{Bmb, BmbParameter, BmbDownSizerBridge, BmbUnburstify}
 import t800.{Global, Opcodes, T800}
-import t800.plugins.{RegfileService, Fetch, GrouperPlugin, GroupedInstrSrv, SystemBusSrv}
+import t800.plugins.{RegfileSrv, Fetch, GrouperPlugin, GroupedInstrSrv, SystemBusSrv}
 import t800.plugins.registers.RegName
-import t800.plugins.pipeline.{PipelineService, PipelineSrv}
+import t800.plugins.pipeline.{PipelineSrv, PipelineStageSrv}
 
 /** Implements primary instruction decoding and execution, receiving opcodes from FetchPlugin or GrouperPlugin, and accessing 128-bit system bus via BMB. */
-class PrimaryInstrPlugin extends FiberPlugin with PipelineService {
+class PrimaryInstrPlugin extends FiberPlugin with PipelineSrv {
   val version = "PrimaryInstrPlugin v0.6"
   private val retain = Retainer()
 
@@ -26,8 +26,8 @@ class PrimaryInstrPlugin extends FiberPlugin with PipelineService {
   during build new Area {
     println(s"[${this.getDisplayName()}] build start")
     retain.await()
-    val regfile = Plugin[RegfileService]
-    val pipe = Plugin[PipelineSrv]
+    val regfile = Plugin[RegfileSrv]
+    val pipe = Plugin[PipelineStageSrv]
     val systemBus = Plugin[SystemBusSrv].bus // 128-bit BMB system bus
     val grouper = try Plugin[GroupedInstrSrv] catch { case _: Exception => null } // Optional GrouperPlugin
 

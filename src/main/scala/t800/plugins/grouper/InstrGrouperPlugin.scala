@@ -6,15 +6,15 @@ import spinal.lib.misc.plugin.{PluginHost, FiberPlugin}
 import spinal.lib.misc.pipeline._
 import spinal.core.fiber.Retainer
 import t800.{Global, Opcodes}
-import t800.plugins.{RegfileService, Fetch}
+import t800.plugins.{RegfileSrv, Fetch}
 import t800.plugins.registers.RegName
-import t800.plugins.pipeline.{PipelineService, PipelineSrv}
+import t800.plugins.pipeline.{PipelineSrv, PipelineStageSrv}
 
 /** Assembles groups of up to eight instructions from the fetch stage,
   * respecting pipeline stage constraints and dependencies,
   * for delivery to the PrimaryInstrPlugin (decode) stage.
   */
-class GrouperPlugin extends FiberPlugin with PipelineService {
+class GrouperPlugin extends FiberPlugin with PipelineSrv {
   val version = "GrouperPlugin v0.5"
   private val retain = Retainer()
 
@@ -45,8 +45,8 @@ class GrouperPlugin extends FiberPlugin with PipelineService {
     println(s"[${this.getDisplayName()}] build start")
     retain.await()
     implicit val h: PluginHost = host
-    val pipe = Plugin[PipelineSrv]
-    val regfile = Plugin[RegfileService]
+    val pipe = Plugin[PipelineStageSrv]
+    val regfile = Plugin[RegfileSrv]
 
     val out = CtrlLink()
     val toDecode = StageLink(out.down, pipe.decode.up)

@@ -36,7 +36,7 @@ Special values
 
     The Utils object exposes `genNaN` and `genInfinity(sign)` helpers.
     These 64-bit constants are supplied to the VCU and can also be pushed
-    to FA/FB via `FpuService.push`.
+    to FA/FB via `FpuOpsSrv.push`.
 
 Supported Instructions
 

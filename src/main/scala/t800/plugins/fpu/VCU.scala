@@ -45,9 +45,9 @@ class FpuVCU extends Component {
     val sign = value(63)
     val mantissa = value(51 downto 0)
     val shift = CountLeadingZeroes(mantissa)
-    val exponent = (S(1) - shift.asSInt).resized(11)
+    val exponent = (S(1, 11 bits) - shift.asSInt.resize(11)).asBits
     val normMantissa = (mantissa |<< shift)(51 downto 0)
-    sign ## exponent.asBits(10 downto 0) ## normMantissa
+    sign ## exponent ## normMantissa
   }
 
   io.isSpecial := isNaN || isInfinity || isDenormal || isZero

@@ -34,7 +34,7 @@ trait FpuSrv {
   def result: UInt = rsp.payload
 }
 
-trait FpuService {
+trait FpuOpsSrv {
   def push(operand: Bits): Unit // Push to FA/FB
   def pushAfix(operand: AFix): Unit // Push AFix operand
   def pop(): Bits // Pop from FA

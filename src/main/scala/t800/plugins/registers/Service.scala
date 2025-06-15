@@ -19,11 +19,10 @@ case class T9000RegFileSpec() extends RegfileSpec {
 }
 
 object RegName extends SpinalEnum {
-  val Areg, Breg, Creg, WdescReg, IptrReg, StatusReg, ThReg, FPstatusReg,
-      FPAreg, FPBreg, FPCreg, BMreg0, BMreg1, BMreg2, WIReg, WuReg,
-      Ereg, Xreg, EptrReg, RegionReg0, RegionReg1, RegionReg2, RegionReg3,
-      PstateReg, WdescStubReg, FptrReg0, FptrReg1, BptrReg0, BptrReg1,
-      ClockReg0, ClockReg1, TptrReg0, TptrReg1, TnextReg0, TnextReg1 = newElement()
+  val Areg, Breg, Creg, WdescReg, IptrReg, StatusReg, ThReg, FPstatusReg, FPAreg, FPBreg, FPCreg,
+    BMreg0, BMreg1, BMreg2, WIReg, WuReg, Ereg, Xreg, EptrReg, RegionReg0, RegionReg1, RegionReg2,
+    RegionReg3, PstateReg, WdescStubReg, FptrReg0, FptrReg1, BptrReg0, BptrReg1, ClockReg0,
+    ClockReg1, TptrReg0, TptrReg1, TnextReg0, TnextReg1 = newElement()
 }
 
 case class StatusRegBits() extends Bundle {
@@ -53,7 +52,9 @@ case class StatusRegBits() extends Bundle {
 
 case class RegFilePortParam(addressWidth: Int, dataWidth: Int, processIdWidth: Int)
 
-case class RegFileRead(rfpp: RegFilePortParam, withReady: Boolean) extends Bundle with IMasterSlave {
+case class RegFileRead(rfpp: RegFilePortParam, withReady: Boolean)
+    extends Bundle
+    with IMasterSlave {
   val valid = Bool()
   val ready = withReady generate Bool()
   val address = UInt(rfpp.addressWidth bits)
@@ -66,7 +67,9 @@ case class RegFileRead(rfpp: RegFilePortParam, withReady: Boolean) extends Bundl
   }
 }
 
-case class RegFileWrite(rfpp: RegFilePortParam, withReady: Boolean) extends Bundle with IMasterSlave {
+case class RegFileWrite(rfpp: RegFilePortParam, withReady: Boolean)
+    extends Bundle
+    with IMasterSlave {
   val valid = Bool()
   val ready = withReady generate Bool()
   val address = UInt(rfpp.addressWidth bits)
@@ -79,7 +82,7 @@ case class RegFileWrite(rfpp: RegFilePortParam, withReady: Boolean) extends Bund
   }
 }
 
-trait RegfileService {
+trait RegfileSrv {
   def rfSpec: T9000RegFileSpec
   def getPhysicalDepth: Int
   def writeLatency: Int
@@ -89,7 +92,12 @@ trait RegfileService {
   def readShadow(reg: RegName.C, processId: UInt): Bits
   def writeShadow(reg: RegName.C, data: Bits, processId: UInt): Unit
   def readStatusBit(field: StatusRegBits => Bool, processId: UInt, shadow: Boolean): Bool
-  def writeStatusBit(field: StatusRegBits => Bool, value: Bool, processId: UInt, shadow: Boolean): Unit
+  def writeStatusBit(
+    field: StatusRegBits => Bool,
+    value: Bool,
+    processId: UInt,
+    shadow: Boolean
+  ): Unit
   def copyToShadow(processId: UInt): Unit
   def restoreFromShadow(processId: UInt): Unit
 }

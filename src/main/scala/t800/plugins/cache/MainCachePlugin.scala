@@ -8,7 +8,7 @@ import spinal.lib.misc.pipeline._
 import spinal.lib.bus.bmb.{Bmb, BmbParameter, BmbAccessParameter, BmbOnChipRamMultiPort, BmbUnburstify, BmbArbiter, BmbDecoder, BmbDownSizerBridge}
 import t800.plugins.pmi.PmiPlugin
 import t800.plugins.{AddressTranslationSrv, WorkspaceCacheSrv, SystemBusSrv, Fetch}
-import t800.plugins.pipeline.PipelineSrv
+import t800.plugins.pipeline.PipelineStageSrv
 import t800.{Global, T800}
 
 class MainCachePlugin extends FiberPlugin {
@@ -69,7 +69,7 @@ class MainCachePlugin extends FiberPlugin {
 
   lazy val logic = during build new Area {
     println(s"[${this.getDisplayName()}] build start")
-    val pipe = host[PipelineSrv]
+    val pipe = host[PipelineStageSrv]
     val fetch = pipe.ctrl(0) // Fetch stage
     val memory = pipe.ctrl(3) // Memory stage
     val systemBus = host[SystemBusSrv].bus // 128-bit BMB system bus
