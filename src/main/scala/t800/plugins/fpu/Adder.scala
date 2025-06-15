@@ -9,10 +9,10 @@ class FpuAdder extends Area {
     val op1 = in Bits(64 bits)
     val op2 = in Bits(64 bits)
     val isAdd = in Bool()
-    val isExpInc = in Bool() // fpexpinc32
-    val isExpDec = in Bool() // fpexpdec32
-    val isMulBy2 = in Bool() // fpmulby2
-    val isDivBy2 = in Bool() // fpdivby2
+    val isExpInc = in Bool()
+    val isExpDec = in Bool()
+    val isMulBy2 = in Bool()
+    val isDivBy2 = in Bool()
     val roundingMode = in Bits(2 bits)
     val result = out Bits(64 bits)
     val cycles = out UInt(2 bits)
@@ -21,6 +21,8 @@ class FpuAdder extends Area {
   // Parse IEEE-754 operands
   val op1Parsed = parseIeee754(io.op1)
   val op2Parsed = parseIeee754(io.op2)
+  val op1Afix = AFix(op1Parsed.mantissa.asUInt, 52 bit, 0 exp)
+  val op2Afix = AFix(op2Parsed.mantissa.asUInt, 52 bit, 0 exp)
 
   // Exponent operations
   val exponent = MuxCase(op1Parsed.exponent, Seq(
@@ -36,23 +38,28 @@ class FpuAdder extends Area {
     // Addition/subtraction
     val expDiff = op1Parsed.exponent - op2Parsed.exponent
     val alignShift = expDiff.abs.asUInt
-    val mantissa1 = op1Parsed.mantissa
-    val mantissa2 = op2Parsed.mantissa >> alignShift
     val maxExponent = Mux(expDiff >= 0, op1Parsed.exponent, op2Parsed.exponent)
+    val mantissa2Shifted = op2Afix >> alignShift.toInt
 
-    val mantissaSum = Mux(io.isAdd, mantissa1 + mantissa2, mantissa1 - mantissa2)
-    val sumSign = op1Parsed.sign // Simplified
-    val sumOverflow = mantissaSum(53)
+    val mantissaSum = Mux(io.isAdd, op1Afix + mantissa2Shifted, op1Afix - mantissa2Shifted)
+    val sumSign = op1Parsed.sign
+    val sumOverflow = mantissaSum.raw(mantissaSum.bitWidth - 1)
 
     // Normalization
-    val normShift = leadingOne(mantissaSum)
-    val normMantissa = mantissaSum << normShift
+    val normShift = leadingOne(mantissaSum.raw)
+    val normMantissa = mantissaSum << normShift.toInt
     val normExponent = maxExponent - normShift.asSInt
 
     // Rounding
-    val roundedMantissa = roundIeee754(normMantissa, io.roundingMode)
+    val roundType = io.roundingMode.mux(
+      0 -> RoundType.ROUNDTOEVEN,
+      1 -> RoundType.FLOORTOZERO,
+      2 -> RoundType.CEIL,
+      3 -> RoundType.FLOOR
+    )
+    val roundedMantissa = normMantissa.round(0, roundType)
 
-    io.result := packIeee754(sumSign, normExponent, roundedMantissa)
+    io.result := packIeee754(sumSign, normExponent, roundedMantissa.raw)
     io.cycles := 2
   }
 }
