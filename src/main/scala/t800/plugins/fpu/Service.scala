@@ -5,9 +5,15 @@ import spinal.lib._
 import spinal.lib.misc.pipeline._
 import t800.Global
 
-case class FpCmd() extends Bundle {
-  val op = FpOp()
+/** Command container for the simple FPU service. */
+case class FpCmd(op: FpOp.E = FpOp.ADD,
+                 opa: UInt = null,
+                 opb: UInt = null) extends Bundle {
+  /** Selected operation */
+  val op  = FpOp()
+  /** Operand A */
   val opa = UInt(Global.WORD_BITS bits)
+  /** Operand B */
   val opb = UInt(Global.WORD_BITS bits)
 }
 
