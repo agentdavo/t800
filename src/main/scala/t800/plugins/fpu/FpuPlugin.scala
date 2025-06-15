@@ -115,7 +115,7 @@ class FpuPlugin extends FiberPlugin with PipelineService {
       when(vcu.io.isSpecial) {
         result := vcu.io.specialResult
         when(vcu.io.trapEnable) {
-          trap.trapType := 0x4
+          trap.trapType := vcu.io.trapType.asBits
           trap.trapAddr := pipe.execute(Fetch.FETCH_PC)
           status.errorFlags(3) := True
         }
@@ -174,7 +174,7 @@ class FpuPlugin extends FiberPlugin with PipelineService {
           // Error ops
           is(Opcodes.SecondaryEnum.FPCHKERR) {
             when(status.errorFlags.orR) {
-              trap.trapType := 0x4
+              trap.trapType := vcu.io.trapType.asBits
               trap.trapAddr := pipe.execute(Fetch.FETCH_PC)
             }
           }
@@ -318,7 +318,7 @@ class FpuPlugin extends FiberPlugin with PipelineService {
       def specialValueDetected: Bool = vcu.io.isSpecial
       def specialResult: Bits = vcu.io.specialResult
       def trapEnable: Bool = vcu.io.trapEnable
-      def trapType: UInt = 0x4
+      def trapType: UInt = vcu.io.trapType
       def roundingMode: Bits = status.roundingMode
     })
 
