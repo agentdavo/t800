@@ -18,7 +18,7 @@ object Utils {
     assert(value.getWidth == 32, "Input to parseIeee754Single must be 32 bits")
     val sign = value(31)
     val exponent = value(30 downto 23).asSInt
-    val mantissa = value(22 downto 0) @@ B(0, 29 bits)
+    val mantissa = value(22 downto 0) ## B(0, 29 bits)
     Ieee754Format(sign, exponent, mantissa)
   }
 
@@ -80,7 +80,7 @@ object Utils {
     val parsed = parseIeee75432(value)
     val sign = parsed.sign
     val exponent = parsed.exponent + 1023 - 127
-    val mantissa = parsed.mantissa @@ B(0, 29 bits)
+    val mantissa = parsed.mantissa ## B(0, 29 bits)
     packIeee754(sign, exponent, mantissa)
   }
 
@@ -110,7 +110,7 @@ object Utils {
     val afix = AFix(value, 0 exp)
     val sign = afix.isNegative()
     val exponent = 1023
-    val mantissa = afix.raw(31 downto 0) @@ B(0, 20 bits)
+    val mantissa = afix.raw(31 downto 0) ## B(0, 20 bits)
     packIeee754(sign, exponent, mantissa)
   }
 
@@ -118,7 +118,7 @@ object Utils {
     val afix = AFix(value.asUInt, 32 bit, 0 exp)
     val sign = False
     val exponent = 1023
-    val mantissa = afix.raw(31 downto 0) @@ B(0, 20 bits)
+    val mantissa = afix.raw(31 downto 0) ## B(0, 20 bits)
     packIeee754(sign, exponent, mantissa)
   }
 }
