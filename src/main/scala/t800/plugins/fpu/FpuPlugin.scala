@@ -75,6 +75,12 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
     val rangeReducer = new FpuRangeReducer
     val vcu = new FpuVCU
 
+    // Service command/response
+    val srvCmd = Flow(FpCmd())
+    srvCmd.setIdle()
+    val srvRsp = Flow(UInt(64 bits))
+    srvRsp.setIdle()
+
     // Default adder handshake
     adder.io.cmd.valid := False
     adder.io.cmd.payload.a := B(0, 64 bits)
@@ -387,6 +393,15 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
         fb := fc
         fc := regfile.read(RegName.FPCreg, 0).asBits
       }
+
+      // Service command handling
+      srvRsp.valid := False
+      srvRsp.payload := s0(RESULT)
+      when(srvCmd.valid) {
+        fa := srvCmd.payload.a
+        fb := srvCmd.payload.b
+        srvRsp.valid := True
+      }
     }
 
     // Cycle counter
@@ -412,6 +427,11 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
       def setRoundingMode(mode: Bits): Unit = { status.roundingMode := mode }
       def getErrorFlags: Bits = status.errorFlags
       def clearErrorFlags: Unit = { status.errorFlags := 0 }
+    })
+
+    addService(new FpuSrv {
+      def pipe: Flow[FpCmd] = srvCmd
+      def rsp: Flow[UInt] = srvRsp
     })
 
     addService(new FpuControlSrv {

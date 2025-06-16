@@ -24,15 +24,16 @@ class FpuDut extends Component {
   PluginHost(host).on(new T800(host, plugins))
 
   val fpu = host[FpuOpsSrv]
+  val fpuSrv = host[FpuSrv]
   val ctrl = host[FpuControlSrv]
 
-  val result = fpu.execute(io.op.asBits, Vec(io.a, io.b))
   when(io.cmdValid) {
+    fpuSrv.send(io.op, io.a.asUInt, io.b.asUInt)
     fpu.setRoundingMode(io.rounding)
     fpu.clearErrorFlags
   }
-  io.rsp := result
-  io.rspValid := io.cmdValid
+  io.rsp := fpuSrv.rsp.payload
+  io.rspValid := fpuSrv.rsp.valid && io.cmdValid
 }
 
 class FpuPluginSpec extends AnyFunSuite {
