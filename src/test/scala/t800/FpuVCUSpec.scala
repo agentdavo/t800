@@ -115,6 +115,10 @@ class FpuVCUSpec extends AnyFunSuite {
     run(one, one, 0x93) { dut => assert(dut.io.cmp.toBoolean) }
   }
 
+  test("FPEQ returns false on NaN") {
+    run(nan, nan, 0x95) { dut => assert(!dut.io.cmp.toBoolean) }
+  }
+
   test("trapEnable on fpchkerr") {
     run(posInf, one, 0x83) { dut => assert(dut.io.trapEnable.toBoolean) }
     run(posInf, one, 0x94) { dut => assert(!dut.io.trapEnable.toBoolean) }
