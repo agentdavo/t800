@@ -68,6 +68,14 @@ class FpuVCUSpec extends AnyFunSuite {
     }
   }
 
+  test("detect NaN in operand B") {
+    run(one, nan, 0x94) { dut =>
+      assert(dut.io.isSpecial.toBoolean)
+      assert(dut.io.trapEnable.toBoolean)
+      assert(dut.io.specialResult.toBigInt == nan)
+    }
+  }
+
   test("detect infinities and sign propagate") {
     run(posInf, two, 0x94) { dut =>
       assert(dut.io.isSpecial.toBoolean)
@@ -88,6 +96,11 @@ class FpuVCUSpec extends AnyFunSuite {
       assert(dut.io.trapEnable.toBoolean)
       assert(dut.io.specialResult.toBigInt == expected)
     }
+    run(one, denorm, 0x94) { dut =>
+      assert(dut.io.isSpecial.toBoolean)
+      assert(dut.io.trapEnable.toBoolean)
+      assert(dut.io.specialResult.toBigInt == expected)
+    }
   }
 
   test("propagate zero sign") {
@@ -96,6 +109,10 @@ class FpuVCUSpec extends AnyFunSuite {
       assert(dut.io.specialResult.toBigInt == posZero)
     }
     run(negZero, posZero, 0x94) { dut =>
+      assert(dut.io.isSpecial.toBoolean)
+      assert(dut.io.specialResult.toBigInt == negZero)
+    }
+    run(posZero, negZero, 0x94) { dut =>
       assert(dut.io.isSpecial.toBoolean)
       assert(dut.io.specialResult.toBigInt == negZero)
     }
