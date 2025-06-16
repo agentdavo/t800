@@ -46,8 +46,8 @@ class DummyFpuPlugin extends FiberPlugin {
       override def send(op: FpOp.E, a: UInt, b: UInt): Unit = {
         pipeReg.valid := True
         pipeReg.payload.op := op
-        pipeReg.payload.opa := a
-        pipeReg.payload.opb := b
+        pipeReg.payload.a := a.asBits
+        pipeReg.payload.b := b.asBits
       }
       override def resultValid: Bool = rspReg.valid
       override def result: UInt = rspReg.payload
