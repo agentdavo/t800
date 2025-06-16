@@ -16,6 +16,7 @@ FpuControlSrv
     setRoundingMode(mode: Bits): Sets rounding mode.
     getErrorFlags: Bits: Retrieves error flags (overflow, underflow, etc.).
     clearErrorFlags: Clears error flags.
+    isFpuBusy(opcode: Bits): Bool: True when the FPU pipeline is executing.
 
 Vector Control Unit (VCU)
 

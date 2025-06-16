@@ -440,6 +440,10 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
       def trapEnable: Bool = vcu.io.trapEnable
       def trapType: UInt = vcu.io.trapType
       def roundingMode: Bits = status.roundingMode
+      def setRoundingMode(mode: Bits): Unit = { status.roundingMode := mode }
+      def getErrorFlags: Bits = status.errorFlags
+      def clearErrorFlags: Unit = { status.errorFlags := 0 }
+      def isFpuBusy(opcode: Bits): Bool = s0(CYCLE_CNT) < s0(MAX_CYCLES)
     })
 
     fpPipe.build()
