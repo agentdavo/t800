@@ -7,8 +7,8 @@ import t800.plugins.fpu.{FpuAdder, Adder}
 
 class FpuAdderDut extends Component {
   val io = new Bundle {
-    val cmd = slave Stream(Adder.Cmd())
-    val rsp = master Stream(Bits(64 bits))
+    val cmd = slave Stream (Adder.Cmd())
+    val rsp = master Stream (Bits(64 bits))
   }
   val add = new FpuAdder
   io.cmd >> add.io.cmd
@@ -16,7 +16,7 @@ class FpuAdderDut extends Component {
 }
 
 class FpuAdderSpec extends AnyFunSuite {
-  private def run(a: Double, b: Double, sub: Boolean = false): Double = {
+  private def run(a: Double, b: Double, sub: Boolean = false, rounding: Int = 0): Double = {
     var res = 0.0
     SimConfig.compile(new FpuAdderDut).doSim { dut =>
       dut.clockDomain.forkStimulus(10)
@@ -24,10 +24,10 @@ class FpuAdderSpec extends AnyFunSuite {
       dut.io.cmd.payload.a #= BigInt(java.lang.Double.doubleToRawLongBits(a))
       dut.io.cmd.payload.b #= BigInt(java.lang.Double.doubleToRawLongBits(b))
       dut.io.cmd.payload.sub #= sub
-      dut.io.cmd.payload.rounding #= 0
+      dut.io.cmd.payload.rounding #= rounding
       dut.clockDomain.waitSampling()
       dut.io.cmd.valid #= false
-      while(!dut.io.rsp.valid.toBoolean) dut.clockDomain.waitSampling()
+      while (!dut.io.rsp.valid.toBoolean) dut.clockDomain.waitSampling()
       res = java.lang.Double.longBitsToDouble(dut.io.rsp.payload.toLong)
     }
     res
@@ -49,5 +49,14 @@ class FpuAdderSpec extends AnyFunSuite {
     val d = java.lang.Double.MIN_VALUE
     assert(run(d, d) == d * 2)
   }
-}
 
+  test("opposite signs") {
+    assert(math.abs(run(2.5, -1.25) - 1.25) < 1e-12)
+  }
+
+  test("rounding to minus") {
+    val eps = math.pow(2, -54)
+    val expected = java.lang.Double.longBitsToDouble(java.lang.Double.doubleToRawLongBits(-1.0) + 1)
+    assert(run(-1.0, -eps, rounding = 3) == expected)
+  }
+}
