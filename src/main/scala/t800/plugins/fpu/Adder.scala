@@ -93,7 +93,7 @@ class FpuAdder extends Component {
     val normMan = (sumAdj << lz).resize(53)
     val normExpPre = expAdj - lz.asSInt
     val normExp = normExpPre.max(S(0)).min(S(0x7ff))
-    val rounded = roundIeee754(AFix(normMan, 53 bit, 0 exp), s1(ROUND))
+    val rounded = roundIeee754(AFix(normMan.resize(53), 0 exp), s1(ROUND))
     s1(RESULT) := packIeee754(signRes, normExp, rounded.raw(51 downto 0))
   }
 

@@ -22,8 +22,7 @@ object Utils {
     Ieee754Format(sign, exponent, mantissa)
   }
 
-  /**
-    * Parse a 32-bit IEEE‑754 value keeping the original 23-bit mantissa.
+  /** Parse a 32-bit IEEE‑754 value keeping the original 23-bit mantissa.
     */
   def parseIeee75432(value: Bits): Ieee754Format = {
     assert(value.getWidth == 32, "Input to parseIeee75432 must be 32 bits")
@@ -47,8 +46,8 @@ object Utils {
     val roundType = mode.mux(
       0 -> RoundType.ROUNDTOEVEN, // fprn
       1 -> RoundType.FLOORTOZERO, // fprz
-      2 -> RoundType.CEIL,        // fprp
-      3 -> RoundType.FLOOR        // fprm
+      2 -> RoundType.CEIL, // fprp
+      3 -> RoundType.FLOOR // fprm
     )
     mantissa.round(0, roundType)
   }
@@ -57,8 +56,8 @@ object Utils {
 
   def classifyIeee754(value: Bits): Ieee754Class = {
     val parsed = parseIeee754(value)
-    val isNaN = parsed.exponent === 0x7FF && parsed.mantissa =/= 0
-    val isInfinity = parsed.exponent === 0x7FF && parsed.mantissa === 0
+    val isNaN = parsed.exponent === 0x7ff && parsed.mantissa =/= 0
+    val isInfinity = parsed.exponent === 0x7ff && parsed.mantissa === 0
     val isDenormal = parsed.exponent === 0 && parsed.mantissa =/= 0
     val isZero = parsed.exponent === 0 && parsed.mantissa === 0
     Ieee754Class(isNaN, isInfinity, isDenormal, isZero, parsed.sign)
@@ -66,8 +65,8 @@ object Utils {
 
   def classifyIeee754Single(value: Bits): Ieee754Class = {
     val parsed = parseIeee754Single(value)
-    val isNaN = parsed.exponent === 0xFF && parsed.mantissa(51 downto 29) =/= 0
-    val isInfinity = parsed.exponent === 0xFF && parsed.mantissa(51 downto 29) === 0
+    val isNaN = parsed.exponent === 0xff && parsed.mantissa(51 downto 29) =/= 0
+    val isInfinity = parsed.exponent === 0xff && parsed.mantissa(51 downto 29) === 0
     val isDenormal = parsed.exponent === 0 && parsed.mantissa(51 downto 29) =/= 0
     val isZero = parsed.exponent === 0 && parsed.mantissa(51 downto 29) === 0
     Ieee754Class(isNaN, isInfinity, isDenormal, isZero, parsed.sign)
@@ -85,16 +84,17 @@ object Utils {
   }
 
   def real64ToReal32(value: Bits, roundMode: Bits): Bits = {
-    val afix = AFix(value.asSInt, 64 bit, 0 exp)
+    val afix = AFix(value.asSInt.resize(64), 0 exp)
     val parsed = parseIeee754(afix.raw)
     val sign = parsed.sign
     val exponent = parsed.exponent - 1023 + 127
-    val mantissa = roundIeee754(AFix(parsed.mantissa.asUInt, 52 bit, 0 exp), roundMode).raw(51 downto 29)
+    val mantissa =
+      roundIeee754(AFix(parsed.mantissa.asUInt.resize(52), 0 exp), roundMode).raw(51 downto 29)
     packIeee754Single(sign, exponent, mantissa)
   }
 
   def realToInt32(value: Bits): SInt = {
-    val afix = AFix(value.asSInt, 64 bit, 0 exp)
+    val afix = AFix(value.asSInt.resize(64), 0 exp)
     afix.asSInt.resize(32)
   }
 
@@ -115,7 +115,7 @@ object Utils {
   }
 
   def bit32ToReal64(value: Bits): Bits = {
-    val afix = AFix(value.asUInt, 32 bit, 0 exp)
+    val afix = AFix(value.asUInt.resize(32), 0 exp)
     val sign = False
     val exponent = 1023
     val mantissa = afix.raw(31 downto 0) @@ B(0, 20 bits)
