@@ -6,18 +6,18 @@ import t800.plugins.fpu.Utils._
 
 class FpuDivRoot extends Area {
   val io = new Bundle {
-    val op1 = in Bits(64 bits)
-    val op2 = in Bits(64 bits)
-    val isSqrt = in Bool()
-    val isRem = in Bool()
-    val isT805Step = in Bool()
-    val isT805First = in Bool()
-    val isT805Last = in Bool()
-    val roundingMode = in Bits(2 bits)
-    val result = out Bits(64 bits)
-    val resultAfix = out AFix(UQ(56 bit, 0 bit))
-    val cycles = out UInt(10 bits)
-    val t805State = out Bits(64 bits)
+    val op1 = in Bits (64 bits)
+    val op2 = in Bits (64 bits)
+    val isSqrt = in Bool ()
+    val isRem = in Bool ()
+    val isT805Step = in Bool ()
+    val isT805First = in Bool ()
+    val isT805Last = in Bool ()
+    val roundingMode = in Bits (2 bits)
+    val result = out Bits (64 bits)
+    val resultAfix = out AFix (UQ(56 bit, 0 bit))
+    val cycles = out UInt (10 bits)
+    val t805State = out Bits (64 bits)
   }
 
   // Parse IEEE-754 operands
@@ -51,10 +51,13 @@ class FpuDivRoot extends Area {
 
   when(iteration < maxIterations) {
     val top3Digits = partialRemainder.raw(55 downto 53).asSInt
-    quotientDigit := MuxCase(0, Seq(
-      (top3Digits >= 2) -> 1,
-      (top3Digits <= -2) -> -1
-    ))
+    quotientDigit := MuxCase(
+      0,
+      Seq(
+        (top3Digits >= 2) -> 1,
+        (top3Digits <= -2) -> -1
+      )
+    )
 
     compressedRemainder := reduceRemainder(partialRemainder, quotientDigit, divisor)
     partialRemainder := compressedRemainder
@@ -65,10 +68,10 @@ class FpuDivRoot extends Area {
       when(quotientDigit === 0) {
         pcaMem.write(0, pcaMem.readAsync(0) << 1)
         pcaMem.write(1, (pcaMem.readAsync(0) << 1) + 1)
-      } elsewhen(quotientDigit === 1) {
+      } elsewhen (quotientDigit === 1) {
         pcaMem.write(0, (pcaMem.readAsync(0) << 1) + 1)
         pcaMem.write(1, pcaMem.readAsync(0) << 1)
-      } elsewhen(quotientDigit === -1) {
+      } elsewhen (quotientDigit === -1) {
         pcaMem.write(0, pcaMem.readAsync(0) << 1)
         pcaMem.write(1, (pcaMem.readAsync(0) << 1) + 1)
       }
@@ -91,7 +94,16 @@ class FpuDivRoot extends Area {
     2 -> RoundType.CEIL,
     3 -> RoundType.FLOOR
   )
-  val roundedResult = Mux(io.isRem, finalRemainder, finalQuotient).round(0, roundType).sat(2 pow 52 - 1, 0)
+  val roundedResult =
+    Mux(io.isRem, finalRemainder, finalQuotient).round(0, roundType).sat(2 pow 52 - 1, 0)
+
+  // Result exponent and sign selection
+  val divExponent = op1Parsed.exponent - op2Parsed.exponent + 1023
+  val sqrtExponent = ((op1Parsed.exponent - 1023).asUInt >> 1).asSInt + 1023
+  val resultExponent =
+    Mux(io.isRem, op1Parsed.exponent, Mux(io.isSqrt, sqrtExponent, divExponent))
+  val resultSign =
+    Mux(io.isRem, op1Parsed.sign, Mux(io.isSqrt, op1Parsed.sign, op1Parsed.sign ^ op2Parsed.sign))
 
   // Microcode state
   when(io.isT805First) {
@@ -103,16 +115,12 @@ class FpuDivRoot extends Area {
     iteration := 0
     io.t805State := quotient.raw
     io.cycles := 0
-  } elsewhen(io.isT805Step) {
+  } elsewhen (io.isT805Step) {
     iteration := iteration + 1
     io.t805State := quotient.raw
     io.cycles := iteration
-  } elsewhen(io.isT805Last && io.isSqrt) {
-    io.result := packIeee754(op1Parsed.sign, op1Parsed.exponent, roundedResult.raw)
-    io.resultAfix := roundedResult
-    io.cycles := iteration
   } otherwise {
-    io.result := packIeee754(op1Parsed.sign, op1Parsed.exponent, roundedResult.raw)
+    io.result := packIeee754(resultSign, resultExponent, roundedResult.raw)
     io.resultAfix := roundedResult
     io.cycles := iteration
   }
