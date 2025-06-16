@@ -20,7 +20,6 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
   // Pipeline payloads
   lazy val RESULT      = Payload(Bits(64 bits))
   lazy val RESULT_AFIX = Payload(AFix(UQ(56 bit, 0 bit)))
-  lazy val BUSY        = Payload(Bool())
   lazy val CYCLE_CNT   = Payload(UInt(10 bits))
   lazy val MAX_CYCLES  = Payload(UInt(10 bits))
   lazy val T805_STATE  = Payload(Bits(64 bits))
@@ -114,7 +113,7 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
     s0.down.valid := s0.up.valid
     pipe.execute.haltWhen(s0.isValid && !s0.down.ready)
 
-    s0.haltWhen(s0(BUSY))
+    s0.haltWhen(s0(CYCLE_CNT) < s0(MAX_CYCLES))
     s0.down.ready := True
 
     when(s0.isValid) {
@@ -350,7 +349,6 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
     } otherwise {
       s0(CYCLE_CNT) := 0
     }
-    s0(BUSY) := s0(CYCLE_CNT) < s0(MAX_CYCLES)
 
     // Service implementation
     addService(new FpuOpsSrv {
@@ -364,7 +362,7 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
       def executeAfix(opcode: Bits, operands: Vec[AFix]): AFix = {
         fa := operands(0).raw; fb := operands(1).raw; s0(RESULT_AFIX)
       }
-      def isBusy: Bool = s0(BUSY)
+      def isBusy: Bool = s0(CYCLE_CNT) < s0(MAX_CYCLES)
       def setRoundingMode(mode: Bits): Unit = { status.roundingMode := mode }
       def getErrorFlags: Bits = status.errorFlags
       def clearErrorFlags: Unit = { status.errorFlags := 0 }
