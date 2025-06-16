@@ -118,6 +118,32 @@ class FpuVCUSpec extends AnyFunSuite {
     }
   }
 
+  test("fpmul zero bypass") {
+    run(posZero, two, 0x8b) { dut =>
+      assert(dut.io.isSpecial.toBoolean)
+      assert(!dut.io.trapEnable.toBoolean)
+      assert(dut.io.specialResult.toBigInt == posZero)
+    }
+    run(negZero, one, 0x8b) { dut =>
+      assert(dut.io.isSpecial.toBoolean)
+      assert(!dut.io.trapEnable.toBoolean)
+      assert(dut.io.specialResult.toBigInt == negZero)
+    }
+  }
+
+  test("fpmul infinity interactions") {
+    run(posInf, one, 0x8b) { dut =>
+      assert(dut.io.isSpecial.toBoolean)
+      assert(!dut.io.trapEnable.toBoolean)
+      assert(dut.io.specialResult.toBigInt == posInf)
+    }
+    run(posInf, posZero, 0x8b) { dut =>
+      assert(dut.io.isSpecial.toBoolean)
+      assert(dut.io.trapEnable.toBoolean)
+      assert(dut.io.specialResult.toBigInt == nan)
+    }
+  }
+
   test("comparison opcodes") {
     run(two, one, 0x94) { dut => assert(dut.io.cmp.toBoolean) }
     run(one, one, 0x95) { dut => assert(dut.io.cmp.toBoolean) }
