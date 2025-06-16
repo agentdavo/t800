@@ -11,10 +11,9 @@ class FpuMultiplier extends Area {
     val isAbs = in Bool ()
     val isSingle = in Bool () // Single-precision flag
     val roundingMode = in Bits (2 bits)
-    val result = out Bits (64 bits)
-    val resultAfix = out AFix (UQ(56 bit, 0 bit))
-    val cycles = out UInt (2 bits)
-  }
+    val result      = out Bits (64 bits)
+    val resultAfix  = out(AFix(UQ(56 bit, 0 bit)))
+    val cycles      = out UInt(2 bits)
 
   // Parse IEEE-754 operands
   val op1Parsed = parseIeee754(io.op1)
