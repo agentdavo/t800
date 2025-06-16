@@ -18,11 +18,11 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
   private val fpPipe = new StageCtrlPipeline
 
   // Pipeline payloads
-  lazy val RESULT      = Payload(Bits(64 bits))
+  lazy val RESULT = Payload(Bits(64 bits))
   lazy val RESULT_AFIX = Payload(AFix(UQ(56 bit, 0 bit)))
-  lazy val CYCLE_CNT   = Payload(UInt(10 bits))
-  lazy val MAX_CYCLES  = Payload(UInt(10 bits))
-  lazy val T805_STATE  = Payload(Bits(64 bits))
+  lazy val CYCLE_CNT = Payload(UInt(10 bits))
+  lazy val MAX_CYCLES = Payload(UInt(10 bits))
+  lazy val T805_STATE = Payload(Bits(64 bits))
 
   during setup new Area {
     println(s"[${this.getDisplayName()}] setup start")
@@ -82,29 +82,67 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
     adder.io.cmd.payload.sub := False
     adder.io.cmd.payload.rounding := status.roundingMode
 
-
-
     // Opcode handling
     val opcode = pipe.execute(Global.OPCODE)
     val isFpuOp = opcode(7 downto 4).isOneOf(
-      Opcodes.SecondaryEnum.FPADD, Opcodes.SecondaryEnum.FPSUB, Opcodes.SecondaryEnum.FPMUL,
-      Opcodes.SecondaryEnum.FPDIV, Opcodes.SecondaryEnum.FPSQRT, Opcodes.SecondaryEnum.FPREM,
-      Opcodes.SecondaryEnum.FPRANGE, Opcodes.SecondaryEnum.FPABS, Opcodes.SecondaryEnum.FPEXPINC32,
-      Opcodes.SecondaryEnum.FPEXPDEC32, Opcodes.SecondaryEnum.FPMULBY2, Opcodes.SecondaryEnum.FPDIVBY2,
-      Opcodes.SecondaryEnum.FPGE, Opcodes.SecondaryEnum.FPLG, Opcodes.SecondaryEnum.FPENTRY,
-      Opcodes.SecondaryEnum.FPREV, Opcodes.SecondaryEnum.FPDUP, Opcodes.SecondaryEnum.FPRN,
-      Opcodes.SecondaryEnum.FPRZ, Opcodes.SecondaryEnum.FPRP, Opcodes.SecondaryEnum.FPRM,
-      Opcodes.SecondaryEnum.FPCHKERR, Opcodes.SecondaryEnum.FPTESTERR, Opcodes.SecondaryEnum.FPSETERR,
-      Opcodes.SecondaryEnum.FPCLRERR, Opcodes.SecondaryEnum.FPGT, Opcodes.SecondaryEnum.FPEQ,
-      Opcodes.SecondaryEnum.FPORDERED, Opcodes.SecondaryEnum.FPNAN, Opcodes.SecondaryEnum.FPNOTFINITE,
-      Opcodes.SecondaryEnum.FPCHKI32, Opcodes.SecondaryEnum.FPCHKI64, Opcodes.SecondaryEnum.FPR32TOR64,
-      Opcodes.SecondaryEnum.FPR64TOR32, Opcodes.SecondaryEnum.FPRTOI32, Opcodes.SecondaryEnum.FPI32TOR32,
-      Opcodes.SecondaryEnum.FPI32TOR64, Opcodes.SecondaryEnum.FPB32TOR64, Opcodes.SecondaryEnum.FPNOROUND,
-      Opcodes.SecondaryEnum.FPINT, Opcodes.SecondaryEnum.FPUSQRTFIRST, Opcodes.SecondaryEnum.FPUSQRTSTEP,
-      Opcodes.SecondaryEnum.FPUSQRTLAST, Opcodes.SecondaryEnum.FPREMFIRST, Opcodes.SecondaryEnum.FPREMSTEP
+      Opcodes.SecondaryEnum.FPADD,
+      Opcodes.SecondaryEnum.FPSUB,
+      Opcodes.SecondaryEnum.FPMUL,
+      Opcodes.SecondaryEnum.FPDIV,
+      Opcodes.SecondaryEnum.FPSQRT,
+      Opcodes.SecondaryEnum.FPREM,
+      Opcodes.SecondaryEnum.FPRANGE,
+      Opcodes.SecondaryEnum.FPABS,
+      Opcodes.SecondaryEnum.FPEXPINC32,
+      Opcodes.SecondaryEnum.FPEXPDEC32,
+      Opcodes.SecondaryEnum.FPMULBY2,
+      Opcodes.SecondaryEnum.FPDIVBY2,
+      Opcodes.SecondaryEnum.FPGE,
+      Opcodes.SecondaryEnum.FPLG,
+      Opcodes.SecondaryEnum.FPENTRY,
+      Opcodes.SecondaryEnum.FPREV,
+      Opcodes.SecondaryEnum.FPDUP,
+      Opcodes.SecondaryEnum.FPRN,
+      Opcodes.SecondaryEnum.FPRZ,
+      Opcodes.SecondaryEnum.FPRP,
+      Opcodes.SecondaryEnum.FPRM,
+      Opcodes.SecondaryEnum.FPCHKERR,
+      Opcodes.SecondaryEnum.FPTESTERR,
+      Opcodes.SecondaryEnum.FPSETERR,
+      Opcodes.SecondaryEnum.FPCLRERR,
+      Opcodes.SecondaryEnum.FPGT,
+      Opcodes.SecondaryEnum.FPEQ,
+      Opcodes.SecondaryEnum.FPORDERED,
+      Opcodes.SecondaryEnum.FPNAN,
+      Opcodes.SecondaryEnum.FPNOTFINITE,
+      Opcodes.SecondaryEnum.FPCHKI32,
+      Opcodes.SecondaryEnum.FPCHKI64,
+      Opcodes.SecondaryEnum.FPR32TOR64,
+      Opcodes.SecondaryEnum.FPR64TOR32,
+      Opcodes.SecondaryEnum.FPRTOI32,
+      Opcodes.SecondaryEnum.FPI32TOR32,
+      Opcodes.SecondaryEnum.FPI32TOR64,
+      Opcodes.SecondaryEnum.FPB32TOR64,
+      Opcodes.SecondaryEnum.FPNOROUND,
+      Opcodes.SecondaryEnum.FPINT,
+      Opcodes.SecondaryEnum.FPUSQRTFIRST,
+      Opcodes.SecondaryEnum.FPUSQRTSTEP,
+      Opcodes.SecondaryEnum.FPUSQRTLAST,
+      Opcodes.SecondaryEnum.FPREMFIRST,
+      Opcodes.SecondaryEnum.FPREMSTEP
     ) || opcode(7 downto 0).isOneOf(
-      B"10001110", B"10001010", B"10000110", B"10000010", B"10011111", B"10100000",
-      B"10101010", B"10100110", B"10101100", B"10101000", B"10001000", B"10000100",
+      B"10001110",
+      B"10001010",
+      B"10000110",
+      B"10000010",
+      B"10011111",
+      B"10100000",
+      B"10101010",
+      B"10100110",
+      B"10101100",
+      B"10101000",
+      B"10001000",
+      B"10000100",
       B"10011110"
     )
 
@@ -117,6 +155,7 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
     s0.down.ready := True
 
     when(s0.isValid) {
+      s0(CYCLE_CNT) := 0
       vcu.io.op1 := fa
       vcu.io.op2 := fb
       vcu.io.opcode := opcode
@@ -200,20 +239,27 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
             regfile.write(RegName.Areg, status.errorFlags.orR.asUInt, 0, shadow = false)
             status.errorFlags := 0
           }
-          is(Opcodes.SecondaryEnum.FPSETERR) { status.errorFlags := 0x1F }
+          is(Opcodes.SecondaryEnum.FPSETERR) { status.errorFlags := 0x1f }
           is(Opcodes.SecondaryEnum.FPCLRERR) { status.errorFlags := 0 }
 
           // Comparison ops
-          is(Opcodes.SecondaryEnum.FPGT, Opcodes.SecondaryEnum.FPEQ,
-             Opcodes.SecondaryEnum.FPGE, Opcodes.SecondaryEnum.FPLG,
-             Opcodes.SecondaryEnum.FPORDERED, Opcodes.SecondaryEnum.FPNAN,
-             Opcodes.SecondaryEnum.FPNOTFINITE) {
+          is(
+            Opcodes.SecondaryEnum.FPGT,
+            Opcodes.SecondaryEnum.FPEQ,
+            Opcodes.SecondaryEnum.FPGE,
+            Opcodes.SecondaryEnum.FPLG,
+            Opcodes.SecondaryEnum.FPORDERED,
+            Opcodes.SecondaryEnum.FPNAN,
+            Opcodes.SecondaryEnum.FPNOTFINITE
+          ) {
             regfile.write(RegName.Areg, vcu.io.comparisonResult.asUInt, 0, shadow = false)
           }
 
           // Conversion ops
           is(Opcodes.SecondaryEnum.FPR32TOR64) { s0(RESULT) := real32ToReal64(fa(31 downto 0)) }
-          is(Opcodes.SecondaryEnum.FPR64TOR32) { s0(RESULT) := real64ToReal32(fa, status.roundingMode) }
+          is(Opcodes.SecondaryEnum.FPR64TOR32) {
+            s0(RESULT) := real64ToReal32(fa, status.roundingMode)
+          }
           is(Opcodes.SecondaryEnum.FPRTOI32) {
             val intVal = realToInt32(fa)
             regfile.write(RegName.Areg, intVal.asUInt, 0, shadow = false)
@@ -231,7 +277,7 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
             adder.io.cmd.payload.sub := False
             adder.io.cmd.payload.rounding := status.roundingMode
             s0(RESULT) := adder.io.rsp.payload
-                        s0(MAX_CYCLES) := 2
+            s0(MAX_CYCLES) := 2
             s0(CYCLE_CNT) := 0
           }
           is(Opcodes.SecondaryEnum.FPSUB) {
@@ -241,7 +287,7 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
             adder.io.cmd.payload.sub := True
             adder.io.cmd.payload.rounding := status.roundingMode
             s0(RESULT) := adder.io.rsp.payload
-                        s0(MAX_CYCLES) := 2
+            s0(MAX_CYCLES) := 2
             s0(CYCLE_CNT) := 0
           }
           is(Opcodes.SecondaryEnum.FPMUL) {
@@ -249,7 +295,7 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
             multiplier.io.op2 := fb
             s0(RESULT) := multiplier.io.result
             s0(RESULT_AFIX) := multiplier.io.resultAfix
-                        s0(MAX_CYCLES) := 3
+            s0(MAX_CYCLES) := 3
             s0(CYCLE_CNT) := 0
           }
           is(Opcodes.SecondaryEnum.FPDIV) {
@@ -259,7 +305,7 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
             divRoot.io.isRem := False
             s0(RESULT) := divRoot.io.result
             s0(RESULT_AFIX) := divRoot.io.resultAfix
-                        s0(MAX_CYCLES) := 15
+            s0(MAX_CYCLES) := 15
             s0(CYCLE_CNT) := 0
           }
           is(Opcodes.SecondaryEnum.FPSQRT) {
@@ -269,7 +315,7 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
             divRoot.io.isRem := False
             s0(RESULT) := divRoot.io.result
             s0(RESULT_AFIX) := divRoot.io.resultAfix
-                        s0(MAX_CYCLES) := 15
+            s0(MAX_CYCLES) := 15
             s0(CYCLE_CNT) := 0
           }
           is(Opcodes.SecondaryEnum.FPREM) {
@@ -279,13 +325,13 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
             divRoot.io.isRem := True
             s0(RESULT) := divRoot.io.result
             s0(RESULT_AFIX) := divRoot.io.resultAfix
-                        s0(MAX_CYCLES) := 529
+            s0(MAX_CYCLES) := 529
             s0(CYCLE_CNT) := 0
           }
           is(Opcodes.SecondaryEnum.FPRANGE) {
             rangeReducer.io.op := fa
             s0(RESULT) := rangeReducer.io.result
-                        s0(MAX_CYCLES) := 17
+            s0(MAX_CYCLES) := 17
             s0(CYCLE_CNT) := 0
           }
           // T805 compatibility
@@ -295,7 +341,7 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
             divRoot.io.isSqrt := True
             divRoot.io.isT805First := True
             s0(T805_STATE) := divRoot.io.t805State
-                        s0(MAX_CYCLES) := divRoot.io.cycles
+            s0(MAX_CYCLES) := divRoot.io.cycles
             s0(CYCLE_CNT) := 0
           }
           is(B"01000010") { // fpusqrtstep
@@ -304,7 +350,7 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
             divRoot.io.isSqrt := True
             divRoot.io.isT805Step := True
             s0(T805_STATE) := divRoot.io.t805State
-                        s0(MAX_CYCLES) := divRoot.io.cycles
+            s0(MAX_CYCLES) := divRoot.io.cycles
             s0(CYCLE_CNT) := 0
           }
           is(B"01000011") { // fpusqrtlast
@@ -312,7 +358,7 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
             divRoot.io.op2 := fa
             divRoot.io.isSqrt := True
             divRoot.io.isT805Last := True
-                        s0(MAX_CYCLES) := divRoot.io.cycles
+            s0(MAX_CYCLES) := divRoot.io.cycles
             s0(CYCLE_CNT) := 0
           }
           is(B"5F") { // fpremfirst
@@ -321,7 +367,7 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
             divRoot.io.isRem := True
             divRoot.io.isT805First := True
             s0(T805_STATE) := divRoot.io.t805State
-                        s0(MAX_CYCLES) := divRoot.io.cycles
+            s0(MAX_CYCLES) := divRoot.io.cycles
             s0(CYCLE_CNT) := 0
           }
           is(B"90") { // fpremstep (context dependent)
@@ -330,7 +376,7 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
             divRoot.io.isRem := True
             divRoot.io.isT805Step := True
             s0(T805_STATE) := divRoot.io.t805State
-                        s0(MAX_CYCLES) := divRoot.io.cycles
+            s0(MAX_CYCLES) := divRoot.io.cycles
             s0(CYCLE_CNT) := 0
           }
         }
