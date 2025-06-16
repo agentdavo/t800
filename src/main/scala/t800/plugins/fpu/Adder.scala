@@ -43,7 +43,7 @@ class FpuAdder extends Component {
   val RESULT = Payload(Bits(64 bits))
 
   // Stage0 : operand decode and alignment
-  s0.driveFrom(io.cmd) { (self, p) =>
+  s0.up.driveFrom(io.cmd) { (self, p) =>
     self(A) := p.a
     self(B) := p.b
     self(SUB) := p.sub
@@ -97,7 +97,7 @@ class FpuAdder extends Component {
     s1(RESULT) := packIeee754(signRes, normExp, rounded.raw(51 downto 0))
   }
 
-  s1.driveTo(io.rsp) { (p, self) => p := self(RESULT) }
+  s1.down.driveTo(io.rsp) { (p, self) => p := self(RESULT) }
   io.rsp.ready := True
   io.cmd.ready := s0.up.ready
 
