@@ -57,3 +57,21 @@ class DummyFpuPlugin extends FiberPlugin {
   // Empty build stage required for the fiber engine
   during build new Area {}
 }
+
+/** Minimal trap handler plugin exposing [[TrapHandlerSrv]]. */
+class DummyTrapPlugin extends FiberPlugin {
+  private var trap: TrapHandlerSrv = null
+  during setup new Area {
+    val addr = Reg(Bits(Global.ADDR_BITS bits)) init 0
+    val typ = Reg(Bits(4 bits)) init 0
+    val enable = Reg(Bool()) init False
+    val handler = Reg(Bits(Global.ADDR_BITS bits)) init 0
+    trap = TrapHandlerSrv()
+    trap.trapAddr := addr
+    trap.trapType := typ
+    trap.trapEnable := enable
+    trap.trapHandlerAddr := handler
+    addService(trap)
+  }
+  during build new Area {}
+}

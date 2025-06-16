@@ -3,123 +3,92 @@ package t800
 import spinal.core._
 import spinal.core.sim._
 import org.scalatest.funsuite.AnyFunSuite
+import spinal.lib.misc.plugin.PluginHost
 import t800.plugins.fpu._
 
+/** Wrapper around [[FpuPlugin]] exposing a simple command interface. */
 class FpuDut extends Component {
   val io = new Bundle {
     val cmdValid = in Bool ()
     val op = in(FpOp())
-    val a = in UInt (32 bits)
-    val b = in UInt (32 bits)
+    val a = in Bits (64 bits)
+    val b = in Bits (64 bits)
+    val rounding = in Bits (2 bits)
     val rspValid = out Bool ()
-    val rsp = out UInt (32 bits)
+    val rsp = out Bits (64 bits)
   }
 
-  val roundingMode = Reg(UInt(2 bits)) init (0)
-  val result = Reg(UInt(32 bits)) init (0)
-  val valid = Reg(Bool()) init (False)
+  // Build minimal plugin stack with mock trap handler
+  val host = new PluginHost
+  val plugins = T800.unitPlugins() ++ Seq(new DummyTrapPlugin, new FpuPlugin)
+  PluginHost(host).on(new T800(host, plugins))
 
-  io.rspValid := valid
-  io.rsp := result
+  val fpu = host[FpuOpsSrv]
+  val ctrl = host[FpuControlSrv]
 
+  val result = fpu.execute(io.op.asBits, Vec(io.a, io.b))
   when(io.cmdValid) {
-    valid := True
-    switch(io.op) {
-      is(FpOp.Rounding.FPRN) { roundingMode := 0; valid := False }
-      is(FpOp.Rounding.FPRZ) { roundingMode := 1; valid := False }
-      is(FpOp.Rounding.FPRP) { roundingMode := 2; valid := False }
-      is(FpOp.Rounding.FPRM) { roundingMode := 3; valid := False }
-
-      is(FpOp.Arithmetic.FPADD) { result := (io.a + io.b).resized }
-      is(FpOp.Arithmetic.FPSUB) { result := (io.a - io.b).resized }
-      is(FpOp.Arithmetic.FPMUL) { result := (io.a * io.b).resized }
-      is(FpOp.Arithmetic.FPDIV) {
-        val div = io.a / io.b
-        val rem = io.a % io.b
-        val roundUpNearest = rem * 2 >= io.b
-        val roundUpPos = rem =/= 0
-        result := roundingMode.mux(
-          0 -> (div + (roundUpNearest ? U(1) | U(0))).resized,
-          1 -> div.resized,
-          2 -> (div + (roundUpPos ? U(1) | U(0))).resized,
-          3 -> div.resized
-        )
-      }
-
-      is(FpOp.Additional.FPRANGE) { result := 0 }
-      is(FpOp.Conversion.FPR32TOR64) { result := io.a }
-      is(FpOp.Conversion.FPR64TOR32) { result := io.a }
-      is(FpOp.Conversion.FPRTOI32) { result := io.a }
-      default { result := 0 }
-    }
+    fpu.setRoundingMode(io.rounding)
+    fpu.clearErrorFlags
   }
+  io.rsp := result
+  io.rspValid := io.cmdValid
 }
 
 class FpuPluginSpec extends AnyFunSuite {
-  private def run(op: FpOp.E, a: Int, b: Int): Int = {
-    var result = 0
+  private def run(op: FpOp.E, a: Double, b: Double, rm: Int = 0): Double = {
+    var res = 0.0
     SimConfig.compile(new FpuDut).doSim { dut =>
       dut.clockDomain.forkStimulus(10)
       dut.io.cmdValid #= true
       dut.io.op #= op
-      dut.io.a #= a
-      dut.io.b #= b
+      dut.io.a #= BigInt(java.lang.Double.doubleToRawLongBits(a))
+      dut.io.b #= BigInt(java.lang.Double.doubleToRawLongBits(b))
+      dut.io.rounding #= rm
       dut.clockDomain.waitSampling()
-      dut.io.cmdValid #= false
-      while (!dut.io.rspValid.toBoolean) dut.clockDomain.waitSampling()
-      result = dut.io.rsp.toBigInt.intValue
-      dut.clockDomain.waitSampling()
+      res = java.lang.Double.longBitsToDouble(dut.io.rsp.toLong)
     }
-    result
+    res
   }
 
-  private def runSeq(cmds: Seq[(FpOp.E, Int, Int)]): Int = {
-    var result = 0
+  test("FPADD") { assert(math.abs(run(FpOp.Arithmetic.FPADD, 1.5, 2.0) - 3.5) < 1e-9) }
+  test("FPSUB") { assert(math.abs(run(FpOp.Arithmetic.FPSUB, 5.0, 2.5) - 2.5) < 1e-9) }
+  test("FPMUL") { assert(math.abs(run(FpOp.Arithmetic.FPMUL, 2.0, 3.0) - 6.0) < 1e-9) }
+  test("FPDIV") { assert(math.abs(run(FpOp.Arithmetic.FPDIV, 8.0, 2.0) - 4.0) < 1e-9) }
+
+  test("rounding mode register") {
     SimConfig.compile(new FpuDut).doSim { dut =>
       dut.clockDomain.forkStimulus(10)
-      for (((op, a, b), idx) <- cmds.zipWithIndex) {
-        dut.io.cmdValid #= true
-        dut.io.op #= op
-        dut.io.a #= a
-        dut.io.b #= b
-        dut.clockDomain.waitSampling()
-        dut.io.cmdValid #= false
-        if (idx == cmds.length - 1) {
-          while (!dut.io.rspValid.toBoolean) dut.clockDomain.waitSampling()
-          result = dut.io.rsp.toBigInt.intValue
-        } else {
-          dut.clockDomain.waitSampling()
-        }
-      }
+      val ctrl = dut.host[FpuControlSrv]
+      dut.io.cmdValid #= true
+      dut.io.op #= FpOp.Rounding.FPRP
+      dut.io.a #= 0
+      dut.io.b #= 0
+      dut.io.rounding #= 2
       dut.clockDomain.waitSampling()
+      assert(ctrl.roundingMode.toBigInt == 2)
     }
-    result
   }
 
-  test("FPADD") { assert(run(FpOp.Arithmetic.FPADD, 3, 4) == 7) }
-  test("FPSUB") { assert(run(FpOp.Arithmetic.FPSUB, 9, 5) == 4) }
-  test("FPMUL") { assert(run(FpOp.Arithmetic.FPMUL, 3, 5) == 15) }
-  test("FPDIV") { assert(run(FpOp.Arithmetic.FPDIV, 8, 2) == 4) }
-
-  test("FPRN rounding") {
-    assert(runSeq(Seq((FpOp.Rounding.FPRN, 0, 0), (FpOp.Arithmetic.FPDIV, 5, 2))) == 3)
+  test("error flag handling") {
+    SimConfig.compile(new FpuDut).doSim { dut =>
+      dut.clockDomain.forkStimulus(10)
+      val ctrl = dut.host[FpuControlSrv]
+      val ops = dut.host[FpuOpsSrv]
+      // Set error flags via FPSETERR then clear them
+      dut.io.cmdValid #= true
+      dut.io.op #= FpOp.Error.FPSETERR
+      dut.io.a #= 0
+      dut.io.b #= 0
+      dut.io.rounding #= 0
+      dut.clockDomain.waitSampling()
+      assert(ops.getErrorFlags.toBigInt == 0x1f)
+      // Clear
+      dut.io.op #= FpOp.Error.FPCLRERR
+      dut.clockDomain.waitSampling()
+      assert(ops.getErrorFlags.toBigInt == 0)
+      // Rounding mode unaffected
+      assert(ctrl.roundingMode.toBigInt == 0)
+    }
   }
-
-  test("FPRZ rounding") {
-    assert(runSeq(Seq((FpOp.Rounding.FPRZ, 0, 0), (FpOp.Arithmetic.FPDIV, 5, 2))) == 2)
-  }
-
-  test("FPRP rounding") {
-    assert(runSeq(Seq((FpOp.Rounding.FPRP, 0, 0), (FpOp.Arithmetic.FPDIV, 5, 2))) == 3)
-  }
-
-  test("FPRM rounding") {
-    assert(runSeq(Seq((FpOp.Rounding.FPRM, 0, 0), (FpOp.Arithmetic.FPDIV, 5, 2))) == 2)
-  }
-
-  test("FPRANGE") { assert(run(FpOp.Additional.FPRANGE, 0, 0) == 0) }
-
-  test("FPR32TOR64") { assert(run(FpOp.Conversion.FPR32TOR64, 42, 0) == 42) }
-  test("FPR64TOR32") { assert(run(FpOp.Conversion.FPR64TOR32, 42, 0) == 42) }
-  test("FPRTOI32") { assert(run(FpOp.Conversion.FPRTOI32, 42, 0) == 42) }
 }
