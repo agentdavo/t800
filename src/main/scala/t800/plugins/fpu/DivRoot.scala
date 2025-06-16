@@ -23,8 +23,8 @@ class FpuDivRoot extends Area {
   // Parse IEEE-754 operands
   val op1Parsed = parseIeee754(io.op1)
   val op2Parsed = parseIeee754(io.op2)
-  val op1Afix = AFix(op1Parsed.mantissa.asUInt, 56 bit, 0 exp)
-  val op2Afix = AFix(op2Parsed.mantissa.asUInt, 56 bit, 0 exp)
+  val op1Afix = AFix(op1Parsed.mantissa.asUInt.resize(56), 0 exp)
+  val op2Afix = AFix(op2Parsed.mantissa.asUInt.resize(56), 0 exp)
 
   // SRT state
   val quotient = Reg(AFix(UQ(56 bit, 0 bit))) init 0
@@ -35,8 +35,8 @@ class FpuDivRoot extends Area {
 
   // PCA storage (optimized for BRAM)
   val pcaMem = Mem(AFix(UQ(56 bit, 0 bit)), 2) // qPlus, qMinus
-  pcaMem.write(0, AFix(0, 56 bit, 0 exp)) // qPlus
-  pcaMem.write(1, AFix(0, 56 bit, 0 exp)) // qMinus
+  pcaMem.write(0, AFix(0, 0 exp)) // qPlus
+  pcaMem.write(1, AFix(0, 0 exp)) // qMinus
 
   // SRT iteration
   val partialRemainder = Reg(AFix(UQ(56 bit, 0 bit))) init remainder
@@ -63,7 +63,7 @@ class FpuDivRoot extends Area {
     partialRemainder := compressedRemainder
     remainder := compressedRemainder
 
-    quotient := (quotient <<| 1) + AFix(quotientDigit.asBits.asSInt.resize(56), 56 bit, 0 exp)
+    quotient := (quotient <<| 1) + AFix(quotientDigit.asBits.asSInt.resize(56), 0 exp)
     when(io.isSqrt) {
       when(quotientDigit === 0) {
         pcaMem.write(0, pcaMem.readAsync(0) << 1)
@@ -110,8 +110,8 @@ class FpuDivRoot extends Area {
     quotient := 0
     remainder := op1Afix
     partialRemainder := op1Afix
-    pcaMem.write(0, AFix(0, 56 bit, 0 exp))
-    pcaMem.write(1, AFix(0, 56 bit, 0 exp))
+    pcaMem.write(0, AFix(0, 0 exp))
+    pcaMem.write(1, AFix(0, 0 exp))
     iteration := 0
     io.t805State := quotient.raw
     io.cycles := 0
