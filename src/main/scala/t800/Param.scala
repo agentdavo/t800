@@ -22,5 +22,7 @@ case class Param(
       wordBits = wordWidth,
       linkCount = linkCount
     )
+    if (enableFpu)
+      plugins += new t800.plugins.fpu.FpuPlugin
   }
 }

@@ -167,7 +167,7 @@ sbt "runMain t800.Generate --word-width 32 --link-count 4 --fpu true"
 # Parameters
 --word-width    CPU data width in bits
 --link-count    Number of communication links
---fpu           Enable the floating-point unit
+--fpu           Enable or disable the floating-point unit (Generate.scala flag)
 
 # To build against the bundled SpinalHDL sources instead of published
 # artifacts, run with `SPINALHDL_FROM_SOURCE=1`:
