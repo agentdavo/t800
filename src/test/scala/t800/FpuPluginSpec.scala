@@ -23,14 +23,13 @@ class FpuDut extends Component {
   val plugins = T800.unitPlugins() ++ Seq(new DummyTrapPlugin, new FpuPlugin)
   PluginHost(host).on(new T800(host, plugins))
 
-  val fpu = host[FpuOpsSrv]
   val fpuSrv = host[FpuSrv]
   val ctrl = host[FpuControlSrv]
 
   when(io.cmdValid) {
     fpuSrv.send(io.op, io.a.asUInt, io.b.asUInt)
-    fpu.setRoundingMode(io.rounding)
-    fpu.clearErrorFlags
+    ctrl.setRoundingMode(io.rounding)
+    ctrl.clearErrorFlags
   }
   io.rsp := fpuSrv.rsp.payload
   io.rspValid := fpuSrv.rsp.valid && io.cmdValid
@@ -75,7 +74,6 @@ class FpuPluginSpec extends AnyFunSuite {
     SimConfig.compile(new FpuDut).doSim { dut =>
       dut.clockDomain.forkStimulus(10)
       val ctrl = dut.host[FpuControlSrv]
-      val ops = dut.host[FpuOpsSrv]
       // Set error flags via FPSETERR then clear them
       dut.io.cmdValid #= true
       dut.io.op #= FpOp.Error.FPSETERR
@@ -83,11 +81,11 @@ class FpuPluginSpec extends AnyFunSuite {
       dut.io.b #= 0
       dut.io.rounding #= 0
       dut.clockDomain.waitSampling()
-      assert(ops.getErrorFlags.toBigInt == 0x1f)
+      assert(ctrl.getErrorFlags.toBigInt == 0x1f)
       // Clear
       dut.io.op #= FpOp.Error.FPCLRERR
       dut.clockDomain.waitSampling()
-      assert(ops.getErrorFlags.toBigInt == 0)
+      assert(ctrl.getErrorFlags.toBigInt == 0)
       // Rounding mode unaffected
       assert(ctrl.roundingMode.toBigInt == 0)
     }

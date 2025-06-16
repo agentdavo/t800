@@ -49,4 +49,8 @@ trait FpuControlSrv {
   def trapEnable: Bool // IEEE-754 trap
   def trapType: UInt // Trap type
   def roundingMode: Bits // Rounding mode
+  def setRoundingMode(mode: Bits): Unit // Update rounding mode
+  def getErrorFlags: Bits // Retrieve current error flags
+  def clearErrorFlags: Unit // Clear error flags
+  def isFpuBusy(opcode: Bits): Bool // FPU pipeline busy
 }
