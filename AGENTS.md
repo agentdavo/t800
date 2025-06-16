@@ -46,8 +46,15 @@ sbt "runMain t800.TopVerilog"
   addService(LinkPins(io.links))
   ```
 
-* All service trait names **must** end in `Srv`. Replace any older `Service`
-  suffixes accordingly (`RegfileSrv`, `FpuOpsSrv`, ...).
+* **Service naming** – traits use the `Service` suffix and clearly indicate the
+  pipeline stage or subsystem they belong to. Examples: `FetchService`,
+  `DecodeService`, `FpuControlService`.
+  * Use descriptive names and avoid abbreviations like `Srv`.
+  * Align names with the 5-stage pipeline (Fetch, Decode, Execute, Memory,
+    Writeback). For services spanning multiple stages, prepend the subsystem
+    (e.g. `FpuControlService`).
+  * Reuse existing services where possible and keep names unique to avoid
+    overlap.
 
 * Dataflow inside a plugin **must** use Pipeline DSL (`Node`, `StageLink`, `CtrlLink`), not ad-hoc `RegNext`.
 
@@ -135,20 +142,20 @@ import spinal.lib.misc.plugin._
 import spinal.lib.misc.pipeline._
 
 /** Example: free-running timer service. */
-trait TimerSrv { def now: UInt }
+trait TimerService { def now: UInt }
 
 class TimerPlugin extends FiberPlugin {
   val cnt = Reg(UInt(64 bits)) init(0)
   during.setup { cnt := cnt + 1 }
 
-  addService(new TimerSrv { def now = cnt })
+  addService(new TimerService { def now = cnt })
 }
 ```
 
 Use the service elsewhere:
 
 ```scala
-val timer = Plugin[TimerSrv]
+val timer = Plugin[TimerService]
 when(ctrl.isValid) { Areg := timer.now(31 downto 0) }
 ```
 

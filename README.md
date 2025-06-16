@@ -89,6 +89,24 @@ t800/
 
 ---
 
+## Service naming strategy
+
+SpinalHDL services describe shared functionality between plugins. To keep the
+pipeline consistent:
+
+1. **Descriptive names** – use clear names like `FetchService` or
+   `FpuControlService` that reveal purpose and stage.
+2. **Service suffix** – every trait ends with `Service`; avoid abbreviations
+   such as `Srv`.
+3. **Stage alignment** – name the service after the pipeline stage it targets
+   (Fetch, Decode, Execute, Memory, Writeback). Prefix with the subsystem name
+   if it spans multiple stages.
+4. **Avoid overlap** – reuse existing services and keep names unique.
+5. **SpinalHDL conventions** – define services in `t800.plugins.<subsystem>`
+   packages and use camelCase for methods.
+
+---
+
 ## Ubuntu setup
 
 ```bash
