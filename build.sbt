@@ -39,39 +39,48 @@ lazy val t800 = (project in file("."))
     Test / scalaSource := baseDirectory.value / "src" / "test" / "scala",
     // Limit sources for the minimal unit build
     Compile / unmanagedSources := {
-      val keep = Set(
-        "Global.scala",
-        "Opcode.scala",
-        "T800.scala",
-        "Param.scala",
-        "Generate.scala",
-        "plugins/Service.scala",
-        "pipeline/Service.scala",
-        "plugins/registers/Service.scala",
-        "plugins/registers/RegFilePlugin.scala",
-        "plugins/fpu/VCU.scala",
-        "plugins/fpu/Service.scala",
-        "plugins/fpu/Opcodes.scala",
-        "PipelinePlugin.scala",
-        "PipelineBuilderPlugin.scala",
-        "transputer/TransputerPlugin.scala",
-      )
+        val keep = Set(
+          "Global.scala",
+          "Opcode.scala",
+          "T800.scala",
+          "Param.scala",
+          "Generate.scala",
+          "plugins/Service.scala",
+          "pipeline/Service.scala",
+          "plugins/registers/Service.scala",
+          "plugins/registers/RegFilePlugin.scala",
+          "plugins/fpu/VCU.scala",
+          "plugins/fpu/Service.scala",
+          "plugins/fpu/Opcodes.scala",
+          "plugins/fpu/Adder.scala",
+          "plugins/fpu/Multiplier.scala",
+          "plugins/fpu/DivRoot.scala",
+          "plugins/fpu/RangeReducer.scala",
+          "plugins/fpu/FpuPlugin.scala",
+          "plugins/fpu/Utils.scala",
+          "PipelinePlugin.scala",
+          "PipelineBuilderPlugin.scala",
+          "transputer/TransputerPlugin.scala",
+        )
       val srcDir = (Compile / scalaSource).value
       val selected = (srcDir ** "*.scala").get.filter(f =>
         f.getPath.contains("spinal/lib") || keep.exists(k => f.getPath.endsWith(k))
       )
       selected
     },
-    Test / unmanagedSources := {
-      val srcDir = (Test / scalaSource).value
-      val keep = Seq(
-        "InitTransputerSpec.scala",
-        "Real32ToReal64Spec.scala",
-        "FpuVCUSpec.scala",
-        "FpuPluginSpec.scala"
-      )
-      keep.flatMap(p => (srcDir ** p).get)
-    },
+      Test / unmanagedSources := {
+        val srcDir = (Test / scalaSource).value
+        val keep = Seq(
+          "InitTransputerSpec.scala",
+          "Real32ToReal64Spec.scala",
+          "FpuVCUSpec.scala",
+          "FpuPluginSpec.scala",
+          "FpuAdderSpec.scala",
+          "DivRootSpec.scala",
+          "RangeReducerSpec.scala"
+        )
+        keep.flatMap(p => (srcDir ** p).get)
+      },
     libraryDependencies ++=
       Seq(
         "org.scalatest" %% "scalatest" % "3.2.17" % Test,
