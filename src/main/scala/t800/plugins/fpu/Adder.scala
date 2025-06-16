@@ -89,7 +89,7 @@ class FpuAdder extends Component {
     val sumAdj = Mux(ovf, rawSum >> 1, rawSum)
     val expAdj = s1(EXP) + ovf.asUInt.asSInt
 
-    val lz = sumAdj.asBits.leadingZeros()
+    val lz = CountLeadingZeroes(sumAdj.asBits)
     val normMan = (sumAdj << lz).resize(53)
     val normExpPre = expAdj - lz.asSInt
     val normExp = normExpPre.max(S(0)).min(S(0x7ff))

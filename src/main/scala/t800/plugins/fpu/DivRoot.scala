@@ -51,11 +51,13 @@ class FpuDivRoot extends Area {
 
   when(iteration < maxIterations) {
     val top3Digits = partialRemainder.raw(55 downto 53).asSInt
-    quotientDigit := MuxCase(
-      0,
-      Seq(
-        (top3Digits >= 2) -> 1,
-        (top3Digits <= -2) -> -1
+    quotientDigit := Mux(
+      top3Digits >= 2,
+      S(1, 2 bits),
+      Mux(
+        top3Digits <= -2,
+        S(-1, 2 bits),
+        S(0, 2 bits)
       )
     )
 
