@@ -15,7 +15,7 @@ class FpuDivRoot extends Area {
     val isT805Last = in Bool ()
     val roundingMode = in Bits (2 bits)
     val result = out Bits (64 bits)
-    val resultAfix = out AFix (UQ(56 bit, 0 bit))
+    val resultAfix = out(AFix(UQ(56 bit, 0 bit)))
     val cycles = out UInt (10 bits)
     val t805State = out Bits (64 bits)
   }
