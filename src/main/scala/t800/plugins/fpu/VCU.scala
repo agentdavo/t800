@@ -34,6 +34,10 @@ class FpuVCU extends Component {
   val isDenormal = op1Class.isDenormal || op2Class.isDenormal
   val isZero = op1Class.isZero || op2Class.isZero
 
+  // Invalid operation: infinity multiplied by zero
+  private val mulInfZero = (io.opcode === B(0x8b, 8 bits)) &&
+    ((op1Class.isInfinity && op2Class.isZero) || (op2Class.isInfinity && op1Class.isZero))
+
   private val posInf = B(BigInt("7ff0000000000000", 16), 64 bits)
   private val negInf = B(BigInt("fff0000000000000", 16), 64 bits)
   private val nanVal = B(BigInt("7ff8000000000000", 16), 64 bits)
@@ -51,11 +55,12 @@ class FpuVCU extends Component {
   }
 
   io.isSpecial := isNaN || isInfinity || isDenormal || isZero
-  io.trapEnable := isNaN || isDenormal || (io.opcode === B(0x83, 8 bits) && isInfinity)
+  io.trapEnable := isNaN || isDenormal || mulInfZero ||
+    (io.opcode === B(0x83, 8 bits) && isInfinity)
   io.trapType := U(0)
   when(io.trapEnable) { io.trapType := U(0x4) }
   io.specialResult := Mux(
-    isNaN,
+    isNaN || mulInfZero,
     canonicalNaN,
     Mux(
       isInfinity,
