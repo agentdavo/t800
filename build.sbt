@@ -77,7 +77,8 @@ lazy val t800 = (project in file("."))
           "FpuPluginSpec.scala",
           "FpuAdderSpec.scala",
           "DivRootSpec.scala",
-          "RangeReducerSpec.scala"
+          "RangeReducerSpec.scala",
+          "FpuBusySpec.scala"
         )
         keep.flatMap(p => (srcDir ** p).get)
       },
