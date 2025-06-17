@@ -4,6 +4,7 @@ import spinal.core._
 import spinal.core.sim._
 import org.scalatest.funsuite.AnyFunSuite
 import spinal.lib.misc.plugin.PluginHost
+import spinal.lib.misc.database.Database
 import t800.plugins.fpu._
 
 /** Wrapper around [[FpuPlugin]] exposing a simple command interface. */
@@ -21,7 +22,7 @@ class FpuDut extends Component {
   // Build minimal plugin stack with mock trap handler
   val host = new PluginHost
   val plugins = T800.unitPlugins() ++ Seq(new DummyTrapPlugin, new FpuPlugin)
-  PluginHost(host).on(new T800(host, plugins))
+  PluginHost(host).on(Database(T800.defaultDatabase()).on(T800(plugins)))
 
   val fpuSrv = host[FpuSrv]
   val ctrl = host[FpuControlSrv]
@@ -31,7 +32,7 @@ class FpuDut extends Component {
     ctrl.setRoundingMode(io.rounding)
     ctrl.clearErrorFlags
   }
-  io.rsp := fpuSrv.rsp.payload
+  io.rsp := fpuSrv.rsp.payload.asBits
   io.rspValid := fpuSrv.rsp.valid && io.cmdValid
 }
 
@@ -42,8 +43,8 @@ class FpuPluginSpec extends AnyFunSuite {
       dut.clockDomain.forkStimulus(10)
       dut.io.cmdValid #= true
       dut.io.op #= op
-      dut.io.a #= BigInt(java.lang.Double.doubleToRawLongBits(a))
-      dut.io.b #= BigInt(java.lang.Double.doubleToRawLongBits(b))
+      dut.io.a #= BigInt(java.lang.Double.doubleToRawLongBits(a)) & BigInt("ffffffffffffffff", 16)
+      dut.io.b #= BigInt(java.lang.Double.doubleToRawLongBits(b)) & BigInt("ffffffffffffffff", 16)
       dut.io.rounding #= rm
       dut.clockDomain.waitSampling()
       res = java.lang.Double.longBitsToDouble(dut.io.rsp.toLong)

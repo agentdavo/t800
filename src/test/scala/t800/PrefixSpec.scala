@@ -31,9 +31,7 @@ class PrefixSpec extends AnyFunSuite {
           new SchedulerPlugin,
           new PipelineBuilderPlugin
         )
-        PluginHost(host).on {
-          new T800(host, p)
-        }
+        PluginHost(host).on(T800(p))
       }
       .doSim { dut =>
         dut.clockDomain.forkStimulus(10)

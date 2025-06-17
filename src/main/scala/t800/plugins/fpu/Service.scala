@@ -20,7 +20,7 @@ import FpuServiceTypes.FpCmd
 trait FpuSrv {
   def pipe: Flow[FpCmd]
   def rsp: Flow[UInt]
-  def send(op: FpOp.E, a: UInt, b: UInt): Unit = {
+  def send(op: FpOp.C, a: UInt, b: UInt): Unit = {
     pipe.valid := True
     pipe.payload.op := op
     pipe.payload.a := a.asBits

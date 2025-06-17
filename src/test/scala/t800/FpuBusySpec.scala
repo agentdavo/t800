@@ -10,21 +10,15 @@ class BusyDut extends Component {
     val cycles = in UInt (10 bits)
     val busy = out Bool ()
   }
-  val cycleCnt = Reg(UInt(10 bits)) init (0)
-  val maxCycles = Reg(UInt(10 bits)) init (0)
+  val counter = Reg(UInt(10 bits)) init (0)
 
   when(io.start) {
-    maxCycles := io.cycles
-    cycleCnt := 0
+    counter := io.cycles
+  } elsewhen (counter =/= 0) {
+    counter := counter - 1
   }
 
-  when(cycleCnt < maxCycles) {
-    cycleCnt := cycleCnt + 1
-  } otherwise {
-    cycleCnt := 0
-  }
-
-  io.busy := cycleCnt < maxCycles
+  io.busy := counter =/= 0
 }
 
 class FpuBusySpec extends AnyFunSuite {
