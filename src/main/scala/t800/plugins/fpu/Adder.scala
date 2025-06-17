@@ -129,15 +129,25 @@ class FpuAdder extends Component {
       normExp := (expAdj.asSInt + r.asSInt).asUInt.resize(11)
     }
 
-    val dropped = (s1(MA_RAW) =/= s1(MA)) || (s1(MB_RAW) =/= s1(MB))
-    val rawRes = packIeee754(signRes, normExp, normMant(51 downto 0).asBits)
-    val rounded = Bits(64 bits)
-    rounded := rawRes
-    when(signRes && s1(ROUND) === B"11" && dropped) {
-      rounded := (rawRes.asUInt + 1).asBits
-    }
+    val signedMant = signRes ? (~normMant + 1).asSInt | normMant.asSInt
+    val mantFix = AFix(signedMant, 0 exp)
 
-    s1(RESULT) := rounded
+    val roundNearest = mantFix.roundHalfToEven(0).raw.asSInt
+    val roundZero = mantFix.floorToZero(0).raw.asSInt
+    val roundPos = mantFix.ceilToInf(0).raw.asSInt
+    val roundNeg = mantFix.floor(0).raw.asSInt
+
+    val roundedSInt = s1(ROUND).mux(
+      B"00" -> roundNearest,
+      B"01" -> roundZero,
+      B"10" -> roundPos,
+      B"11" -> roundNeg
+    )
+
+    val finalSign = roundedSInt.msb
+    val finalMant = Mux(finalSign, (~roundedSInt + 1).asUInt, roundedSInt.asUInt)
+
+    s1(RESULT) := packIeee754(finalSign, normExp, finalMant(51 downto 0).asBits)
   }
 
   s1.down.driveTo(io.rsp) { (p, n) =>
