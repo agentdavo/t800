@@ -34,7 +34,7 @@ class TimerEnableSpec extends AnyFunSuite {
       .compile {
         val host = new PluginHost
         val plugins = Seq(new TimerPlugin, new TimerProbePlugin)
-        PluginHost(host).on(T800(plugins))
+        PluginHost(host).on(Transputer(plugins))
       }
       .doSim { dut =>
         dut.clockDomain.forkStimulus(10)

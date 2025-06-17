@@ -20,8 +20,8 @@ class FpuOpcodeDut extends Component {
   }
 
   val host = new PluginHost
-  val plugins = T800.unitPlugins() ++ Seq(new DummyTrapPlugin, new FpuPlugin)
-  PluginHost(host).on(Database(T800.defaultDatabase()).on(T800(plugins)))
+  val plugins = Transputer.unitPlugins() ++ Seq(new DummyTrapPlugin, new FpuPlugin)
+  PluginHost(host).on(Database(Transputer.defaultDatabase()).on(Transputer(plugins)))
 
   val fpuSrv = host[FpuSrv]
   val ctrl = host[FpuControlSrv]

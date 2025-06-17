@@ -20,11 +20,11 @@ class AdderDutTiny extends Component {
   add.io.rsp.ready := True
 }
 
-/** Ensure minimal T800 configuration builds with basic pipeline. */
+/** Ensure minimal Transputer configuration builds with basic pipeline. */
 class InitTransputerSpec extends AnyFunSuite {
   test("TransputerPlugin sets default configuration") {
-    val db = T800.defaultDatabase()
-    val report = SpinalConfig().generateVerilog(new T800Unit(db))
+    val db = Transputer.defaultDatabase()
+    val report = SpinalConfig().generateVerilog(new TransputerUnit(db))
     assert(db(Global.WORD_BITS) == Global.WordBits)
     assert(db(Global.RAM_WORDS) == Global.RamWords)
   }
