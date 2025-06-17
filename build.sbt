@@ -54,28 +54,12 @@ lazy val transputer = (project in file("."))
         "Generate.scala",
         "Service.scala",
         "pipeline/Service.scala",
-        "registers/Service.scala",
-        "registers/RegFilePlugin.scala",
-        "fpu/VCU.scala",
-        "fpu/Service.scala",
-        "fpu/Opcodes.scala",
-        "fpu/Adder.scala",
-        "fpu/Multiplier.scala",
-        "fpu/DivRoot.scala",
-        "fpu/RangeReducer.scala",
-        "fpu/FpuPlugin.scala",
-        "fpu/Utils.scala",
         "pipeline/PipelinePlugin.scala",
         "pipeline/PipelineBuilderPlugin.scala",
         "TransputerPlugin.scala",
         "fetch/FetchPlugin.scala",
-        "grouper/InstrGrouperPlugin.scala",
-        "decode/PrimaryInstrPlugin.scala",
-        "execute/SecondaryInstrPlugin.scala",
-        "mmu/MemoryManagementPlugin.scala",
-        "stack/StackPlugin.scala",
-        "cache/MainCachePlugin.scala",
-        "cache/WorkspaceCachePlugin.scala"
+        "registers/Service.scala",
+        "registers/RegFilePlugin.scala"
       )
       val srcDir = (Compile / scalaSource).value
       val selected = (srcDir ** "*.scala").get.filter(f =>
@@ -97,6 +81,7 @@ lazy val transputer = (project in file("."))
         "TestPlugins.scala",
         "FpOpcodeSpec.scala",
         "FpuOpcodeSpec.scala"
+        ,"TransputerBarebonesSpec.scala"
       )
       keep.flatMap(p => (srcDir ** p).get)
     },
