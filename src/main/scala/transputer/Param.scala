@@ -13,9 +13,9 @@ case class Param(
   wsCacheWords: Int = 32,
   fpuPrecision: Int = 64,
   cacheSize: Int = 4096,
-  reportModel: Boolean = true
+  reportModel: Boolean = false
 ) {
-  import transputer.plugins._
+  import transputer._
 
   /** Returns a sequence of FiberPlugin instances based on configuration. */
   def plugins(hartId: Int = 0): Seq[FiberPlugin] =
@@ -23,20 +23,17 @@ case class Param(
 
   /** Creates an area to manage plugin instances. */
   def pluginsArea(hartId: Int = 0) = new Area {
-    
     val plugins = ArrayBuffer[Hostable]()
-    plugins += new transputer.plugins.transputer.TransputerPlugin(
+    plugins += new transputer.TransputerPlugin(
       wordBits = wordWidth,
       linkCount = linkCount
     )
     if (enableFpu)
-      plugins += new transputer.plugins.fpu.FpuPlugin
-    
-    plugins += new transputer.plugins.pipeline.PipelinePlugin
-    plugins += new transputer.plugins.registers.RegFilePlugin
-    plugins += new transputer.plugins.mmu.MemoryManagementPlugin
-    plugins += new transputer.plugins.cache.MainCachePlugin
-    plugins += new transputer.plugins.cache.WorkspaceCachePlugin
-    
+      plugins += new transputer.fpu.FpuPlugin
+    plugins += new transputer.pipeline.PipelinePlugin
+    plugins += new transputer.registers.RegFilePlugin
+    plugins += new transputer.mmu.MemoryManagementPlugin
+    plugins += new transputer.cache.MainCachePlugin
+    plugins += new transputer.cache.WorkspaceCachePlugin
   }
 }

@@ -6,7 +6,7 @@ import spinal.lib.misc.{AnalysisUtils, LatencyAnalysis}
 import scopt.OParser
 
 /** Verilog generation utility for Transputer with command-line configuration. */
-object transputerGenerate {
+object Generate {
   def main(args: Array[String]): Unit = {
     val builder = OParser.builder[Param]
     val parser = {

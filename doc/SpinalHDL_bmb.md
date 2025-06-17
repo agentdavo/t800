@@ -1,6 +1,6 @@
 # BMB Bus
 
-This document summarises the BMB (Bus Matrix Bus) used by SpinalHDL. The official implementation lives in `lib/src/main/scala/spinal/lib/bus/bmb/` under the bundled SpinalHDL sources.
+This document summarises the BMB (Bus Matrix Bus) used by SpinalHDL. The official implementation lives in `ext/SpinalHDL/lib/src/main/scala/spinal/lib/bus/bmb/` under the bundled SpinalHDL sources.
 
 BMB is a highly configurable memory-mapped bus. Each endpoint exposes a parameter object describing address width, data width, burst length and optional features such as exclusive access or invalidation. The same description drives type-safe interfaces (`Bmb`, `BmbCmd`, `BmbRsp` and friends) and allows bus bridges to be generated automatically.
 
@@ -24,6 +24,6 @@ The library includes bridges to several other protocols and helpers that transfo
 * `BmbUnburstify` to split bursts into single beats.
 * On‑chip RAM primitives such as `BmbOnChipRam`, `BmbIce40Spram` and `BmbEg4S20Bram32K`.
 
-Additional utilities include write retainers, context or sync removers and simulation models located under `lib/src/main/scala/spinal/lib/bus/bmb/sim`.
+Additional utilities include write retainers, context or sync removers and simulation models located under `ext/SpinalHDL/lib/src/main/scala/spinal/lib/bus/bmb/`.
 
 Refer to the source code for complete definitions and examples.

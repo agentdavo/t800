@@ -1,294 +1,93 @@
-# Contributor Guide
+# AGENTS.md for Transputer Project
 
-*(rev 2025-06-12 – includes plugin & pipeline details)*
+*(Rev 2025-06-17)*
 
----
+## Overview
+Guide for OpenAI Codex to assist development of the Transputer project, a SpinalHDL-based hardware design. Key code in `src/main/scala/transputer/`, tests in `src/test/scala/transputer/`, docs in `doc/`.
 
-## 1 Project map
-
+## Project Structure
 | Path | Description |
 |------|-------------|
-| `src/main/scala/t800/plugins/` | One subfolder per `FiberPlugin`, each with `Service.scala` |
-| `src/main/scala/t800/Top.scala` | Legacy entry, superseded by `Generate.scala` |
-| `src/main/scala/t800/Param.scala` | Parameter case class selecting plugins |
-| `src/main/scala/t800/Generate.scala` | CLI that parses parameters and emits Verilog |
-| `src/test/scala/t800/` | ScalaTest units + SpinalSim benches |
-| `ext/SpinalHDL/` | Upstream library as git sub-module |
-| `doc/spinalHDL.txt` | SpinalSim + SpinalHDL documentation |
-| `doc/bmb.md` | BMB bus overview and feature list |
-| `docs/spinalAPI.md` | Local guide to the SpinalHDL helpers. Keep this updated as new features use the DSLs |
+| `src/main/scala/transputer/<Subsystem>/` | One `FiberPlugin` per subfolder with `Service.scala` |
+| `src/main/scala/transputer/Generate.scala` | CLI for Verilog generation |
+| `src/main/scala/transputer/Param.scala` | Plugin selection parameters |
+| `src/test/scala/transputer/` | ScalaTest and SpinalSim tests |
+| `ext/SpinalHDL/` | SpinalHDL library official source code  (git submodule) |
+| `ext/.ivy2/`       | ivy2 cached published SpinalHDL jar |
+| `doc/SpinalHDL_api.md` | SpinalHDL DSL guide (update for new features) |
+| `doc/SpinalHDL_bmb.md` | SpinalHDL BMB guide (update for new features) |
 
----
-
-## 2 Development quick-ref
-
+## Development
 ```bash
-# first-time setup (installs sbt & build tools)
-sudo ./scripts/setup_env.sh
+sbt scalafmtAll                      # Format
+sbt test                             # Test
+sbt "runMain Generate.DefaultBoard"  # Generate Verilog
+```
 
-# format, test and run
-sbt scalafmtAll
-sbt test
-sbt "runMain t800.TopVerilog"
-````
+## Coding Rules
+- **Plugins**: One per file named `<Subsystem>Plugin.scala`.
+- **Services**: Expose IO via `LinkPins(bundle)`. Use `Service` suffix (e.g., `FetchService`) and not `Srv`. Align with pipeline stages (Fetch, Decode, Execute, Memory, Writeback).
+- **Pipeline**: Use DSL from spinal.lib.misc.pipeline (`Node`, `StageLink`, `CtrlLink`), not `RegNext`.
+- **Tests**: Unit test new opcodes, checking A/B/C or memory.
+- **Docs**: Update `doc/SpinalHDL_api.md` for new DSL patterns/services. Refer to `doc/SpinalHDL_docs.txt` for SpinalHDL library help.
 
----
+## Pipeline DSL
+- **Links**: `StageLink`, `S2MLink`, `ForkLink`, `JoinLink`.
+- **Controls**: `ctrl.haltWhen`, `ctrl.throwIt`.
+- **Rules**: Single `insert()` per `Payload`, read via `node(payload)`.
 
-## 3 Style & rules
-
-* **One plugin per file** under `src/main/scala/t800/plugins/`.
-  Filename: `<Subsystem>Plugin.scala`.
-
-* Plugins expose IO via tiny *service* wrappers:
-
-  ```scala
-  case class LinkPins(bundle: Bundle)
-  addService(LinkPins(io.links))
+## PR Guidelines
+- **Branch**: Use `feat/<milestone>` (e.g., `feat/m1-alu`). No direct `main` commits.
+- **Template**:
+  ```markdown
+  ### What & Why
+  - Added opcode <name>
+  - Added <test-name>
+  ### Validation
+  - [x] sbt scalafmtAll
+  - [x] sbt test
+  Closes #<issue>
   ```
+- **Conflicts**: Rebase with `git rebase origin/main`. Resolve via `codex resolve-conflicts`.
 
-* **Service naming** – traits use the `Service` suffix and clearly indicate the
-  pipeline stage or subsystem they belong to. Examples: `FetchService`,
-  `DecodeService`, `FpuControlService`.
-  * Use descriptive names and avoid abbreviations like `Srv`.
-  * Align names with the 5-stage pipeline (Fetch, Decode, Execute, Memory,
-    Writeback). For services spanning multiple stages, prepend the subsystem
-    (e.g. `FpuControlService`).
-  * Reuse existing services where possible and keep names unique to avoid
-    overlap.
+## CI Checks
+| Stage | Command |
+|-------|---------|
+| Style | `sbt scalafmtAll` |
+| Tests | `sbt test` |
+| Verilog | `sbt "runMain Generate.DefaultBoard"` |
 
-* Dataflow inside a plugin **must** use Pipeline DSL (`Node`, `StageLink`, `CtrlLink`), not ad-hoc `RegNext`.
-
-* Each new opcode requires a unit test that drives bytes through fetch and checks A/B/C or memory.
-* Update `docs/spinalAPI.md` with any new DSL patterns or plugin services.
-
----
-
-## 4 CI validation
-
-| Stage                   | Command                                                            |
-| ----------------------- | ------------------------------------------------------------------ |
-| Style                   | `sbt scalafmtAll`                                   
-| Tests (full variant)    | `sbt test`                                                         |
-| Verilog | `sbt "runMain t800.TopVerilog"` |
-| Nightly timing          | see `.github/workflows/ci.yml`                                     |
-
----
-
-## 5 Milestones
-
-| ID      | Goal                             | Plugin(s) touched | DSL highlight                 |
-| ------- | -------------------------------- | ----------------- | ----------------------------- |
-| **M-1** | ALU-Lite (`REV ADD SUB AND XOR`) | `PrimaryInstrPlugin`, `SecondaryInstrPlugin`   | `StageCtrlPipeline`, `haltIt` |
-| **M-2** | PFIX/NFIX + `LDL`                | `PrimaryInstrPlugin`   | same                          |
-| **M-3** | RAM `STL/LDL` + stack            | `MemoryPlugin`    | `S2MLink`                     |
-| **M-4** | Two-queue scheduler              | `SchedulerPlugin` | `ForkLink`                    |
-| **M-5** | 64-bit timer + wait              | `SchedulerPlugin` | `JoinLink`                    |
-| **M-6** | FP adder pipeline                | `FpuPlugin`       | plugin swap                   |
-
-Open **one** milestone per PR branch (`feat/m1-alu`, etc.).
-
----
-
-## 6 PR template
-
-```markdown
-### What & Why
-* Implement opcode 0x94 (OPR-ADD)
-* Added `AluAddSpec`
-
-### Validation
-- [x] sbt scalafmtAll
-- [x] `sbt test` (full + min variants)
-
-Closes #42
-```
-
-## 7\u2003Pull-request management
-
-All development occurs on feature branches. Direct commits to `main` are
-forbidden.
-
-### Automatic conflict resolution
-
-1. `git fetch origin && git rebase origin/main`
-2. If the rebase succeeds with no conflicts, push fast-forward.
-3. If conflicts remain, run `codex resolve-conflicts`.
-
-Preferred strategy:
-
-* Use `main` versions for lock or generated files.
-* For pure-format updates, re-run formatters then commit.
-* Keep both sides for code conflicts, merge manually and rerun `npm test` and
-  `pytest`.
-
-Codex may run:
-
-```bash
-git fetch origin && git rebase origin/main
-git push
-codex resolve-conflicts
-npm test
-pytest
-```
-
----
-
-## 8 Writing a plugin
-
+## Simulation
 ```scala
-package t800.plugins                // mandatory package!
-
-import spinal.lib.misc.plugin._
-import spinal.lib.misc.pipeline._
-
-/** Example: free-running timer service. */
-trait TimerService { def now: UInt }
-
-class TimerPlugin extends FiberPlugin {
-  val cnt = Reg(UInt(64 bits)) init(0)
-  during.setup { cnt := cnt + 1 }
-
-  addService(new TimerService { def now = cnt })
-}
-```
-
-Use the service elsewhere:
-
-```scala
-val timer = Plugin[TimerService]
-when(ctrl.isValid) { Areg := timer.now(31 downto 0) }
-```
-
-For strict ordering:
-
-```scala
-val lock = Lock()
-buildBefore(lock)   // ensure this plugin finishes first
-```
-
-### Fiber phases
-
-All `FiberPlugin`s run in two phases:
-
-1. **setup** – declare dependencies or mutate shared state.
-2. **build** – emit hardware once all plugins completed setup.
-
-Use `during setup { ... }` and `during build { ... }` to split the logic. Call
-`awaitBuild()` within setup if you need to resume in the build phase, and
-`buildBefore(lock)` to force ordering between plugins.
-
----
-
-## 9 Pipeline DSL cheat-sheet
-
-| Need             | One-liner                         |
-| ---------------- | --------------------------------- |
-| Register slice   | `StageLink(n0, n1)`               |
-| Skid buffer      | `S2MLink(up, down)`               |
-| Broadcast 1→N    | `ForkLink(src, Seq(a,b))`         |
-| Join N→1         | `JoinLink(Seq(a,b), dst)`         |
-| Stall stage      | `ctrl.haltWhen(cond)`             |
-| Flush stage      | `ctrl.throwIt(usingReady = true)` |
-| Duplicate        | `ctrl.duplicateIt()`              |
-| Multi-issue lane | extend `CtrlLaneApi`              |
-
-Golden rules:
-
-1. Insert each `Payload` once with `insert()`.
-2. Other stages only *read* it (`node(payload)`); no secondary writes.
-3. Use DSL requests (`haltIt`, `terminateIt`, …) rather than setting `ready/valid` directly.
-
----
-
-## 10 Troubleshooting
-
-| Symptom                       | Explanation & fix                                                               |
-| ----------------------------- | ------------------------------------------------------------------------------- |
-| `ctrl.forgetOne unsupported`  | Using `DirectLink`; switch to `StageLink` or enable `.ctrl.forgetOneSupported`. |
-| Combinational loop on Payload | Same signal driven in two stages – keep single `insert()`.                      |
-| Fiber deadlock                | Circular dependency → break with `buildBefore(lock)`.                           |
-
----
-
-## 11 Ownership matrix
-
-| Plugin          | Maintainers |
-| --------------- | ----------- |
-| FetchPlugin     | Front-end   |
-| PrimaryInstrPlugin, SecondaryInstrPlugin   | ALU team    |
-| FpuPlugin       | FPU team    |
-| SchedulerPlugin | Flow team   |
-| MemoryPlugin    | Mem/cache   |
-| ChannelPlugin   | Links       |
-| TrapPlugin      | Safety      |
-| DebugPlugin     | QA          |
-
----
-
-## 12 Hierarchy rules
-
-Signals may only be read in the component where they are defined or in its
-children. Assignments are restricted to the owner component and outputs of its
-children. Accessing a sibling's signal directly causes a **Hierarchy Violation**
-error. Expose functionality through services or explicit I/O bundles to share
-state between plugins.
-
----
-
-## 13 Simulation quick‑start
-
-Use SpinalHDL's built-in simulator for unit tests. The typical pattern is
-
-```scala
-import spinal.core._
-import spinal.core.sim._
-
 SimConfig.withWave.compile(new MyCore).doSim { dut =>
   dut.clockDomain.forkStimulus(10)
   SimTimeout(1000)
-  // stimuli here
 }
 ```
+- Use `withVerilator`. See `doc/SpinalHDL_docs.txt`.
+- Debug: Use `SPINALSIM_WORKSPACE`, `waitUntil`.
 
-Wave files are written under `simWorkspace/`. Select the backend with
-`withVerilator`, `withGhdl`, or `withIVerilog`. See `doc/spinalHDL.txt` for
-details.
+## Troubleshooting
+- **Combinational Loop**: Single `insert()` per `Payload`.
+- **Fiber Deadlock**: Use `buildBefore(lock)`.
+- **NO DRIVER**: Add default values or `.setIdle()`.
 
-### Debugging tips
+## Hierarchy
+Signals readable only in defining component or children. Share state via services/IO bundles.
 
-* Override `simWorkspace/` via the `SPINALSIM_WORKSPACE` environment variable.
-* `SimConfig.setTestPath(path)` sets the wave output folder; `currentTestPath()`
-  returns it at runtime.
-* Waveforms and log files are written under the chosen workspace directory,
-  making it easy to inspect multiple test runs.
-* `DualSimTracer` captures only the last slice of a failing run.
-* Use `fork { ... }` to spawn concurrent threads. Control time with `sleep(n)`
-  and block on conditions via `waitUntil(expr)` or the ClockDomain helpers
-  like `waitRisingEdge()`.
-* Call `clockDomain.forkSimSpeedPrinter(printPeriod)` to print the current
-  simulation speed. See `doc/spinalHDL.txt` for details.
+### PR Message
+Using the original PR template:
 
-#### Common runtime errors
+```markdown
+### What & Why
+- Optimized `AGENTS.md` for brevity and clarity, aligning with OpenAI demo style
+- Retained essential development and validation guidance
 
-* **NO DRIVER ON** – a combinational signal has no assignment. Give it a
-  default value before any `when` branches. For `Flow`/`Stream`, call
-  `.setIdle()` during setup.
-* **LATCH DETECTED** – incomplete assignments infer latches. Ensure every path
-  assigns a value, or add a `default` case in `switch`/`mux` constructs.
-* **NullPointerException** – referencing hardware before `val` initialization
-  in Scala. Declare signals before using them.
+### Validation
+- [x] sbt scalafmtAll
+- [x] sbt test
 
-## 14 Design checks
+Closes #<issue>
+```
 
-The SpinalHDL compiler rejects many unsafe constructs. Watch out for:
-
-* Assignment overlapping
-* Clock domain crossing mistakes
-* Hierarchy violations
-* Combinatorial loops
-* Latches
-* Undriven signals
-* Width mismatches
-* Unreachable switch statements
-
-Each error includes a stack trace to locate the issue.
+Replace `<issue>` with the relevant issue number, if applicable.

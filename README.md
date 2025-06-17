@@ -1,16 +1,16 @@
-# Transputer-T800 Core
+# Transputer Core
 
-*(rev 2025-06-12 – includes plugin & pipeline details)*
+*(rev 2025-06-17 – includes plugin & pipeline details)*
 
 ---
 
 SpinalHDL ≥ 1.9 • Plugin architecture • Pipeline DSL • Fiber tasks
 
-This repo re-implements the INMOS T800/T9000 CPU using modern SpinalHDL.
+This repo re-implements the Transputer CPU using modern SpinalHDL.
 Each subsystem lives in its own `FiberPlugin` and communicates via small
 "services". Pipelines are assembled with the DSL from SpinalLib.
 
-This project re-implements the INMOS T800/T9000 CPU in modern SpinalHDL.
+This project re-implements the Transputer CPU in modern SpinalHDL.
 
 * **Plugins** – every subsystem (FPU, Scheduler …) is a hot-swappable `FiberPlugin`.
 * **Pipeline DSL** – build safe, stall/flush-aware pipelines with one-liners.
@@ -61,7 +61,7 @@ Quick cheat-sheet in **AGENTS.md §8**.
 t800/
 ├─ build.sbt
 ├─ src/
-│  ├─ main/scala/t800/
+│  ├─ main/scala/transputer/
 │  │  ├─ Top.scala              # creates Database + PluginHost, selects plugins
 │  │  └─ plugins/               # ⇐ one subfolder per FiberPlugin
 │  │     ├─ fetch/              # FetchPlugin + Service.scala
@@ -74,7 +74,7 @@ t800/
 │  │     ├─ timers/             # TimerPlugin
 │  │     ├─ transputer/         # TransputerPlugin
 │  │     └─ ...
-│  └─ test/scala/t800/
+│  └─ test/scala/transputer/
 │      ├─ T800CoreSim.scala
 │      └─ ...
 ├─ ext/
@@ -107,71 +107,21 @@ pipeline consistent:
 
 ---
 
-## Ubuntu setup
-
-```bash
-#!/usr/bin/env bash
-set -euo pipefail
-
-echo "=== Installing T800 build environment ==="
-apt-get update
-apt-get install -y software-properties-common curl gnupg2
-
-add-apt-repository -y ppa:openjdk-r/ppa
-apt-get update
-
-curl -fsSL https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x2EE0EA64E40A89B84B2DF73499E82A75642AC823 \
-  | gpg --dearmor -o /usr/share/keyrings/sbt.gpg
-echo "deb [signed-by=/usr/share/keyrings/sbt.gpg] https://repo.scala-sbt.org/scalasbt/debian all main" \
-  > /etc/apt/sources.list.d/sbt.list
-
-apt-get update
-apt-get install -y \
-  openjdk-21-jdk sbt gtkwave git make autoconf g++ flex bison \
-  help2man device-tree-compiler libboost-all-dev wget
-
-tmp=/tmp/verilator
-git clone --depth 1 https://github.com/verilator/verilator.git "$tmp"
-cd "$tmp" && autoconf && ./configure && make -j$(nproc) && make install
-rm -rf "$tmp"
-
-java  -version | head -n1
-sbt   --script-version
-verilator --version
-
-Run `sudo ./scripts/setup_env.sh` to execute these steps.
-
-````
-
----
-
 ## Quick start
 
 ```bash
 git clone --recursive https://github.com/agentdavo/t800.git
 cd t800
 
-# Ensure the bundled SpinalHDL submodule is present when
-# using `SPINALHDL_FROM_SOURCE=1`.
-git submodule update --init --recursive
-./scripts/check-submodules.sh
-
-# Install Java, sbt and Verilator once via helper script
-sudo ./scripts/setup_env.sh
-
 # Default plugin set
 sbt scalafmtAll
 sbt test
-sbt "runMain t800.Generate --word-width 32 --link-count 4 --fpu true"
+sbt "runMain transputer.Generate --word-width 32 --link-count 4 --fpu true"
 
 # Parameters
 --word-width    CPU data width in bits
 --link-count    Number of communication links
 --fpu           Enable or disable the floating-point unit (Generate.scala flag)
-
-# To build against the bundled SpinalHDL sources instead of published
-# artifacts, run with `SPINALHDL_FROM_SOURCE=1`:
-# SPINALHDL_FROM_SOURCE=1 sbt test
 ```
 
 ---
@@ -179,7 +129,7 @@ sbt "runMain t800.Generate --word-width 32 --link-count 4 --fpu true"
 ## Contributing
 
 1. Pick a milestone from **AGENTS.md §5**.
-2. Work **inside** `src/main/scala/t800/plugins/<name>/` for your plugin.
+2. Work **inside** `src/main/scala/transputer/plugins/<name>/` for your plugin.
 3. Run `sbt scalafmtAll` and keep CI green:
 
 ```bash
@@ -224,7 +174,7 @@ elaboration. Always declare hardware objects before driving them.
 
 ## Simulation with SpinalSim
 
-The `src/test/scala` directory contains ScalaTest benches that use SpinalHDL's
+The `src/test/scala/transputer` directory contains ScalaTest benches that use SpinalHDL's
 simulation API. A simple template is:
 
 ```scala

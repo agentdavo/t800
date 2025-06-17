@@ -18,10 +18,10 @@ CtrlLink handshakes between the stages allow plugins to stall (`haltWhen`) or fl
 
 ## Plugins
 
-Each subsystem resides in `src/main/scala/t800/plugins` as a `FiberPlugin`:
+Each subsystem resides in `src/main/scala/tranpsuter/plugins` as a `FiberPlugin`:
 
 - `FetchPlugin` – program counter and instruction prefetch via BMB.
-- `PrimaryInstrPlugin` – implements the base T800 instructions.
+- `PrimaryInstrPlugin` – implements the base Transuter instructions.
 - `SecondaryInstrPlugin` – decodes the extended OPR group.
 - `MemoryManagementPlugin` – connects data and instruction traffic to the system bus.
 - `FpuPlugin` – optional floating point pipeline.
