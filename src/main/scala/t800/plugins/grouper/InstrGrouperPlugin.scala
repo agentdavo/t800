@@ -2,17 +2,17 @@ package t800.plugins.grouper
 
 import spinal.core._
 import spinal.lib._
-import spinal.lib.misc.plugin.{PluginHost, FiberPlugin}
+import spinal.lib.misc.plugin.{PluginHost, FiberPlugin, Plugin}
 import spinal.lib.misc.pipeline._
 import spinal.core.fiber.Retainer
-import t800.{Global, Opcodes}
-import t800.plugins.{RegfileSrv, Fetch}
+import t800.{Global, Opcode}
+import t800.plugins.registers.RegfileSrv
+import t800.plugins.Fetch
 import t800.plugins.registers.RegName
 import t800.plugins.pipeline.{PipelineSrv, PipelineStageSrv}
 
-/** Assembles groups of up to eight instructions from the fetch stage,
-  * respecting pipeline stage constraints and dependencies,
-  * for delivery to the PrimaryInstrPlugin (decode) stage.
+/** Assembles groups of up to eight instructions from the fetch stage, respecting pipeline stage
+  * constraints and dependencies, for delivery to the PrimaryInstrPlugin (decode) stage.
   */
 class GrouperPlugin extends FiberPlugin with PipelineSrv {
   val version = "GrouperPlugin v0.5"
@@ -54,7 +54,7 @@ class GrouperPlugin extends FiberPlugin with PipelineSrv {
     val GROUP_COUNT = out.insert(UInt(4 bits))
 
     // Input opcodes from FetchPlugin
-    val fetchOpcodes = pipe.fetch(Fetch.FETCH_OPCODES) // Vec[Bits(8 bits), 8]
+    val fetchOpcode = pipe.fetch(Fetch.FETCH_OPCODES) // Vec[Bits(8 bits), 8]
     val fetchValid = pipe.fetch.isValid
     pipe.fetch.haltWhen(!out.down.isReady) // Back-pressure fetch stage
 
@@ -83,28 +83,33 @@ class GrouperPlugin extends FiberPlugin with PipelineSrv {
     // Group formation
     val instrIndex = Reg(UInt(4 bits)) init 0
     when(fetchValid && canAddInstr) {
-      val opcode = fetchOpcodes(instrIndex)
-      val isPrimary = Opcodes.PrimaryEnum().decode(opcode(7 downto 4))
-      val isSecondary = isPrimary === Opcodes.PrimaryEnum.OPR
+      val opcode = fetchOpcode(instrIndex)
+      val isPrimary = Opcode.PrimaryOpcode().decode(opcode(7 downto 4))
+      val isSecondary = isPrimary === Opcode.PrimaryOpcode.OPR
       val secondaryOpcode = Mux(
         cond = isSecondary,
-        whenTrue = Opcodes.SecondaryEnum().decode(opcode),
-        whenFalse = Opcodes.SecondaryEnum.REV
+        whenTrue = Opcode.SecondaryOpcode().decode(opcode),
+        whenFalse = Opcode.SecondaryOpcode.REV
       )
 
       // Determine stage usage
       val newUsage = StageUsage()
       newUsage := currentUsage
-      when(isPrimary.isOneOf(Opcodes.PrimaryEnum.LDL, Opcodes.PrimaryEnum.LDLP)) {
+      when(isPrimary.isOneOf(Opcode.PrimaryOpcode.LDL, Opcode.PrimaryOpcode.LDLP)) {
         newUsage.fetch := currentUsage.fetch + 1
-      } elsewhen(isPrimary.isOneOf(Opcodes.PrimaryEnum.LDNL, Opcodes.PrimaryEnum.STNL)) {
+      } elsewhen (isPrimary.isOneOf(Opcode.PrimaryOpcode.LDNL, Opcode.PrimaryOpcode.STNL)) {
         newUsage.address := currentUsage.address + 1
         newUsage.load := currentUsage.load + 1
-      } elsewhen(isSecondary.isOneOf(Opcodes.SecondaryEnum.ADD, Opcodes.SecondaryEnum.SUB, Opcodes.SecondaryEnum.FPADD, Opcodes.SecondaryEnum.FPSUB)) {
+      } elsewhen (isSecondary.isOneOf(
+        Opcode.SecondaryOpcode.ADD,
+        Opcode.SecondaryOpcode.SUB,
+        Opcode.SecondaryOpcode.FPADD,
+        Opcode.SecondaryOpcode.FPSUB
+      )) {
         newUsage.execute := currentUsage.execute + 1
-      } elsewhen(isPrimary.isOneOf(Opcodes.PrimaryEnum.CJ, Opcodes.PrimaryEnum.J)) {
+      } elsewhen (isPrimary.isOneOf(Opcode.PrimaryOpcode.CJ, Opcode.PrimaryOpcode.J)) {
         newUsage.writeBranch := currentUsage.writeBranch + 1
-      } elsewhen(isPrimary === Opcodes.PrimaryEnum.STNL) {
+      } elsewhen (isPrimary === Opcode.PrimaryOpcode.STNL) {
         newUsage.writeBranch := currentUsage.writeBranch + 1
       }
 
@@ -112,42 +117,48 @@ class GrouperPlugin extends FiberPlugin with PipelineSrv {
       val regAccess = RegAccess()
       regAccess.read.foreach(_ := False)
       regAccess.write.foreach(_ := False)
-      when(isPrimary.isOneOf(Opcodes.PrimaryEnum.LDL)) {
+      when(isPrimary.isOneOf(Opcode.PrimaryOpcode.LDL)) {
         regAccess.read(RegName.WdescReg.id) := True
         regAccess.write(RegName.Areg.id) := True
-      } elsewhen(isPrimary.isOneOf(Opcodes.PrimaryEnum.LDLP)) {
+      } elsewhen (isPrimary.isOneOf(Opcode.PrimaryOpcode.LDLP)) {
         regAccess.read(RegName.WdescReg.id) := True
         regAccess.write(RegName.Areg.id) := True
-      } elsewhen(isPrimary.isOneOf(Opcodes.PrimaryEnum.LDNL)) {
+      } elsewhen (isPrimary.isOneOf(Opcode.PrimaryOpcode.LDNL)) {
         regAccess.read(RegName.Areg.id) := True
         regAccess.write(RegName.Areg.id) := True
-      } elsewhen(isPrimary.isOneOf(Opcodes.PrimaryEnum.STNL)) {
+      } elsewhen (isPrimary.isOneOf(Opcode.PrimaryOpcode.STNL)) {
         regAccess.read(RegName.Areg.id) := True
         regAccess.read(RegName.Breg.id) := True
         regAccess.write(RegName.Areg.id) := True
-      } elsewhen(isSecondary.isOneOf(Opcodes.SecondaryEnum.ADD, Opcodes.SecondaryEnum.SUB)) {
+      } elsewhen (isSecondary.isOneOf(Opcode.SecondaryOpcode.ADD, Opcode.SecondaryOpcode.SUB)) {
         regAccess.read(RegName.Areg.id) := True
         regAccess.read(RegName.Breg.id) := True
         regAccess.write(RegName.Areg.id) := True
-      } elsewhen(isSecondary.isOneOf(Opcodes.SecondaryEnum.FPADD, Opcodes.SecondaryEnum.FPSUB)) {
+      } elsewhen (isSecondary.isOneOf(Opcode.SecondaryOpcode.FPADD, Opcode.SecondaryOpcode.FPSUB)) {
         regAccess.read(RegName.FPAreg.id) := True
         regAccess.read(RegName.FPBreg.id) := True
         regAccess.write(RegName.FPAreg.id) := True
       }
 
       // Check register conflicts
-      val hasRegConflict = regAccesses.take(instrCount).map { prev =>
-        (prev.write & regAccess.read).orR || (prev.write & regAccess.write).orR
-      }.orR
+      val hasRegConflict = regAccesses
+        .take(instrCount)
+        .map { prev =>
+          (prev.write & regAccess.read).orR || (prev.write & regAccess.write).orR
+        }
+        .orR
 
       // Check memory conflicts
-      val hasMemConflict = memWritePending && isPrimary.isOneOf(Opcodes.PrimaryEnum.LDNL, Opcodes.PrimaryEnum.STNL)
-      when(isPrimary === Opcodes.PrimaryEnum.STNL) {
+      val hasMemConflict =
+        memWritePending && isPrimary.isOneOf(Opcode.PrimaryOpcode.LDNL, Opcode.PrimaryOpcode.STNL)
+      when(isPrimary === Opcode.PrimaryOpcode.STNL) {
         memWritePending := True
       }
 
       // Add instruction to group if valid
-      when(!hasRegConflict && !hasMemConflict && newUsage.fetch <= 2 && newUsage.address <= 2 && newUsage.load <= 2 && newUsage.execute <= 1 && newUsage.writeBranch <= 1) {
+      when(
+        !hasRegConflict && !hasMemConflict && newUsage.fetch <= 2 && newUsage.address <= 2 && newUsage.load <= 2 && newUsage.execute <= 1 && newUsage.writeBranch <= 1
+      ) {
         instrVec(instrCount) := opcode
         regAccesses(instrCount) := regAccess
         currentUsage := newUsage
