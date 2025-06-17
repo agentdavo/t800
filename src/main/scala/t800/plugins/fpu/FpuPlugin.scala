@@ -109,16 +109,29 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
         opcode === Opcode.SecondaryOpcode.FPMUL.asBits ||
         opcode === Opcode.SecondaryOpcode.FPDIV.asBits
 
+    val opCycles = UInt(10 bits)
+    opCycles := 0
+    switch(opcode) {
+      is(B"10101010") { opCycles := 2 }
+      is(Opcode.SecondaryOpcode.FPADD) { opCycles := 2 }
+      is(Opcode.SecondaryOpcode.FPSUB) { opCycles := 2 }
+      is(Opcode.SecondaryOpcode.FPMUL) { opCycles := 3 }
+      is(Opcode.SecondaryOpcode.FPDIV) { opCycles := 15 }
+      is(Opcode.SecondaryOpcode.FPSQRT) { opCycles := 15 }
+      is(Opcode.SecondaryOpcode.FPREM) { opCycles := 529 }
+      is(Opcode.SecondaryOpcode.FPRANGE) { opCycles := 17 }
+      is(B"01000001", B"01000010", B"01000011", B"5F", B"90") { opCycles := divRoot.io.cycles }
+    }
+
     s0.up.valid := pipe.execute.isValid && isFpuOp
     s0.up.ready := s0.down.isReady
     s0.down.valid := s0.up.isValid
     pipe.execute.haltWhen(s0.isValid && !s0.down.isReady)
 
-    s0.haltWhen(s0(CYCLE_CNT) < s0(MAX_CYCLES))
+    s0.haltWhen(s0(CYCLE_CNT) =/= 0)
     s0.down.ready := True
 
     when(s0.isValid) {
-      s0(CYCLE_CNT) := 0
       vcu.io.op1 := fa
       vcu.io.op2 := fb
       vcu.io.opcode := opcode
@@ -172,8 +185,6 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
               adder.io.cmd.payload.sub := False
               adder.io.cmd.payload.rounding := status.roundingMode
               s0(RESULT) := adder.io.rsp.payload
-              s0(MAX_CYCLES) := 2
-              s0(CYCLE_CNT) := 0
             }
           }
           // Other load/store (similar logic)
@@ -225,8 +236,6 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
             adder.io.cmd.payload.sub := False
             adder.io.cmd.payload.rounding := status.roundingMode
             s0(RESULT) := adder.io.rsp.payload
-            s0(MAX_CYCLES) := 2
-            s0(CYCLE_CNT) := 0
           }
           is(Opcode.SecondaryOpcode.FPSUB) {
             adder.io.cmd.valid := True
@@ -235,16 +244,12 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
             adder.io.cmd.payload.sub := True
             adder.io.cmd.payload.rounding := status.roundingMode
             s0(RESULT) := adder.io.rsp.payload
-            s0(MAX_CYCLES) := 2
-            s0(CYCLE_CNT) := 0
           }
           is(Opcode.SecondaryOpcode.FPMUL) {
             multiplier.io.op1 := fa
             multiplier.io.op2 := fb
             s0(RESULT) := multiplier.io.result
             s0(RESULT_AFIX) := multiplier.io.resultAfix
-            s0(MAX_CYCLES) := 3
-            s0(CYCLE_CNT) := 0
           }
           is(Opcode.SecondaryOpcode.FPDIV) {
             divRoot.io.op1 := fa
@@ -253,8 +258,6 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
             divRoot.io.isRem := False
             s0(RESULT) := divRoot.io.result
             s0(RESULT_AFIX) := divRoot.io.resultAfix
-            s0(MAX_CYCLES) := 15
-            s0(CYCLE_CNT) := 0
           }
           is(Opcode.SecondaryOpcode.FPSQRT) {
             divRoot.io.op1 := fa
@@ -263,8 +266,6 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
             divRoot.io.isRem := False
             s0(RESULT) := divRoot.io.result
             s0(RESULT_AFIX) := divRoot.io.resultAfix
-            s0(MAX_CYCLES) := 15
-            s0(CYCLE_CNT) := 0
           }
           is(Opcode.SecondaryOpcode.FPREM) {
             divRoot.io.op1 := fa
@@ -273,14 +274,10 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
             divRoot.io.isRem := True
             s0(RESULT) := divRoot.io.result
             s0(RESULT_AFIX) := divRoot.io.resultAfix
-            s0(MAX_CYCLES) := 529
-            s0(CYCLE_CNT) := 0
           }
           is(Opcode.SecondaryOpcode.FPRANGE) {
             rangeReducer.io.op := fa
             s0(RESULT) := rangeReducer.io.result
-            s0(MAX_CYCLES) := 17
-            s0(CYCLE_CNT) := 0
           }
           // T805 compatibility
           is(B"01000001") { // fpusqrtfirst
@@ -289,8 +286,6 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
             divRoot.io.isSqrt := True
             divRoot.io.isT805First := True
             s0(T805_STATE) := divRoot.io.t805State
-            s0(MAX_CYCLES) := divRoot.io.cycles
-            s0(CYCLE_CNT) := 0
           }
           is(B"01000010") { // fpusqrtstep
             divRoot.io.op1 := fa
@@ -298,16 +293,13 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
             divRoot.io.isSqrt := True
             divRoot.io.isT805Step := True
             s0(T805_STATE) := divRoot.io.t805State
-            s0(MAX_CYCLES) := divRoot.io.cycles
-            s0(CYCLE_CNT) := 0
           }
           is(B"01000011") { // fpusqrtlast
             divRoot.io.op1 := fa
             divRoot.io.op2 := fa
             divRoot.io.isSqrt := True
             divRoot.io.isT805Last := True
-            s0(MAX_CYCLES) := divRoot.io.cycles
-            s0(CYCLE_CNT) := 0
+
           }
           is(B"5F") { // fpremfirst
             divRoot.io.op1 := fa
@@ -315,8 +307,6 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
             divRoot.io.isRem := True
             divRoot.io.isT805First := True
             s0(T805_STATE) := divRoot.io.t805State
-            s0(MAX_CYCLES) := divRoot.io.cycles
-            s0(CYCLE_CNT) := 0
           }
           is(B"90") { // fpremstep (context dependent)
             divRoot.io.op1 := fa
@@ -324,8 +314,6 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
             divRoot.io.isRem := True
             divRoot.io.isT805Step := True
             s0(T805_STATE) := divRoot.io.t805State
-            s0(MAX_CYCLES) := divRoot.io.cycles
-            s0(CYCLE_CNT) := 0
           }
         }
       }
@@ -347,10 +335,11 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
     }
 
     // Cycle counter
-    when(s0(CYCLE_CNT) < s0(MAX_CYCLES)) {
-      s0(CYCLE_CNT) := s0(CYCLE_CNT) + 1
-    } otherwise {
-      s0(CYCLE_CNT) := 0
+    when(s0.up.isFiring) {
+      s0(MAX_CYCLES) := opCycles
+      s0(CYCLE_CNT) := opCycles
+    } elsewhen (s0.isValid && s0(CYCLE_CNT) =/= 0) {
+      s0(CYCLE_CNT) := s0(CYCLE_CNT) - 1
     }
 
     // Service implementation
@@ -365,7 +354,7 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
       def executeAfix(opcode: Bits, operands: Vec[AFix]): AFix = {
         fa := operands(0).raw; fb := operands(1).raw; s0(RESULT_AFIX)
       }
-      def isBusy: Bool = s0(CYCLE_CNT) < s0(MAX_CYCLES)
+      def isBusy: Bool = s0(CYCLE_CNT) =/= 0
       def setRoundingMode(mode: Bits): Unit = { status.roundingMode := mode }
       def getErrorFlags: Bits = status.errorFlags
       def clearErrorFlags: Unit = { status.errorFlags := 0 }
@@ -380,7 +369,7 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
       def setRoundingMode(mode: Bits): Unit = { status.roundingMode := mode }
       def getErrorFlags: Bits = status.errorFlags
       def clearErrorFlags: Unit = { status.errorFlags := 0 }
-      def isFpuBusy(opcode: Bits): Bool = s0(CYCLE_CNT) < s0(MAX_CYCLES)
+      def isFpuBusy(opcode: Bits): Bool = s0(CYCLE_CNT) =/= 0
     })
 
     fpPipe.build()
