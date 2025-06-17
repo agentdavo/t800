@@ -36,11 +36,11 @@ class ChannelDmaSpec extends AnyFunSuite {
       }
       .doSim { dut =>
         dut.clockDomain.forkStimulus(10)
-        val mem = dut.host[MemAccessSrv]
+        val mem = dut.host[MemAccessService]
         mem.ram.setBigInt(0, BigInt(0x11223344L))
         mem.ram.setBigInt(1, BigInt(0x55667788L))
 
-        val chan = dut.host[ChannelPinsSrv].pins
+        val chan = dut.host[ChannelPinsService].pins
         chan.out.foreach(_.ready #= true)
         var out = List[Int]()
         dut.clockDomain.onSamplings {

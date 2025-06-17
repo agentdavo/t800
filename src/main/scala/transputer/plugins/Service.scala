@@ -10,7 +10,7 @@ trait LinkPins
 trait DebugPins extends Area
 trait ExtMemPins extends Area
 
-trait ConfigAccessSrv {
+trait ConfigAccessService {
   def addr: Bits
   def data: Bits
   def writeEnable: Bool
@@ -19,27 +19,27 @@ trait ConfigAccessSrv {
   def write(addr: Bits, data: Bits, width: Int): Unit
 }
 
-trait AddressTranslationSrv {
+trait AddressTranslationService {
   def translate(addr: Bits): Bits
 }
 
-trait SystemBusSrv {
+trait SystemBusService {
   def bus: Bmb
 }
 
-trait DataBusSrv {
+trait DataBusService {
   def rdCmd: Flow[transputer.MemReadCmd]
   def rdRsp: Flow[Bits]
   def wrCmd: Flow[transputer.MemWriteCmd]
 }
 
-trait LinkBusSrv {
+trait LinkBusService {
   def rdCmd: Flow[transputer.MemReadCmd]
   def rdRsp: Flow[Bits]
   def wrCmd: Flow[transputer.MemWriteCmd]
 }
 
-trait LinkBusArbiterSrv {
+trait LinkBusArbiterService {
   def exeRd: Flow[transputer.MemReadCmd]
   def exeWr: Flow[transputer.MemWriteCmd]
   def chanRd: Flow[transputer.MemReadCmd]
@@ -60,7 +60,7 @@ case class ChannelPins(count: Int) extends Bundle with LinkPins {
   val out = Vec(master Stream (Bits(Global.WORD_BITS bits)), count)
 }
 
-trait ChannelSrv {
+trait ChannelService {
   def txReady(link: UInt): Bool
   def push(link: UInt, data: Bits): Bool
   def rxValid(link: UInt): Bool
@@ -68,10 +68,10 @@ trait ChannelSrv {
   def rxAck(link: UInt): Unit
 }
 
-trait ChannelPinsSrv {
+trait ChannelPinsService {
   def pins: ChannelPins
 }
 
-trait ChannelDmaSrv {
+trait ChannelDmaService {
   def cmd: Stream[ChannelTxCmd]
 }

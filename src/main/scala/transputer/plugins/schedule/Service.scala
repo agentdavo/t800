@@ -8,7 +8,7 @@ case class SchedCmd() extends Bundle {
   val high = Bool()
 }
 
-trait SchedSrv {
+trait SchedService {
   def newProc: Flow[SchedCmd]
   def nextProc: UInt
   def enqueue(ptr: UInt, high: Bool): Unit

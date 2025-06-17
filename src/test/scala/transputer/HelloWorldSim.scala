@@ -35,12 +35,12 @@ object HelloWorldSim {
       }
       .doSim { dut =>
         dut.clockDomain.forkStimulus(10)
-        val chanSrv = dut.host[ChannelPinsSrv].pins
-        chanSrv.out.foreach(_.ready #= true)
+        val chanService = dut.host[ChannelPinsService].pins
+        chanService.out.foreach(_.ready #= true)
         var out = List[Int]()
         dut.clockDomain.onSamplings {
-          if (chanSrv.out(0).valid.toBoolean) {
-            out ::= chanSrv.out(0).payload.toInt & 0xff
+          if (chanService.out(0).valid.toBoolean) {
+            out ::= chanService.out(0).payload.toInt & 0xff
           }
         }
         dut.clockDomain.waitSampling(200)

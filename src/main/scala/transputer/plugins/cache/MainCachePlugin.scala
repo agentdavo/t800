@@ -16,8 +16,9 @@ import spinal.lib.bus.bmb.{
   BmbDownSizerBridge
 }
 import transputer.plugins.pmi.PmiPlugin
-import transputer.plugins.{AddressTranslationSrv, WorkspaceCacheSrv, SystemBusSrv, Fetch}
-import transputer.plugins.pipeline.PipelineStageSrv
+import transputer.plugins.{AddressTranslationService, SystemBusService, Fetch}
+import transputer.plugins.cache.WorkspaceCacheService
+import transputer.plugins.pipeline.PipelineStageService
 import transputer.Global
 import transputer.Transputer
 
@@ -40,8 +41,8 @@ class MainCachePlugin extends FiberPlugin {
   lazy val CACHE_ADDR = Payload(Bits(Global.ADDR_BITS bits))
   lazy val CACHE_DATA = Payload(Bits(128 bits))
 
-  lazy val srv = during setup new Area {
-    val service = new MainCacheAccessSrv {
+  lazy val srv = (during setup new Area {
+    val service = new MainCacheAccessService {
       val addr = Reg(Bits(Global.ADDR_BITS bits)) init 0
       val dataOut = Reg(Bits(128 bits)) init 0
       val isHit = Reg(Bool()) init False
@@ -49,10 +50,10 @@ class MainCachePlugin extends FiberPlugin {
       val writeData = Reg(Bits(128 bits)) init 0
     }
     addService(service)
-    addService(new MainCacheSrv {
+    addService(new MainCacheService {
       def read(addr: UInt): Bits = {
         service.addr := addr.asBits
-        when(service.isHit) { service.dataOut } otherwise { B(0, 128 bits) }
+        service.dataOut
       }
       def write(addr: UInt, data: Bits): Unit = {
         service.addr := addr.asBits
@@ -60,7 +61,7 @@ class MainCachePlugin extends FiberPlugin {
         service.writeData := data
       }
     })
-    val cacheIf = new CacheAccessSrv {
+    val cacheIf = new CacheAccessService {
       override val req = Flow(CacheReq())
       override val rsp = Flow(CacheRsp())
     }
@@ -68,7 +69,7 @@ class MainCachePlugin extends FiberPlugin {
     cacheIf.rsp.setIdle()
     addService(cacheIf)
     service
-  }
+  }).service
 
   buildBefore(
     retains(
@@ -79,10 +80,10 @@ class MainCachePlugin extends FiberPlugin {
 
   lazy val logic = during build new Area {
     println(s"[${this.getDisplayName()}] build start")
-    val pipe = host[PipelineStageSrv]
+    val pipe = host[PipelineStageService]
     val fetch = pipe.ctrl(0) // Fetch stage
     val memory = pipe.ctrl(3) // Memory stage
-    val systemBus = host[SystemBusSrv].bus // 128-bit BMB system bus
+    val systemBus = host[SystemBusService].bus // 128-bit BMB system bus
 
     // BMB bus parameters (32-bit data, single-beat)
     val bmbParameter = BmbParameter(
@@ -156,7 +157,7 @@ class MainCachePlugin extends FiberPlugin {
       val emptyLine = Reg(UInt(8 bits)) init 0
 
       def read(addr: UInt, portIdx: Int): (Bool, Bits) = {
-        val phys = host[AddressTranslationSrv].translate(addr.asBits)
+        val phys = host[AddressTranslationService].translate(addr.asBits)
         val lineIdx = phys(11 downto 4).asUInt
         val tag = phys(31 downto 6)
         val isHit = validBits.readSync(lineIdx) && tagMem.readSync(lineIdx) === tag
@@ -193,7 +194,7 @@ class MainCachePlugin extends FiberPlugin {
       }
 
       def write(addr: UInt, data: Bits): Unit = {
-        val phys = host[AddressTranslationSrv].translate(addr.asBits)
+        val phys = host[AddressTranslationService].translate(addr.asBits)
         val lineIdx = phys(11 downto 4).asUInt
         val tag = phys(31 downto 6)
         val isHit = validBits.readSync(lineIdx) && tagMem.readSync(lineIdx) === tag
@@ -215,7 +216,7 @@ class MainCachePlugin extends FiberPlugin {
             pmiDownSizer.io.input.cmd.address := phys.asUInt
             pmiDownSizer.io.input.cmd.data := data(63 downto 0)
             pmiDownSizer.io.input.cmd.mask := B"1111"
-            host[WorkspaceCacheSrv].write(phys.asUInt, data(31 downto 0))
+            host[WorkspaceCacheService].write(phys.asUInt, data(31 downto 0))
           }
         } elsewhen (!isRamMode) {
           fetch.haltIt()
@@ -283,7 +284,7 @@ class MainCachePlugin extends FiberPlugin {
       }
     }
 
-    // CacheAccessSrv integration
+    // CacheAccessService integration
     cacheIf.req.ready := True
     cacheIf.rsp.valid := False
     cacheIf.rsp.payload.data := 0

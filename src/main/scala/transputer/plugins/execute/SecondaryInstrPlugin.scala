@@ -7,11 +7,11 @@ import spinal.lib.misc.plugin.{Plugin, PluginHost}
 import spinal.core.fiber.Retainer
 import transputer.Opcode
 import transputer.Global
-import transputer.plugins.{ChannelSrv, ChannelTxCmd, LinkBusSrv, LinkBusArbiterSrv}
-import transputer.plugins.schedule.SchedSrv
-import transputer.plugins.fpu.{FpuSrv, FpOp}
-import transputer.plugins.timers.TimerSrv
-import transputer.plugins.pipeline.PipelineStageSrv
+import transputer.plugins.{ChannelService, ChannelTxCmd, LinkBusService, LinkBusArbiterService}
+import transputer.plugins.schedule.SchedService
+import transputer.plugins.fpu.{FpuService, FpOp}
+import transputer.plugins.timers.TimerService
+import transputer.plugins.pipeline.PipelineStageService
 import scala.util.Try
 
 /** Implements basic ALU instructions and connects to the global pipeline. */
@@ -46,15 +46,15 @@ class SecondaryInstrPlugin extends FiberPlugin {
     println(s"[${SecondaryInstrPlugin.this.getDisplayName()}] build start")
     retain.await()
     implicit val h: PluginHost = host
-    val stack = Plugin[StackSrv]
-    val pipe = Plugin[PipelineStageSrv]
-    val mem = Plugin[LinkBusSrv]
-    val arb = Plugin[LinkBusArbiterSrv]
-    val timer = Plugin[TimerSrv]
-    val fpu = Plugin[FpuSrv]
-    val linksOpt = Try(Plugin[ChannelSrv]).toOption
-    val dmaOpt = Try(Plugin[ChannelDmaSrv]).toOption
-    val dummy = new ChannelSrv {
+    val stack = Plugin[StackService]
+    val pipe = Plugin[PipelineStageService]
+    val mem = Plugin[LinkBusService]
+    val arb = Plugin[LinkBusArbiterService]
+    val timer = Plugin[TimerService]
+    val fpu = Plugin[FpuService]
+    val linksOpt = Try(Plugin[ChannelService]).toOption
+    val dmaOpt = Try(Plugin[ChannelDmaService]).toOption
+    val dummy = new ChannelService {
       override def txReady(link: UInt): Bool = False
       override def push(link: UInt, data: Bits): Bool = False
       override def rxValid(link: UInt): Bool = False
@@ -62,9 +62,9 @@ class SecondaryInstrPlugin extends FiberPlugin {
       override def rxAck(link: UInt): Unit = {}
     }
     val links = linksOpt.getOrElse(dummy)
-    val dummyDma = new ChannelDmaSrv { def cmd = Stream(ChannelTxCmd()).setIdle() }
+    val dummyDma = new ChannelDmaService { def cmd = Stream(ChannelTxCmd()).setIdle() }
     val dma = dmaOpt.getOrElse(dummyDma)
-    val sched = Plugin[SchedSrv]
+    val sched = Plugin[SchedService]
 
     val inst = pipe.execute(Global.OPCODE)
     val nibble = inst(3 downto 0).asUInt
@@ -438,7 +438,7 @@ class SecondaryInstrPlugin extends FiberPlugin {
             }
           }
           is(Opcode.SecondaryOpcode.MOVE) {
-            val dma = Plugin[ChannelDmaSrv]
+            val dma = Plugin[ChannelDmaService]
             dma.cmd.valid := True
             dma.cmd.payload.link := stack.B(1 downto 0)
             dma.cmd.payload.addr := stack.C

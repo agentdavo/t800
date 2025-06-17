@@ -24,16 +24,16 @@ class FpuDut extends Component {
   val plugins = Transputer.unitPlugins() ++ Seq(new DummyTrapPlugin, new FpuPlugin)
   PluginHost(host).on(Database(Transputer.defaultDatabase()).on(Transputer(plugins)))
 
-  val fpuSrv = host[FpuSrv]
-  val ctrl = host[FpuControlSrv]
+  val fpuService = host[FpuService]
+  val ctrl = host[FpuControlService]
 
   when(io.cmdValid) {
-    fpuSrv.send(io.op, io.a.asUInt, io.b.asUInt)
+    fpuService.send(io.op, io.a.asUInt, io.b.asUInt)
     ctrl.setRoundingMode(io.rounding)
     ctrl.clearErrorFlags
   }
-  io.rsp := fpuSrv.rsp.payload.asBits
-  io.rspValid := fpuSrv.rsp.valid && io.cmdValid
+  io.rsp := fpuService.rsp.payload.asBits
+  io.rspValid := fpuService.rsp.valid && io.cmdValid
 }
 
 class FpuPluginSpec extends AnyFunSuite {
@@ -60,7 +60,7 @@ class FpuPluginSpec extends AnyFunSuite {
   test("rounding mode register") {
     SimConfig.compile(new FpuDut).doSim { dut =>
       dut.clockDomain.forkStimulus(10)
-      val ctrl = dut.host[FpuControlSrv]
+      val ctrl = dut.host[FpuControlService]
       dut.io.cmdValid #= true
       dut.io.op #= FpOp.Rounding.FPRP
       dut.io.a #= 0
@@ -74,7 +74,7 @@ class FpuPluginSpec extends AnyFunSuite {
   test("error flag handling") {
     SimConfig.compile(new FpuDut).doSim { dut =>
       dut.clockDomain.forkStimulus(10)
-      val ctrl = dut.host[FpuControlSrv]
+      val ctrl = dut.host[FpuControlService]
       // Set error flags via FPSETERR then clear them
       dut.io.cmdValid #= true
       dut.io.op #= FpOp.Error.FPSETERR

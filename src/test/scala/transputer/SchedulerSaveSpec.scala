@@ -6,7 +6,7 @@ import org.scalatest.funsuite.AnyFunSuite
 import spinal.lib.misc.plugin.PluginHost
 import transputer.plugins._
 import transputer.{DummyTimerPlugin, DummyFpuPlugin}
-import transputer.plugins.schedule.{SchedulerPlugin, SchedSrv}
+import transputer.plugins.schedule.{SchedulerPlugin, SchedService}
 import transputer.plugins.grouper.GrouperPlugin
 
 class SchedulerSaveSpec extends AnyFunSuite {
@@ -35,8 +35,8 @@ class SchedulerSaveSpec extends AnyFunSuite {
       }
       .doSim { dut =>
         dut.clockDomain.forkStimulus(10)
-        val stack = dut.host[StackSrv]
-        val sched = dut.host[SchedSrv]
+        val stack = dut.host[StackService]
+        val sched = dut.host[SchedService]
         stack.A #= 2
         dut.clockDomain.waitSampling(20)
         assert(sched.nextProc.toBigInt == stack.WPtr.toBigInt)

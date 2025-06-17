@@ -1,3 +1,3 @@
 package transputer.plugins.execute
 
-trait ExecuteSrv
+trait ExecuteService

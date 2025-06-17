@@ -7,8 +7,8 @@ import spinal.lib.misc.plugin._
 import spinal.lib.misc.pipeline._
 import spinal.lib.misc.database._
 import spinal.lib.bus.bmb.{Bmb, BmbParameter, BmbAccessParameter, BmbOnChipRamMultiPort}
-import transputer.plugins.{AddressTranslationSrv, MainCacheSrv}
-import transputer.plugins.cache.CacheAccessSrv
+import transputer.plugins.{AddressTranslationService, MainCacheService}
+import transputer.plugins.cache.CacheAccessService
 import spinal.lib.bus.misc.SingleMapping
 
 // The WorkspaceCachePlugin implements a 32-word triple-ported cache (two reads, one write per cycle)
@@ -32,17 +32,18 @@ class WorkspaceCachePlugin extends FiberPlugin {
   lazy val WS_CACHE_DATA_A = Payload(Bits(32 bits))
   lazy val WS_CACHE_DATA_B = Payload(Bits(32 bits))
 
-  lazy val srv = during setup new Area {
-    val service = WorkspaceCacheAccessSrv()
+  lazy val srv = (during setup new Area {
+    val service = WorkspaceCacheAccessService()
     addService(service)
-    val cacheIf = new CacheAccessSrv {
+    val cacheIf = new CacheAccessService {
       override val req = Flow(CacheReq())
       override val rsp = Flow(CacheRsp())
     }
     cacheIf.req.setIdle()
     cacheIf.rsp.setIdle()
     addService(cacheIf)
-  }
+    service
+  }).service
 
   buildBefore(retains(host[MainCachePlugin].lock).lock)
 
@@ -98,7 +99,7 @@ class WorkspaceCachePlugin extends FiberPlugin {
     // Read port A
     ram.io.buses(0).cmd.valid := decode.isValid
     ram.io.buses(0).cmd.opcode := 0 // Read
-    ram.io.buses(0).cmd.address := Plugin[AddressTranslationSrv].translate(srv.addrA)
+    ram.io.buses(0).cmd.address := Plugin[AddressTranslationService].translate(srv.addrA)
     ram.io.buses(0).cmd.length := 0
     ram.io.buses(0).cmd.data := 0
     ram.io.buses(0).rsp.ready := True
@@ -108,7 +109,7 @@ class WorkspaceCachePlugin extends FiberPlugin {
       decode.haltWhen(True)
       // Fetch from Main Cache
       val mainCacheData =
-        Plugin[MainCacheSrv].read(Plugin[AddressTranslationSrv].translate(srv.addrA))
+        Plugin[MainCacheService].read(Plugin[AddressTranslationService].translate(srv.addrA))
       ram.io.buses(0).cmd.opcode := 1 // Write
       ram.io.buses(0).cmd.data := mainCacheData(31 downto 0)
       validBits(srv.addrA(4 downto 0).asUInt) := True
@@ -117,7 +118,7 @@ class WorkspaceCachePlugin extends FiberPlugin {
     // Read port B
     ram.io.buses(1).cmd.valid := decode.isValid
     ram.io.buses(1).cmd.opcode := 0 // Read
-    ram.io.buses(1).cmd.address := Plugin[AddressTranslationSrv].translate(srv.addrB)
+    ram.io.buses(1).cmd.address := Plugin[AddressTranslationService].translate(srv.addrB)
     ram.io.buses(1).cmd.length := 0
     ram.io.buses(1).cmd.data := 0
     ram.io.buses(1).rsp.ready := True
@@ -127,7 +128,7 @@ class WorkspaceCachePlugin extends FiberPlugin {
       decode.haltWhen(True)
       // Fetch from Main Cache
       val mainCacheData =
-        Plugin[MainCacheSrv].read(Plugin[AddressTranslationSrv].translate(srv.addrB))
+        Plugin[MainCacheService].read(Plugin[AddressTranslationService].translate(srv.addrB))
       ram.io.buses(1).cmd.opcode := 1 // Write
       ram.io.buses(1).cmd.data := mainCacheData(31 downto 0)
       validBits(srv.addrB(4 downto 0).asUInt) := True
@@ -136,15 +137,15 @@ class WorkspaceCachePlugin extends FiberPlugin {
     // Write port
     ram.io.buses(2).cmd.valid := srv.writeEnable
     ram.io.buses(2).cmd.opcode := 1 // Write
-    ram.io.buses(2).cmd.address := Plugin[AddressTranslationSrv].translate(srv.writeAddr)
+    ram.io.buses(2).cmd.address := Plugin[AddressTranslationService].translate(srv.writeAddr)
     ram.io.buses(2).cmd.length := 0
     ram.io.buses(2).cmd.data := srv.writeData
     ram.io.buses(2).rsp.ready := True
     when(srv.writeEnable) {
       validBits(srv.writeAddr(4 downto 0).asUInt) := True
       // Write-through to Main Cache
-      Plugin[MainCacheSrv].write(
-        Plugin[AddressTranslationSrv].translate(srv.writeAddr),
+      Plugin[MainCacheService].write(
+        Plugin[AddressTranslationService].translate(srv.writeAddr),
         srv.writeData ## srv.writeData ## srv.writeData ## srv.writeData
       )
     }

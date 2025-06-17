@@ -34,7 +34,7 @@ class GrouperPluginSpec extends AnyFunSuite {
       }
       .doSim { dut =>
         dut.clockDomain.forkStimulus(10)
-        val grouper = dut.host[GroupedInstrSrv].groups
+        val grouper = dut.host[GroupedInstrService].groups
         // Wait for the first group to become valid
         while (!grouper.valid.toBoolean) dut.clockDomain.waitSampling()
         val count = grouper.payload.count.toBigInt.toInt

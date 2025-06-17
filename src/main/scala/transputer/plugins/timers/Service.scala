@@ -2,7 +2,7 @@ package transputer.plugins.timers
 
 import spinal.core._
 
-trait TimerSrv {
+trait TimerService {
   def hi: UInt
   def lo: UInt
 

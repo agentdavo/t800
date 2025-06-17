@@ -37,7 +37,7 @@ class PmiPlugin extends FiberPlugin {
   lazy val PMI_DATA = Payload(Bits(64 bits))
 
   lazy val srv = during setup new Area {
-    val service = PmiAccessSrv()
+    val service = PmiAccessService()
     addService(service)
   }
 

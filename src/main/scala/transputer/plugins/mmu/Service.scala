@@ -4,7 +4,7 @@ import spinal.core._
 import spinal.lib._
 import transputer.Global
 
-case class TrapHandlerSrv() extends Bundle {
+case class TrapHandlerService() extends Bundle {
   val trapAddr = Bits(Global.ADDR_BITS bits)
   val trapType = Bits(4 bits)
   val trapEnable = Bool()
@@ -17,7 +17,7 @@ case class TrapHandlerSrv() extends Bundle {
   def clearTrap(): Unit = trapEnable := False
 }
 
-trait ConfigAccessSrv {
+trait ConfigAccessService {
   def addr: Bits
   def data: Bits
   def writeEnable: Bool
@@ -26,6 +26,6 @@ trait ConfigAccessSrv {
   def write(addr: Bits, data: Bits, width: Int): Unit
 }
 
-trait AddressTranslationSrv {
+trait AddressTranslationService {
   def translate(addr: Bits): Bits
 }
