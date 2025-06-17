@@ -13,7 +13,13 @@ sudo apt-get install -y \
   pkg-config \
   libftdi-dev \
   libffi-dev
-
+  bison \
+  flex \
+  gawk \
+  gcc \
+  git \
+  iverilog
+    
 # Install yosys dependencies
 sudo apt-get install -y \
   tcl-dev \
