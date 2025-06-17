@@ -93,3 +93,25 @@ class DummyTrapPlugin extends FiberPlugin {
   }
   during build new Area {}
 }
+
+/** Minimal plugin providing [[FpuControlSrv]] without any FPU logic. */
+class DummyFpuControlPlugin extends FiberPlugin {
+  private var rounding: Bits = null
+  private var flags: Bits = null
+  during setup new Area {
+    rounding = Reg(Bits(2 bits)) init 0
+    flags = Reg(Bits(5 bits)) init 0
+    addService(new FpuControlSrv {
+      override def specialValueDetected: Bool = False
+      override def specialResult: Bits = B(0, 64 bits)
+      override def trapEnable: Bool = False
+      override def trapType: UInt = U(0, 4 bits)
+      override def roundingMode: Bits = rounding
+      override def setRoundingMode(mode: Bits): Unit = rounding := mode
+      override def getErrorFlags: Bits = flags
+      override def clearErrorFlags: Unit = flags := 0
+      override def isFpuBusy(opcode: Bits): Bool = False
+    })
+  }
+  during build new Area {}
+}
