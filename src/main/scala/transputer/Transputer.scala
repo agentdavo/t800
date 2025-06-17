@@ -6,8 +6,8 @@ import spinal.lib.misc.database.Database
 import spinal.lib.misc.plugin.{PluginHost, FiberPlugin, Hostable}
 import spinal.lib.bus.bmb.{Bmb, BmbParameter}
 import transputer.plugins.transputer.TransputerPlugin
-import transputer.pipeline.{PipelinePlugin, PipelineBuilderPlugin}
-import transputer.registers.RegFilePlugin
+import transputer.plugins.pipeline.{PipelinePlugin, PipelineBuilderPlugin}
+import transputer.plugins.registers.RegFilePlugin
 import transputer.SystemBusSrv
 
 object Transputer {
