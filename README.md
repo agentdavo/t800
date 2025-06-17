@@ -15,7 +15,7 @@ This project re-implements the Transputer CPU in modern SpinalHDL.
 * **Plugins** – every subsystem (FPU, Scheduler …) is a hot-swappable `FiberPlugin`.
 * **Pipeline DSL** – build safe, stall/flush-aware pipelines with one-liners.
 * **Fibers** – allow out-of-order elaboration so plugins can depend on each other.
-* **API reference** -- see `docs/spinalAPI.md` for pipeline, fiber, and plugin APIs.
+* **API reference** -- see `doc/SpinalHDL_api.md` for pipeline, fiber, and plugin APIs.
 * **Fiber phases** – each plugin runs a `setup` block before hardware `build`; use `awaitBuild()` or `buildBefore()` to coordinate ordering.
 
 ---
@@ -64,24 +64,32 @@ t800/
 │  ├─ main/scala/transputer/
 │  │  ├─ Top.scala              # creates Database + PluginHost, selects plugins
 │  │  └─ plugins/               # ⇐ one subfolder per FiberPlugin
-│  │     ├─ fetch/              # FetchPlugin + Service.scala
-│  │     ├─ cache/              # MainCachePlugin, WorkspaceCachePlugin
-│  │     ├─ decode/             # PrimaryInstrPlugin
-│  │     ├─ execute/            # SecondaryInstrPlugin
-│  │     ├─ schedule/           # SchedulerPlugin
-│  │     ├─ fpu/                # FpuPlugin
-│  │     ├─ grouper/            # InstrGrouperPlugin
-│  │     ├─ timers/             # TimerPlugin
-│  │     ├─ transputer/         # TransputerPlugin
-│  │     └─ ...
+│  │     ├─ cache/
+│  │     ├─ decode/
+│  │     ├─ execute/
+│  │     ├─ fetch/
+│  │     ├─ fpu/
+│  │     ├─ grouper/
+│  │     ├─ mmu/
+│  │     ├─ pipeline/
+│  │     ├─ pmi/
+│  │     ├─ registers/
+│  │     ├─ schedule/
+│  │     ├─ stack/
+│  │     ├─ timers/
+│  │     ├─ transputer/
+│  │     └─ vcp/
 │  └─ test/scala/transputer/
 │      ├─ TransputerCoreSim.scala
 │      └─ ...
 ├─ ext/
 │  └─ SpinalHDL/                # git sub-module (optional)
 ├─ doc/
-│  ├─ spinalHDL.txt             # SpinalSim + SpinalHDL documentation
-│  └─ bmb.md                    # overview of the BMB bus
+│  ├─ SpinalHDL_docs.txt        # SpinalSim + SpinalHDL documentation
+│  ├─ SpinalHDL_api.md          # API reference and DSL guide
+│  ├─ SpinalHDL_bmb.md          # overview of the BMB bus
+│  ├─ Transputer_core.md        # core architecture notes
+│  └─ Transputer_links.md       # link interface description
 ├─ README.md
 └─ AGENTS.md
 
@@ -196,10 +204,10 @@ SimConfig
 so long-running tests fail deterministically. Additional back‑ends like GHDL or
 Icarus can be selected via `withGhdl` or `withIVerilog`.
 
-For more advanced features, see `doc/spinalHDL.txt`.
-The BMB bus is described in `doc/bmb.md`.
+For more advanced features, see `doc/SpinalHDL_docs.txt`.
+The BMB bus is described in `doc/SpinalHDL_bmb.md`.
 
-The SpinalHDL API reference is maintained in `docs/spinalAPI.md`.
+The SpinalHDL API reference is maintained in `doc/SpinalHDL_api.md`.
 ### Debugging tips
 
 Simulation artifacts live in `simWorkspace/`. Waveforms and log files are
@@ -213,12 +221,12 @@ Spawn helper threads with `fork { ... }` and block on events using `sleep(n)` or
 `waitUntil(cond)`. ClockDomain utilities such as `waitRisingEdge()` help align
 checks with clock boundaries. See **AGENTS.md §12** for common runtime errors.
 * `clockDomain.forkSimSpeedPrinter(printPeriod)` prints the simulation speed;
-  see `doc/spinalHDL.txt` for details.
+  see `doc/SpinalHDL_docs.txt` for details.
 
-See `doc/hello_world.md` for a quick overview, and `doc/helloworld.md` for the full source listing.
+See `doc/Transputer_core.md` for a quick overview of the architecture.
 An overview of the link services and the upcoming VCP design lives in
-`doc/link_architecture.md`.
-The BMB bus and its helpers are covered in `doc/bmb.md`.
+`doc/Transputer_links.md`.
+The BMB bus and its helpers are covered in `doc/SpinalHDL_bmb.md`.
 `HelloWorldSpec` is currently marked with `ignore` until the channel hardware is complete.
 
 ---
