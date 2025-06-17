@@ -21,6 +21,7 @@ apt-get install -y \
 # Install yosys
 git clone https://github.com/YosysHQ/yosys.git yosys
 cd yosys
+git submodule update --init --recursive
 make -j$(nproc)
 make install
 cd ..
@@ -28,13 +29,6 @@ cd ..
 # Install icepack
 git clone https://github.com/cliffordwolf/icestorm.git icestorm
 cd icestorm
-make -j$(nproc)
-make install
-cd ..
-
-# Install arachne-pnr
-git clone https://github.com/YosysHQ/arachne-pnr.git arachne-pnr
-cd arachne-pnr
 make -j$(nproc)
 make install
 cd ..
@@ -55,7 +49,9 @@ apt-get install -y \
 # Install next-pnr
 git clone https://github.com/YosysHQ/nextpnr nextpnr
 cd nextpnr
-cmake -DARCH=ice40
+git submodule update --init --recursive
+mkdir -p build && cd build
+cmake .. -DARCH=ice40
 make -j$(nproc)
 make install
 cd ..
