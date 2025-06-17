@@ -11,11 +11,11 @@ trait RegfileSpec {
   def getName(): String
 }
 
-case class T9000RegFileSpec() extends RegfileSpec {
+case class TransputerRegFileSpec() extends RegfileSpec {
   override def width = 64 // Max width for FP registers
   override def sizeArch = RegName.elements.size // ~35 registers
   override def initialValue = B(0, 64 bits)
-  override def getName() = "T9000RegFile"
+  override def getName() = "TransputerRegFile"
 }
 
 object RegName extends SpinalEnum {
@@ -83,7 +83,7 @@ case class RegFileWrite(rfpp: RegFilePortParam, withReady: Boolean)
 }
 
 trait RegfileSrv {
-  def rfSpec: T9000RegFileSpec
+  def rfSpec: TransputerRegFileSpec
   def getPhysicalDepth: Int
   def writeLatency: Int
   def readLatency: Int

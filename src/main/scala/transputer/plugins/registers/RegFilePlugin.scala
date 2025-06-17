@@ -12,7 +12,7 @@ class RegFilePlugin extends FiberPlugin with RegfileSrv {
   override def writeLatency = 1
   override def readLatency = 1
   override def getPhysicalDepth = 1
-  override def rfSpec = T9000RegFileSpec()
+  override def rfSpec = TransputerRegFileSpec()
 
   override def read(reg: RegName.C, processId: UInt, shadow: Boolean): Bits =
     B(0, rfSpec.width bits)
