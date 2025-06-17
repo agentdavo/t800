@@ -11,9 +11,10 @@ class FpuMultiplier extends Area {
     val isAbs = in Bool ()
     val isSingle = in Bool () // Single-precision flag
     val roundingMode = in Bits (2 bits)
-    val result      = out Bits (64 bits)
-    val resultAfix  = out(AFix(UQ(56 bit, 0 bit)))
-    val cycles      = out UInt(2 bits)
+    val result = out Bits (64 bits)
+    val resultAfix = out(AFix(UQ(56, 0)))
+    val cycles = out UInt (2 bits)
+  }
 
   // Parse IEEE-754 operands
   val op1Parsed = parseIeee754(io.op1)
@@ -35,20 +36,13 @@ class FpuMultiplier extends Area {
     val prodMsb = product.raw(105)
 
     val shifted = Mux(prodMsb, product >>| 53, product >>| 52)
-    val exponent = (op1Parsed.exponent + op2Parsed.exponent - 1023) + prodMsb.asSInt
+    val exponent = (op1Parsed.exponent.asSInt + op2Parsed.exponent.asSInt - 1023) + prodMsb.asSInt
 
-    val roundType = io.roundingMode.mux(
-      0 -> RoundType.ROUNDTOEVEN,
-      1 -> RoundType.FLOORTOZERO,
-      2 -> RoundType.CEIL,
-      3 -> RoundType.FLOOR
-    )
-
-    val rounded = AFix(shifted.raw(52 downto 0).asUInt.resize(53), 0 exp).round(0, roundType)
+    val rounded = AFix(shifted.raw(52 downto 0).asUInt.resize(53), 0 exp).round(0)
 
     val sign = op1Parsed.sign ^ op2Parsed.sign
-    io.result := packIeee754(sign, exponent, rounded.raw(51 downto 0))
-    io.resultAfix := rounded.resized(56 bit)
+    io.result := packIeee754(sign, exponent.asUInt.resize(11), rounded.raw(51 downto 0))
+    io.resultAfix := rounded
     io.cycles := Mux(io.isSingle, U(2), U(3))
   }
 }

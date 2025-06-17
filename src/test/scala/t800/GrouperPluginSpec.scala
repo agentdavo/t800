@@ -30,7 +30,7 @@ class GrouperPluginSpec extends AnyFunSuite {
           new GrouperPlugin,
           new PipelineBuilderPlugin
         )
-        PluginHost(host).on(new T800(host, plugins))
+        PluginHost(host).on(T800(plugins))
       }
       .doSim { dut =>
         dut.clockDomain.forkStimulus(10)

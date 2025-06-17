@@ -2,6 +2,8 @@ package t800
 
 import spinal.core._
 import spinal.core.sim._
+import spinal.lib._
+import scala.math
 import org.scalatest.funsuite.AnyFunSuite
 import t800.plugins.fpu.{FpuAdder, Adder}
 
@@ -12,7 +14,9 @@ class FpuAdderDut extends Component {
   }
   val add = new FpuAdder
   io.cmd >> add.io.cmd
-  add.io.rsp >> io.rsp
+  io.rsp.valid := add.io.rsp.valid
+  io.rsp.payload := add.io.rsp.payload
+  add.io.rsp.ready := True
 }
 
 class FpuAdderSpec extends AnyFunSuite {
@@ -21,8 +25,14 @@ class FpuAdderSpec extends AnyFunSuite {
     SimConfig.compile(new FpuAdderDut).doSim { dut =>
       dut.clockDomain.forkStimulus(10)
       dut.io.cmd.valid #= true
-      dut.io.cmd.payload.a #= BigInt(java.lang.Double.doubleToRawLongBits(a))
-      dut.io.cmd.payload.b #= BigInt(java.lang.Double.doubleToRawLongBits(b))
+      dut.io.cmd.payload.a #= BigInt(java.lang.Double.doubleToRawLongBits(a)) & BigInt(
+        "ffffffffffffffff",
+        16
+      )
+      dut.io.cmd.payload.b #= BigInt(java.lang.Double.doubleToRawLongBits(b)) & BigInt(
+        "ffffffffffffffff",
+        16
+      )
       dut.io.cmd.payload.sub #= sub
       dut.io.cmd.payload.rounding #= rounding
       dut.clockDomain.waitSampling()

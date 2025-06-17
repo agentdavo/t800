@@ -4,8 +4,26 @@ import spinal.core._
 import spinal.lib._
 import spinal.lib.misc.plugin.FiberPlugin
 import t800.plugins._
-import t800.plugins.fpu.FpuSrv
-import t800.plugins.timers.TimerSrv
+import t800.plugins.fpu._
+
+// Minimal timer service used by DummyTimerPlugin
+trait TimerSrv {
+  def hi: UInt
+  def lo: UInt
+  def set(value: UInt): Unit
+  def enableHi(): Unit
+  def enableLo(): Unit
+  def disableHi(): Unit
+  def disableLo(): Unit
+}
+
+// Minimal stand-in for the MMU trap service
+case class TrapHandlerSrv() extends Bundle {
+  val trapAddr = Bits(Global.ADDR_BITS bits)
+  val trapType = Bits(4 bits)
+  val trapEnable = Bool()
+  val trapHandlerAddr = Bits(Global.ADDR_BITS bits)
+}
 
 /** Minimal timer plugin exposing [[TimerSrv]] without any logic. */
 class DummyTimerPlugin extends FiberPlugin {
@@ -43,7 +61,7 @@ class DummyFpuPlugin extends FiberPlugin {
     addService(new FpuSrv {
       override def pipe: Flow[FpCmd] = pipeReg
       override def rsp: Flow[UInt] = rspReg
-      override def send(op: FpOp.E, a: UInt, b: UInt): Unit = {
+      override def send(op: FpOp.C, a: UInt, b: UInt): Unit = {
         pipeReg.valid := True
         pipeReg.payload.op := op
         pipeReg.payload.a := a.asBits
