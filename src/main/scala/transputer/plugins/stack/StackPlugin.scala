@@ -1,16 +1,16 @@
-package t800.plugins.stack
+package transputer.plugins.stack
 
 import spinal.core._
 import spinal.core.fiber.Retainer
 import spinal.lib._
 import spinal.lib.misc.plugin.{FiberPlugin, Plugin}
 import spinal.lib.bus.bmb.{Bmb, BmbParameter, BmbAccessParameter, BmbDownSizerBridge, BmbUnburstify}
-import t800.{Global, T800}
-import t800.plugins.SystemBusSrv
-import t800.plugins.registers.RegfileSrv
-import t800.plugins.registers.RegName
+import transputer.{Global, Transputer}
+import transputer.plugins.SystemBusSrv
+import transputer.plugins.registers.RegfileSrv
+import transputer.plugins.registers.RegName
 
-/** Manages workspace memory access for local variable operations (LDL, STL, CALL) in the T800
+/** Manages workspace memory access for local variable operations (LDL, STL, CALL) in the Transputer
   * pipeline.
   */
 
@@ -55,7 +55,7 @@ class StackPlugin extends FiberPlugin {
     if (workspaceCache != null) {
       val unburstify = BmbUnburstify(memParam)
       val downSizer = BmbDownSizerBridge(
-        inputParameter = T800.systemBusParam,
+        inputParameter = Transputer.systemBusParam,
         outputParameter = memParam
       )
       memBmb >> unburstify.io.input

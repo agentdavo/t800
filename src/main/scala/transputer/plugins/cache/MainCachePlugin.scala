@@ -1,4 +1,4 @@
-package t800.plugins.cache
+package transputer.plugins.cache
 
 import spinal.core._
 import spinal.core.fiber._
@@ -15,10 +15,10 @@ import spinal.lib.bus.bmb.{
   BmbDecoder,
   BmbDownSizerBridge
 }
-import t800.plugins.pmi.PmiPlugin
-import t800.plugins.{AddressTranslationSrv, WorkspaceCacheSrv, SystemBusSrv, Fetch}
-import t800.plugins.pipeline.PipelineStageSrv
-import t800.{Global, T800}
+import transputer.plugins.pmi.PmiPlugin
+import transputer.plugins.{AddressTranslationSrv, WorkspaceCacheSrv, SystemBusSrv, Fetch}
+import transputer.plugins.pipeline.PipelineStageSrv
+import transputer.{Global, Transputer}
 
 class MainCachePlugin extends FiberPlugin {
   val version = "MainCachePlugin v1.7"
@@ -121,7 +121,7 @@ class MainCachePlugin extends FiberPlugin {
     // Down-sizer for PMI refills
     val pmiBmb = host[PmiPlugin].srv.bus
     val pmiDownSizer = BmbDownSizerBridge(
-      inputParameter = T800.systemBusParam,
+      inputParameter = Transputer.systemBusParam,
       outputParameter = bmbParameter
     )
     pmiDownSizer.io.output >> pmiBmb

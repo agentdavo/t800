@@ -1,8 +1,8 @@
-package t800.plugins.fpu
+package transputer.plugins.fpu
 
 import spinal.core._
 import spinal.lib._
-import t800.plugins.fpu.Utils._
+import transputer.plugins.fpu.Utils._
 
 class FpuRangeReducer extends Component {
   val io = new Bundle {

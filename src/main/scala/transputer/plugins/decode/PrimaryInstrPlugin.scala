@@ -1,4 +1,4 @@
-package t800.plugins.decode
+package transputer.plugins.decode
 
 import spinal.core._
 import spinal.lib._
@@ -6,13 +6,13 @@ import spinal.lib.misc.pipeline._
 import spinal.lib.misc.plugin._
 import spinal.core.fiber.Retainer
 import spinal.lib.bus.bmb.{Bmb, BmbParameter, BmbAccessParameter, BmbDownSizerBridge, BmbUnburstify}
-import t800.{Global, Opcode, T800}
-import t800.plugins.registers.RegfileSrv
-import t800.plugins.Fetch
-import t800.plugins.grouper.GroupedInstrSrv
-import t800.plugins.SystemBusSrv
-import t800.plugins.registers.RegName
-import t800.plugins.pipeline.{PipelineSrv, PipelineStageSrv}
+import transputer.{Global, Opcode, Transputer}
+import transputer.plugins.registers.RegfileSrv
+import transputer.plugins.Fetch
+import transputer.plugins.grouper.GroupedInstrSrv
+import transputer.plugins.SystemBusSrv
+import transputer.plugins.registers.RegName
+import transputer.plugins.pipeline.{PipelineSrv, PipelineStageSrv}
 
 /** Implements primary instruction decoding and execution, receiving opcodes from FetchPlugin or
   * GrouperPlugin, and accessing 128-bit system bus via BMB.
@@ -51,7 +51,7 @@ class PrimaryInstrPlugin extends FiberPlugin with PipelineSrv {
     val memBmb = Bmb(memParam)
     val unburstify = BmbUnburstify(memParam)
     val downSizer = BmbDownSizerBridge(
-      inputParameter = T800.systemBusParam,
+      inputParameter = Transputer.systemBusParam,
       outputParameter = memParam
     )
     memBmb >> unburstify.io.input

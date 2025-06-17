@@ -1,10 +1,10 @@
-package t800
+package transputer
 
 import spinal.core._
 import spinal.lib._
 import spinal.lib.misc.plugin.FiberPlugin
-import t800.plugins._
-import t800.plugins.fpu._
+import transputer.plugins._
+import transputer.plugins.fpu._
 
 // Minimal timer service used by DummyTimerPlugin
 trait TimerSrv {

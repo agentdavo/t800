@@ -1,9 +1,9 @@
-package t800.plugins.fetch
+package transputer.plugins.fetch
 
 import spinal.core._
 import spinal.lib.misc.pipeline.Payload
 import spinal.lib.misc.database.Database
-import t800.Global
+import transputer.Global
 
 object Fetch extends AreaObject {
   object DBKeys {

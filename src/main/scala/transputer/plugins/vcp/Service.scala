@@ -1,7 +1,7 @@
-package t800.plugins.vcp
+package transputer.plugins.vcp
 
 import spinal.core._
-import t800.plugins.ChannelSrv
+import transputer.plugins.ChannelSrv
 
 trait VcpSrv extends ChannelSrv {
   def scheduleInput(channel: Int): Unit

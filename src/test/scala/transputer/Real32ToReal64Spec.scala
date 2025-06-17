@@ -1,4 +1,4 @@
-package t800
+package transputer
 
 import org.scalatest.funsuite.AnyFunSuite
 

@@ -1,11 +1,11 @@
-package t800
+package transputer
 
 import spinal.core._
 import spinal.lib.misc.database.Database
 import spinal.lib.misc.pipeline._
 import spinal.lib._
 
-/** Global configuration elements and configuration register framework for T800, accessed via
+/** Global configuration elements and configuration register framework for Transputer, accessed via
   * [[Database]]. Default values are defined below for convenience, aligned with IMS T9000
   * specifications.
   */

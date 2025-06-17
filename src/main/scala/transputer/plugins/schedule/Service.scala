@@ -1,10 +1,10 @@
-package t800.plugins.schedule
+package transputer.plugins.schedule
 
 import spinal.core._
 import spinal.lib._
 
 case class SchedCmd() extends Bundle {
-  val ptr = UInt(t800.Global.ADDR_BITS bits)
+  val ptr = UInt(transputer.Global.ADDR_BITS bits)
   val high = Bool()
 }
 

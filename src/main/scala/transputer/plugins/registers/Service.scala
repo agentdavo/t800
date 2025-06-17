@@ -1,8 +1,8 @@
-package t800.plugins.registers
+package transputer.plugins.registers
 
 import spinal.core._
 import spinal.lib._
-import t800.Global
+import transputer.Global
 
 trait RegfileSpec {
   def width: Int

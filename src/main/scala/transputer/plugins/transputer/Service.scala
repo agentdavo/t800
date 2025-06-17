@@ -1,4 +1,4 @@
-package t800.plugins.transputer
+package transputer.plugins.transputer
 
 /** Placeholder for Transputer-specific services. */
 trait TransputerSrv

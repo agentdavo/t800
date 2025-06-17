@@ -1,3 +1,3 @@
-package t800.plugins.execute
+package transputer.plugins.execute
 
 trait ExecuteSrv

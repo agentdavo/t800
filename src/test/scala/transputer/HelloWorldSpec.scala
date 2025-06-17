@@ -1,13 +1,13 @@
-package t800
+package transputer
 
 import spinal.core._
 import spinal.core.sim._
 import org.scalatest.funsuite.AnyFunSuite
-import t800.plugins._
+import transputer.plugins._
 import spinal.lib.misc.plugin.PluginHost
-import t800.plugins.schedule.SchedulerPlugin
-import t800.plugins.timers.TimerPlugin
-import t800.plugins.grouper.GrouperPlugin
+import transputer.plugins.schedule.SchedulerPlugin
+import transputer.plugins.timers.TimerPlugin
+import transputer.plugins.grouper.GrouperPlugin
 
 class HelloWorldSpec extends AnyFunSuite {
   ignore("ROM program prints hello world") {
@@ -27,7 +27,7 @@ class HelloWorldSpec extends AnyFunSuite {
           new TimerPlugin,
           new PipelineBuilderPlugin
         )
-        PluginHost(host).on(T800(plugins))
+        PluginHost(host).on(Transputer(plugins))
       }
       .doSim { dut =>
         dut.clockDomain.forkStimulus(10)

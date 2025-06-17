@@ -1,4 +1,4 @@
-package t800.plugins.pmi
+package transputer.plugins.pmi
 
 import spinal.core._
 

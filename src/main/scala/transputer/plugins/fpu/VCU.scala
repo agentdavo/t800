@@ -1,8 +1,8 @@
-package t800.plugins.fpu
+package transputer.plugins.fpu
 
 import spinal.core._
 import spinal.lib._
-import t800.Opcode
+import transputer.Opcode
 
 class FpuVCU extends Component {
   val io = new Bundle {

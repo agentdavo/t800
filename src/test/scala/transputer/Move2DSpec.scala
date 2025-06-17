@@ -1,12 +1,12 @@
-package t800
+package transputer
 
 import spinal.core._
 import spinal.core.sim._
 import org.scalatest.funsuite.AnyFunSuite
-import t800.plugins._
+import transputer.plugins._
 import spinal.lib.misc.plugin.PluginHost
-import t800.plugins.schedule.SchedulerPlugin
-import t800.plugins.grouper.GrouperPlugin
+import transputer.plugins.schedule.SchedulerPlugin
+import transputer.plugins.grouper.GrouperPlugin
 
 class Move2DSpec extends AnyFunSuite {
   test("MOVE2DALL transfers 2D bytes") {
@@ -34,7 +34,7 @@ class Move2DSpec extends AnyFunSuite {
           new SchedulerPlugin,
           new PipelineBuilderPlugin
         )
-        PluginHost(host).on(T800(p))
+        PluginHost(host).on(Transputer(p))
       }
       .doSim { dut =>
         dut.clockDomain.forkStimulus(10)

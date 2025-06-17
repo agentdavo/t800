@@ -1,4 +1,4 @@
-package t800.plugins.fpu
+package transputer.plugins.fpu
 
 import spinal.core._
 import spinal.lib._
@@ -13,12 +13,12 @@ import spinal.lib.bus.bmb.{
   BmbUnburstify,
   BmbDownSizerBridge
 }
-import t800.{Global, T800, Opcode}
-import t800.plugins.SystemBusSrv
-import t800.plugins.registers.RegfileSrv
-import t800.plugins.registers.RegName
-import t800.plugins.pipeline.{PipelineSrv, PipelineStageSrv}
-import t800.plugins.fpu.Utils._
+import transputer.{Global, Transputer, Opcode}
+import transputer.plugins.SystemBusSrv
+import transputer.plugins.registers.RegfileSrv
+import transputer.plugins.registers.RegName
+import transputer.plugins.pipeline.{PipelineSrv, PipelineStageSrv}
+import transputer.plugins.fpu.Utils._
 
 class FpuPlugin extends FiberPlugin with PipelineSrv {
   val version = "FpuPlugin v0.3"
@@ -78,7 +78,7 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
     val memBmb = Bmb(memParam)
     val unburstify = BmbUnburstify(memParam)
     val downSizer = BmbDownSizerBridge(
-      inputParameter = T800.systemBusParam,
+      inputParameter = Transputer.systemBusParam,
       outputParameter = memParam
     )
     memBmb >> unburstify.io.input

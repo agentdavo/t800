@@ -1,12 +1,12 @@
-package t800
+package transputer
 
 import spinal.core._
 import spinal.core.sim._
 import spinal.lib._
 import scala.math
 import org.scalatest.funsuite.AnyFunSuite
-import t800.plugins.pipeline.PipelineSrv
-import t800.plugins.fpu.{FpuAdder, Adder}
+import transputer.plugins.pipeline.PipelineSrv
+import transputer.plugins.fpu.{FpuAdder, Adder}
 
 class AdderDutTiny extends Component {
   val io = new Bundle {
@@ -20,11 +20,11 @@ class AdderDutTiny extends Component {
   add.io.rsp.ready := True
 }
 
-/** Ensure minimal T800 configuration builds with basic pipeline. */
+/** Ensure minimal Transputer configuration builds with basic pipeline. */
 class InitTransputerSpec extends AnyFunSuite {
   test("TransputerPlugin sets default configuration") {
-    val db = T800.defaultDatabase()
-    val report = SpinalConfig().generateVerilog(new T800Unit(db))
+    val db = Transputer.defaultDatabase()
+    val report = SpinalConfig().generateVerilog(new TransputerUnit(db))
     assert(db(Global.WORD_BITS) == Global.WordBits)
     assert(db(Global.RAM_WORDS) == Global.RamWords)
   }
