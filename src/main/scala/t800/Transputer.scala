@@ -63,8 +63,21 @@ class TransputerUnit(db: Database = Transputer.defaultDatabase()) extends Compon
 
 object TransputerCoreVerilog {
   def main(args: Array[String]): Unit = {
+    // Configure Database for variant support
+    val db = Transputer.defaultDatabase()
     val param = Param()
-    val core = Database(Transputer.defaultDatabase()).on(Transputer(param.plugins()))
+    args.find(_.startsWith("--double-precision")).foreach { _ =>
+      db(Global.FPU_PRECISION) = 64
+    }
+    args.find(_.startsWith("--link-count=")).foreach { arg =>
+      db(Global.LINK_COUNT) = arg.split("=")(1).toInt
+    }
+    args.find(_.startsWith("--ram-words=")).foreach { arg =>
+      db(Global.RAM_WORDS) = arg.split("=")(1).toInt
+    }
+
+    // Generate Verilog with configured plugins
+    val core = Database(db).on(Transputer(param.plugins()))
     val report = SpinalVerilog(core)
     println(s"Verilog generated: ${report.toplevelName}")
   }
