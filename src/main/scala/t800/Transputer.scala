@@ -1,17 +1,16 @@
-package t800
+package transputer
 
 import spinal.core._
 import spinal.lib._
 import spinal.lib.misc.database.Database
 import spinal.lib.misc.plugin.{PluginHost, FiberPlugin, Hostable}
 import spinal.lib.bus.bmb.{Bmb, BmbParameter}
-import t800.plugins.transputer.TransputerPlugin
-import t800.plugins.pipeline.{PipelinePlugin, PipelineBuilderPlugin}
-import t800.plugins.registers.RegFilePlugin
+import transputer.plugins.transputer.TransputerPlugin
+import transputer.plugins.pipeline.{PipelinePlugin, PipelineBuilderPlugin}
+import transputer.plugins.registers.RegFilePlugin
+import transputer.plugins.SystemBusSrv
 
-import t800.plugins.SystemBusSrv
-
-object T800 {
+object Transputer {
 
   /** Create an empty database, populated by TransputerPlugin. */
   def defaultDatabase(): Database = new Database
@@ -25,7 +24,7 @@ object T800 {
     lengthWidth = 4
   )
 
-  /** Standard plugin stack for T800, aligned with T9000 architecture. */
+  /** Standard plugin stack for Transputer, aligned with T9000 architecture. */
   def defaultPlugins(): Seq[FiberPlugin] = Param().plugins()
 
   /** Minimal plugin set used by unit tests. */
@@ -37,35 +36,35 @@ object T800 {
       new PipelineBuilderPlugin
     )
 
-  /** Convenience constructor returning an empty T800. */
-  def apply(): T800 = new T800(Database.get)
+  /** Convenience constructor returning an empty Transputer. */
+  def apply(): Transputer = new Transputer(Database.get)
 
   /** Convenience constructor wiring the given plugins. */
-  def apply(plugins: scala.collection.Seq[Hostable]): T800 = {
-    val t = new T800(Database.get)
+  def apply(plugins: scala.collection.Seq[Hostable]): Transputer = {
+    val t = new Transputer(Database.get)
     t.host.asHostOf(plugins)
     t
   }
 }
 
-class T800(val database: Database = new Database) extends Component {
+class Transputer(val database: Database = new Database) extends Component {
   val host = database on new PluginHost
-  val systemBus = master(Bmb(T800.systemBusParam))
+  val systemBus = master(Bmb(Transputer.systemBusParam))
   host.addService(new SystemBusSrv { def bus: Bmb = systemBus })
 }
 
-class T800Core extends Component {
-  val core = T800(T800.defaultPlugins())
+class TransputerCore extends Component {
+  val core = Transputer(Transputer.defaultPlugins())
 }
 
-class T800Unit(db: Database = T800.defaultDatabase()) extends Component {
-  val core = Database(db).on(T800(T800.unitPlugins()))
+class TransputerUnit(db: Database = Transputer.defaultDatabase()) extends Component {
+  val core = Database(db).on(Transputer(Transputer.unitPlugins()))
 }
 
-object T800CoreVerilog {
+object TransputerCoreVerilog {
   def main(args: Array[String]): Unit = {
     val param = Param()
-    val core = Database(T800.defaultDatabase()).on(T800(param.plugins()))
+    val core = Database(Transputer.defaultDatabase()).on(Transputer(param.plugins()))
     val report = SpinalVerilog(core)
     println(s"Verilog generated: ${report.toplevelName}")
   }
