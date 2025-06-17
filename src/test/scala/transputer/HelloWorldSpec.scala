@@ -27,7 +27,7 @@ class HelloWorldSpec extends AnyFunSuite {
           new TimerPlugin,
           new PipelineBuilderPlugin
         )
-        PluginHost(host).on(T800(plugins))
+        PluginHost(host).on(Transputer(plugins))
       }
       .doSim { dut =>
         dut.clockDomain.forkStimulus(10)

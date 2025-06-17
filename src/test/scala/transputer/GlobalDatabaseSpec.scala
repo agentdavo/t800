@@ -29,7 +29,7 @@ class GlobalDatabaseSpec extends AnyFunSuite {
         val host = new PluginHost
         val plugins = Seq(new TimerPlugin, new TimerProbePlugin)
         PluginHost(host).on {
-          Database(db).on(T800(plugins))
+          Database(db).on(Transputer(plugins))
         }
       }
       .doSim { dut =>

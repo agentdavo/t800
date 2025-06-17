@@ -32,7 +32,7 @@ class RunpStoppSpec extends AnyFunSuite {
           new SchedulerPlugin,
           new PipelineBuilderPlugin
         )
-        PluginHost(host).on(T800(plugins))
+        PluginHost(host).on(Transputer(plugins))
       }
       .doSim { dut =>
         dut.clockDomain.forkStimulus(10)

@@ -21,7 +21,7 @@ Guide for OpenAI Codex to assist development of the Transputer project, a Spinal
 ```bash
 sbt scalafmtAll                      # Format
 sbt test                             # Test
-sbt "runMain Generate.DefaultBoard"  # Generate Verilog
+sbt "runMain transputer.Generate"  # Generate Verilog
 ```
 
 ## Coding Rules
@@ -55,7 +55,7 @@ sbt "runMain Generate.DefaultBoard"  # Generate Verilog
 |-------|---------|
 | Style | `sbt scalafmtAll` |
 | Tests | `sbt test` |
-| Verilog | `sbt "runMain Generate.DefaultBoard"` |
+| Verilog | `sbt "runMain transputer.Generate"` |
 
 ## Simulation
 ```scala
