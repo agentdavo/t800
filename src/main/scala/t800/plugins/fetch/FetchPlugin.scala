@@ -2,17 +2,20 @@ package t800.plugins.fetch
 
 import spinal.core._
 import spinal.lib._
-import spinal.lib.misc.plugin.{PluginHost, FiberPlugin}
+import spinal.lib.misc.plugin.{PluginHost, FiberPlugin, Plugin}
 import spinal.lib.misc.pipeline._
 import spinal.lib.bus.bmb.{Bmb, BmbParameter, BmbAccessParameter, BmbQueue, BmbDownSizerBridge}
 import spinal.core.fiber.Retainer
 import t800.{Global, T800}
-import t800.plugins.{SystemBusSrv, RegfileSrv}
+import t800.plugins.SystemBusSrv
+import t800.plugins.registers.RegfileSrv
 import t800.plugins.registers.RegName
 import t800.plugins.fetch.Service.InstrFetchSrv
 import t800.plugins.pipeline.{PipelineSrv, PipelineStageSrv}
 
-/** Instruction fetch unit with T9000-style Instruction Prefetch Buffer (IPB) supporting eight-instruction dispatch. */
+/** Instruction fetch unit with T9000-style Instruction Prefetch Buffer (IPB) supporting
+  * eight-instruction dispatch.
+  */
 class FetchPlugin extends FiberPlugin with PipelineSrv {
   setName("fetch")
   val elaborationLock = Retainer()
@@ -49,13 +52,15 @@ class FetchPlugin extends FiberPlugin with PipelineSrv {
     // Down-sizer from 128-bit system bus to 32-bit fetch
     val downSizer = BmbDownSizerBridge(
       inputParameter = T800.systemBusParam,
-      outputParameter = BmbDownSizerBridge.outputParameterFrom(T800.systemBusParam.access, 32).toBmbParameter()
+      outputParameter =
+        BmbDownSizerBridge.outputParameterFrom(T800.systemBusParam.access, 32).toBmbParameter()
     )
     systemBus >> downSizer.io.input
 
     // IPB queue and buffer
     val ipbQueue = BmbQueue(fetchParam, depth = ipbDepth)
-    val ipbBuffer = Reg(Vec(Bits(32 bits), ipbDepth * 4)) init(Vec.fill(ipbDepth * 4)(0)) // 4 words per entry
+    val ipbBuffer =
+      Reg(Vec(Bits(32 bits), ipbDepth * 4)) init (Vec.fill(ipbDepth * 4)(0)) // 4 words per entry
     val ipbPtr = Reg(UInt(log2Up(ipbDepth) bits)) init 0
     val ipbFull = Reg(Bool()) init False
     val ipbWordPtr = Reg(UInt(2 bits)) init 0 // Track within 128-bit burst

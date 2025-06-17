@@ -107,7 +107,8 @@ class WorkspaceCachePlugin extends FiberPlugin {
     when(!srv.isHitA) {
       decode.haltWhen(True)
       // Fetch from Main Cache
-      val mainCacheData = Plugin[MainCacheSrv].read(Plugin[AddressTranslationSrv].translate(srv.addrA))
+      val mainCacheData =
+        Plugin[MainCacheSrv].read(Plugin[AddressTranslationSrv].translate(srv.addrA))
       ram.io.buses(0).cmd.opcode := 1 // Write
       ram.io.buses(0).cmd.data := mainCacheData(31 downto 0)
       validBits(srv.addrA(4 downto 0).asUInt) := True
@@ -125,7 +126,8 @@ class WorkspaceCachePlugin extends FiberPlugin {
     when(!srv.isHitB) {
       decode.haltWhen(True)
       // Fetch from Main Cache
-      val mainCacheData = Plugin[MainCacheSrv].read(Plugin[AddressTranslationSrv].translate(srv.addrB))
+      val mainCacheData =
+        Plugin[MainCacheSrv].read(Plugin[AddressTranslationSrv].translate(srv.addrB))
       ram.io.buses(1).cmd.opcode := 1 // Write
       ram.io.buses(1).cmd.data := mainCacheData(31 downto 0)
       validBits(srv.addrB(4 downto 0).asUInt) := True

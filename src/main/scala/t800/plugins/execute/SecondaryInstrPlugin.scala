@@ -5,7 +5,7 @@ import spinal.lib._
 import spinal.lib.misc.pipeline._
 import spinal.lib.misc.plugin.{Plugin, PluginHost}
 import spinal.core.fiber.Retainer
-import t800.{Opcodes, Global}
+import t800.{Opcode, Global}
 import t800.plugins.{ChannelSrv, ChannelTxCmd, LinkBusSrv, LinkBusArbiterSrv}
 import t800.plugins.schedule.SchedSrv
 import t800.plugins.fpu.{FpuSrv, FpOp}
@@ -68,7 +68,7 @@ class SecondaryInstrPlugin extends FiberPlugin {
     val inst = pipe.execute(Global.OPCODE)
     val nibble = inst(3 downto 0).asUInt
     val accumulated = stack.O | nibble.resized
-    val primary = Opcodes.Enum.Primary()
+    val primary = Opcode.PrimaryOpcode()
     primary.assignFromBits(inst(7 downto 4))
 
     arb.exeRd.valid := False
@@ -82,53 +82,53 @@ class SecondaryInstrPlugin extends FiberPlugin {
     dma.cmd.valid := False
 
     switch(primary) {
-      is(Opcodes.Enum.Primary.OPR) {
+      is(Opcode.PrimaryOpcode.OPR) {
         val operand = accumulated.asSInt
-        val secondary = Opcodes.Enum.Secondary()
+        val secondary = Opcode.SecondaryOpcode()
         secondary.assignFromBits(accumulated(7 downto 0).asBits)
         switch(secondary) {
-          is(Opcodes.Enum.Secondary.REV) {
+          is(Opcode.SecondaryOpcode.REV) {
             val tmp = stack.A
             stack.A := stack.B
             stack.B := tmp
           }
-          is(Opcodes.Enum.Secondary.ADD) {
+          is(Opcode.SecondaryOpcode.ADD) {
             val sum = stack.A + stack.B
             stack.A := sum
             stack.B := stack.C
           }
-          is(Opcodes.Enum.Secondary.SUB) {
+          is(Opcode.SecondaryOpcode.SUB) {
             val diff = stack.B - stack.A
             stack.A := diff
             stack.B := stack.C
           }
-          is(Opcodes.Enum.Secondary.LADD) {
+          is(Opcode.SecondaryOpcode.LADD) {
             val res = stack.B + stack.A + (stack.C & 1)
             stack.A := res.resized
           }
-          is(Opcodes.Enum.Secondary.LSUB) {
+          is(Opcode.SecondaryOpcode.LSUB) {
             val res = stack.B - stack.A - (stack.C & 1)
             stack.A := res.resized
           }
-          is(Opcodes.Enum.Secondary.LSUM) {
+          is(Opcode.SecondaryOpcode.LSUM) {
             val wide = UInt(33 bits)
             wide := stack.B.resize(33) + stack.A.resize(33) + stack.C(0).asUInt
             stack.A := wide(31 downto 0)
             val carry = wide >= U(0xffffffffL, 33 bits)
             stack.B := carry.asUInt.resized
           }
-          is(Opcodes.Enum.Secondary.LDIFF) {
+          is(Opcode.SecondaryOpcode.LDIFF) {
             val res = UInt(33 bits)
             res := (stack.B.resize(33) - stack.A.resize(33) - stack.C(0).asUInt.resize(33))
             stack.A := res(31 downto 0)
             stack.B := res(32).asUInt.resize(32)
           }
-          is(Opcodes.Enum.Secondary.LMUL) {
+          is(Opcode.SecondaryOpcode.LMUL) {
             val product = (stack.B * stack.A).resize(64) + stack.C.resize(64)
             stack.A := product(31 downto 0)
             stack.B := product(63 downto 32)
           }
-          is(Opcodes.Enum.Secondary.LDIV) {
+          is(Opcode.SecondaryOpcode.LDIV) {
             when(stack.C >= stack.A) {
               errReg := True
             } otherwise {
@@ -139,27 +139,27 @@ class SecondaryInstrPlugin extends FiberPlugin {
               stack.B := rem(31 downto 0)
             }
           }
-          is(Opcodes.Enum.Secondary.AND) {
+          is(Opcode.SecondaryOpcode.AND) {
             val res = stack.A & stack.B
             stack.A := res
             stack.B := stack.C
           }
-          is(Opcodes.Enum.Secondary.XOR) {
+          is(Opcode.SecondaryOpcode.XOR) {
             val res = stack.A ^ stack.B
             stack.A := res
             stack.B := stack.C
           }
-          is(Opcodes.Enum.Secondary.SHL) {
+          is(Opcode.SecondaryOpcode.SHL) {
             val res = stack.B |<< stack.A
             stack.A := res
             stack.B := stack.C
           }
-          is(Opcodes.Enum.Secondary.SHR) {
+          is(Opcode.SecondaryOpcode.SHR) {
             val res = (stack.B.asSInt >> stack.A).asUInt
             stack.A := res
             stack.B := stack.C
           }
-          is(Opcodes.Enum.Secondary.LSHR) {
+          is(Opcode.SecondaryOpcode.LSHR) {
             when(stack.A < 64) {
               val wide = (stack.C ## stack.B).asUInt.resize(64)
               val shifted = wide >> stack.A
@@ -170,7 +170,7 @@ class SecondaryInstrPlugin extends FiberPlugin {
               stack.B := 0
             }
           }
-          is(Opcodes.Enum.Secondary.LSHL) {
+          is(Opcode.SecondaryOpcode.LSHL) {
             when(stack.A < 64) {
               val wide = (stack.C ## stack.B).asUInt.resize(64)
               val shifted = wide |<< stack.A
@@ -181,7 +181,7 @@ class SecondaryInstrPlugin extends FiberPlugin {
               stack.B := 0
             }
           }
-          is(Opcodes.Enum.Secondary.IN) {
+          is(Opcode.SecondaryOpcode.IN) {
             val idx = stack.B(1 downto 0)
             val avail = links.rxValid(idx)
             pipe.execute.haltWhen(!avail)
@@ -190,7 +190,7 @@ class SecondaryInstrPlugin extends FiberPlugin {
               links.rxAck(idx)
             }
           }
-          is(Opcodes.Enum.Secondary.OUT) {
+          is(Opcode.SecondaryOpcode.OUT) {
             val idx = stack.B(1 downto 0)
             val ready = links.push(idx, stack.A.asBits)
             pipe.execute.haltWhen(!ready)
@@ -199,61 +199,61 @@ class SecondaryInstrPlugin extends FiberPlugin {
               stack.B := stack.C
             }
           }
-          is(Opcodes.Enum.Secondary.RET) {
+          is(Opcode.SecondaryOpcode.RET) {
             stack.IPtr := stack.read(S(0))
             stack.WPtr := stack.WPtr + 4
           }
-          is(Opcodes.Enum.Secondary.STARTP) {
+          is(Opcode.SecondaryOpcode.STARTP) {
             sched.newProc.valid := True
             sched.newProc.payload.ptr := stack.A
             sched.newProc.payload.high := False
             stack.A := stack.B
             stack.B := stack.C
           }
-          is(Opcodes.Enum.Secondary.RUNP) {
+          is(Opcode.SecondaryOpcode.RUNP) {
             sched.enqueue(stack.A, False)
             stack.A := stack.B
             stack.B := stack.C
           }
-          is(Opcodes.Enum.Secondary.TESTERR) {
+          is(Opcode.SecondaryOpcode.TESTERR) {
             val tmp = errReg
             errReg := False
             stack.C := stack.B
             stack.B := stack.A
             stack.A := tmp.asUInt.resized
           }
-          is(Opcodes.Enum.Secondary.ALT) {
+          is(Opcode.SecondaryOpcode.ALT) {
             // ALT setup not yet implemented
           }
-          is(Opcodes.Enum.Secondary.ALTWT) {
+          is(Opcode.SecondaryOpcode.ALTWT) {
             val waitDone = timer.hi >= stack.A
             when(!waitDone) { sched.enqueue(stack.WPtr, False) }
             pipe.execute.haltWhen(!waitDone)
           }
-          is(Opcodes.Enum.Secondary.ALTEND) {
+          is(Opcode.SecondaryOpcode.ALTEND) {
             // ALTEND placeholder
           }
-          is(Opcodes.Enum.Secondary.STLB) {
+          is(Opcode.SecondaryOpcode.STLB) {
             loBPtr := stack.A
             stack.A := stack.B
             stack.B := stack.C
           }
-          is(Opcodes.Enum.Secondary.STHB) {
+          is(Opcode.SecondaryOpcode.STHB) {
             hiBPtr := stack.A
             stack.A := stack.B
             stack.B := stack.C
           }
-          is(Opcodes.Enum.Secondary.STLF) {
+          is(Opcode.SecondaryOpcode.STLF) {
             loFPtr := stack.A
             stack.A := stack.B
             stack.B := stack.C
           }
-          is(Opcodes.Enum.Secondary.STHF) {
+          is(Opcode.SecondaryOpcode.STHF) {
             hiFPtr := stack.A
             stack.A := stack.B
             stack.B := stack.C
           }
-          is(Opcodes.Enum.Secondary.SAVEL) {
+          is(Opcode.SecondaryOpcode.SAVEL) {
             val addr = Mux(saveLPhase, loBPtr, loFPtr)
             arb.exeWr.valid := True
             arb.exeWr.payload.addr := addr.resized
@@ -269,7 +269,7 @@ class SecondaryInstrPlugin extends FiberPlugin {
               }
             }
           }
-          is(Opcodes.Enum.Secondary.SAVEH) {
+          is(Opcode.SecondaryOpcode.SAVEH) {
             val addr = Mux(saveHPhase, hiBPtr, hiFPtr)
             arb.exeWr.valid := True
             arb.exeWr.payload.addr := addr.resized
@@ -285,11 +285,11 @@ class SecondaryInstrPlugin extends FiberPlugin {
               }
             }
           }
-          is(Opcodes.Enum.Secondary.STOPP) {
+          is(Opcode.SecondaryOpcode.STOPP) {
             sched.enqueue(stack.WPtr, False)
             pipe.execute.haltWhen(True)
           }
-          is(Opcodes.Enum.Secondary.ENDP) {
+          is(Opcode.SecondaryOpcode.ENDP) {
             val parent = stack.read(S(0))
             val cnt = stack.read(S(-1)) - 1
             stack.write(S(-1), cnt)
@@ -299,34 +299,34 @@ class SecondaryInstrPlugin extends FiberPlugin {
               sched.enqueue(parent, False)
             }
           }
-          is(Opcodes.Enum.Secondary.MINT) {
+          is(Opcode.SecondaryOpcode.MINT) {
             stack.C := stack.B
             stack.B := stack.A
             stack.A := U(0x80000000L)
           }
-          is(Opcodes.Enum.Secondary.STTIMER) {
+          is(Opcode.SecondaryOpcode.STTIMER) {
             timer.set(stack.A)
             stack.A := stack.B
             stack.B := stack.C
           }
-          is(Opcodes.Enum.Secondary.LDTIMER) {
+          is(Opcode.SecondaryOpcode.LDTIMER) {
             stack.C := stack.B
             stack.B := stack.A
             stack.A := timer.hi
           }
-          is(Opcodes.Enum.Secondary.TIMERDISABLEH) {
+          is(Opcode.SecondaryOpcode.TIMERDISABLEH) {
             timer.disableHi()
           }
-          is(Opcodes.Enum.Secondary.TIMERDISABLEL) {
+          is(Opcode.SecondaryOpcode.TIMERDISABLEL) {
             timer.disableLo()
           }
-          is(Opcodes.Enum.Secondary.TIMERENABLEH) {
+          is(Opcode.SecondaryOpcode.TIMERENABLEH) {
             timer.enableHi()
           }
-          is(Opcodes.Enum.Secondary.TIMERENABLEL) {
+          is(Opcode.SecondaryOpcode.TIMERENABLEL) {
             timer.enableLo()
           }
-          is(Opcodes.Enum.Secondary.LEND) {
+          is(Opcode.SecondaryOpcode.LEND) {
             val cnt = stack.A - 1
             stack.A := cnt
             when(cnt =/= 0) {
@@ -334,29 +334,29 @@ class SecondaryInstrPlugin extends FiberPlugin {
               pipe.execute.haltWhen(True)
             }
           }
-          is(Opcodes.Enum.Secondary.CLRHALTERR) {
+          is(Opcode.SecondaryOpcode.CLRHALTERR) {
             haltErr := False
           }
-          is(Opcodes.Enum.Secondary.SETHALTERR) {
+          is(Opcode.SecondaryOpcode.SETHALTERR) {
             haltErr := True
           }
-          is(Opcodes.Enum.Secondary.TESTHALTERR) {
+          is(Opcode.SecondaryOpcode.TESTHALTERR) {
             stack.C := stack.B
             stack.B := stack.A
             stack.A := haltErr.asUInt.resized
           }
-          is(Opcodes.Enum.Secondary.DUP) {
+          is(Opcode.SecondaryOpcode.DUP) {
             stack.C := stack.B
             stack.B := stack.A
           }
-          is(Opcodes.Enum.Secondary.MOVE2DINIT) {
+          is(Opcode.SecondaryOpcode.MOVE2DINIT) {
             move2dLen := stack.A
             move2dStride := stack.B
             move2dAddr := stack.C
             stack.A := stack.B
             stack.B := stack.C
           }
-          is(Opcodes.Enum.Secondary.MOVE2DALL) {
+          is(Opcode.SecondaryOpcode.MOVE2DALL) {
             dma.cmd.valid := True
             dma.cmd.payload.link := stack.B(1 downto 0)
             dma.cmd.payload.addr := move2dAddr
@@ -371,7 +371,7 @@ class SecondaryInstrPlugin extends FiberPlugin {
               stack.B := stack.C
             }
           }
-          is(Opcodes.Enum.Secondary.MOVE2DNONZERO) {
+          is(Opcode.SecondaryOpcode.MOVE2DNONZERO) {
             dma.cmd.valid := True
             dma.cmd.payload.link := stack.B(1 downto 0)
             dma.cmd.payload.addr := move2dAddr
@@ -386,7 +386,7 @@ class SecondaryInstrPlugin extends FiberPlugin {
               stack.B := stack.C
             }
           }
-          is(Opcodes.Enum.Secondary.MOVE2DZERO) {
+          is(Opcode.SecondaryOpcode.MOVE2DZERO) {
             dma.cmd.valid := True
             dma.cmd.payload.link := stack.B(1 downto 0)
             dma.cmd.payload.addr := move2dAddr
@@ -401,13 +401,13 @@ class SecondaryInstrPlugin extends FiberPlugin {
               stack.B := stack.C
             }
           }
-          is(Opcodes.Enum.Secondary.POP) {
+          is(Opcode.SecondaryOpcode.POP) {
             val t = stack.A
             stack.A := stack.B
             stack.B := stack.C
             stack.C := t
           }
-          is(Opcodes.Enum.Secondary.LB) {
+          is(Opcode.SecondaryOpcode.LB) {
             val addr = stack.A
             arb.exeRd.valid := True
             arb.exeRd.payload.addr := (addr >> 2).resized
@@ -418,7 +418,7 @@ class SecondaryInstrPlugin extends FiberPlugin {
               stack.A := byte.asUInt.resize(Global.WORD_BITS)
             }
           }
-          is(Opcodes.Enum.Secondary.OUTBYTE) {
+          is(Opcode.SecondaryOpcode.OUTBYTE) {
             val idx = stack.B(1 downto 0)
             val ready = links.push(idx, stack.A.asBits)
             pipe.execute.haltWhen(!ready)
@@ -427,7 +427,7 @@ class SecondaryInstrPlugin extends FiberPlugin {
               stack.B := stack.C
             }
           }
-          is(Opcodes.Enum.Secondary.OUTWORD) {
+          is(Opcode.SecondaryOpcode.OUTWORD) {
             val idx = stack.B(1 downto 0)
             val ready = links.push(idx, stack.A.asBits)
             pipe.execute.haltWhen(!ready)
@@ -436,7 +436,7 @@ class SecondaryInstrPlugin extends FiberPlugin {
               stack.B := stack.C
             }
           }
-          is(Opcodes.Enum.Secondary.MOVE) {
+          is(Opcode.SecondaryOpcode.MOVE) {
             val dma = Plugin[ChannelDmaSrv]
             dma.cmd.valid := True
             dma.cmd.payload.link := stack.B(1 downto 0)
@@ -451,10 +451,10 @@ class SecondaryInstrPlugin extends FiberPlugin {
               stack.B := stack.C
             }
           }
-          is(Opcodes.Enum.Secondary.LDPI) {
+          is(Opcode.SecondaryOpcode.LDPI) {
             stack.A := stack.A + stack.IPtr
           }
-          is(Opcodes.Enum.Secondary.FPADD) {
+          is(Opcode.SecondaryOpcode.FPADD) {
             fpu.send(FpOp.ADD, stack.A, stack.B)
             pipe.execute.haltWhen(!fpu.resultValid)
             when(pipe.execute.down.isFiring) {
@@ -462,7 +462,7 @@ class SecondaryInstrPlugin extends FiberPlugin {
               stack.B := stack.C
             }
           }
-          is(Opcodes.Enum.Secondary.FPSUB) {
+          is(Opcode.SecondaryOpcode.FPSUB) {
             fpu.send(FpOp.SUB, stack.A, stack.B)
             pipe.execute.haltWhen(!fpu.resultValid)
             when(pipe.execute.down.isFiring) {
@@ -470,7 +470,7 @@ class SecondaryInstrPlugin extends FiberPlugin {
               stack.B := stack.C
             }
           }
-          is(Opcodes.Enum.Secondary.FPMUL) {
+          is(Opcode.SecondaryOpcode.FPMUL) {
             fpu.send(FpOp.MUL, stack.A, stack.B)
             pipe.execute.haltWhen(!fpu.resultValid)
             when(pipe.execute.down.isFiring) {
@@ -478,7 +478,7 @@ class SecondaryInstrPlugin extends FiberPlugin {
               stack.B := stack.C
             }
           }
-          is(Opcodes.Enum.Secondary.FPDIV) {
+          is(Opcode.SecondaryOpcode.FPDIV) {
             fpu.send(FpOp.DIV, stack.A, stack.B)
             pipe.execute.haltWhen(!fpu.resultValid)
             when(pipe.execute.down.isFiring) {
@@ -487,7 +487,7 @@ class SecondaryInstrPlugin extends FiberPlugin {
             }
           }
         }
-        when(secondary.asBits === Opcodes.Secondary.TIN) {
+        when(secondary.asBits === Opcode.SecondaryOpcode.TIN) {
           val waitDone = timer.hi >= stack.A
           when(!waitDone) { sched.enqueue(stack.WPtr, False) }
           pipe.execute.haltWhen(!waitDone)

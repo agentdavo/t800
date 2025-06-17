@@ -3,13 +3,16 @@ package t800.plugins.stack
 import spinal.core._
 import spinal.core.fiber.Retainer
 import spinal.lib._
-import spinal.lib.misc.plugin.FiberPlugin
+import spinal.lib.misc.plugin.{FiberPlugin, Plugin}
 import spinal.lib.bus.bmb.{Bmb, BmbParameter, BmbAccessParameter, BmbDownSizerBridge, BmbUnburstify}
 import t800.{Global, T800}
-import t800.plugins.{SystemBusSrv, RegfileSrv}
+import t800.plugins.SystemBusSrv
+import t800.plugins.registers.RegfileSrv
 import t800.plugins.registers.RegName
 
-/** Manages workspace memory access for local variable operations (LDL, STL, CALL) in the T800 pipeline. */
+/** Manages workspace memory access for local variable operations (LDL, STL, CALL) in the T800
+  * pipeline.
+  */
 
 class StackPlugin extends FiberPlugin {
   val version = "StackPlugin v0.2"
@@ -28,7 +31,9 @@ class StackPlugin extends FiberPlugin {
     implicit val h: PluginHost = host
     val regfile = Plugin[RegfileSrv]
     val systemBus = Plugin[SystemBusSrv].bus // 128-bit BMB system bus
-    val workspaceCache = try Plugin[WorkspaceCacheSrv] catch { case _: Exception => null } // Optional WorkspaceCachePlugin
+    val workspaceCache =
+      try Plugin[WorkspaceCacheSrv]
+      catch { case _: Exception => null } // Optional WorkspaceCachePlugin
 
     // Define 32-bit BMB parameters for workspace access
     val memParam = BmbParameter(
@@ -42,7 +47,8 @@ class StackPlugin extends FiberPlugin {
     )
 
     // Workspace memory: fallback Mem if no WorkspaceCachePlugin
-    val workspace = workspaceCache == null generate Mem(UInt(Global.WORD_BITS bits), Global.RAM_WORDS)
+    val workspace =
+      workspaceCache == null generate Mem(UInt(Global.WORD_BITS bits), Global.RAM_WORDS)
     val memBmb = workspaceCache != null generate Bmb(memParam)
 
     // Connect to WorkspaceCachePlugin or system bus
@@ -59,7 +65,8 @@ class StackPlugin extends FiberPlugin {
 
     addService(new StackSrv {
       override def read(offset: SInt): UInt = {
-        val addr = (regfile.read(RegName.WdescReg, 0).asSInt + offset).asUInt.resize(log2Up(Global.RAM_WORDS) bits)
+        val addr = (regfile.read(RegName.WdescReg, 0).asSInt + offset).asUInt
+          .resize(log2Up(Global.RAM_WORDS) bits)
         if (workspaceCache != null) {
           memBmb.cmd.valid := True
           memBmb.cmd.opcode := 0 // Read
@@ -74,7 +81,8 @@ class StackPlugin extends FiberPlugin {
       }
 
       override def write(offset: SInt, data: UInt): Unit = {
-        val addr = (regfile.read(RegName.WdescReg, 0).asSInt + offset).asUInt.resize(log2Up(Global.RAM_WORDS) bits)
+        val addr = (regfile.read(RegName.WdescReg, 0).asSInt + offset).asUInt
+          .resize(log2Up(Global.RAM_WORDS) bits)
         if (workspaceCache != null) {
           memBmb.cmd.valid := True
           memBmb.cmd.opcode := 1 // Write

@@ -7,10 +7,10 @@ import t800.plugins.transputer.TransputerPlugin
 
 object TopVerilog {
   def main(args: Array[String]): Unit = {
-    
+
     // Configure Database for variant support
     val db = T800.defaultDatabase()
-    
+
     if (args.contains("--double-precision")) {
       db(Global.FPU_PRECISION) = 64
     }
@@ -25,8 +25,8 @@ object TopVerilog {
     val report = SpinalVerilog {
       Database(db).on(T800(T800.defaultPlugins()))
     }
-    
+
     println(s"Verilog generated: ${report.toplevelName}")
-    
+
   }
 }

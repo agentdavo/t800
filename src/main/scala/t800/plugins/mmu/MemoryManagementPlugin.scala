@@ -8,7 +8,8 @@ import spinal.lib.misc.pipeline._
 import t800.plugins.pmi.PmiPlugin
 import t800.plugins.cache.{MainCachePlugin, WorkspaceCachePlugin, CacheAccessSrv}
 import t800.plugins.schedule.SchedulerPlugin
-import t800.plugins.{TrapHandlerSrv, ConfigAccessSrv, AddressTranslationSrv, RegfileSrv, Fetch}
+import t800.plugins.{TrapHandlerSrv, ConfigAccessSrv, AddressTranslationSrv, Fetch}
+import t800.plugins.registers.RegfileSrv
 import t800.plugins.pipeline.PipelineStageSrv
 import t800.plugins.registers.RegName
 import t800.{Global, T800}
@@ -104,7 +105,9 @@ class MemoryManagementPlugin extends FiberPlugin {
           regionConfig(0) := configSrv.data.resized(Global.ADDR_BITS)
         }
         is(Global.ConfigAddr.PMI_STROBE) {
-          regionConfig(1) := configSrv.read(Global.ConfigAddr.RAS_STROBE0, Global.WORD_BITS).resized(Global.ADDR_BITS)
+          regionConfig(1) := configSrv
+            .read(Global.ConfigAddr.RAS_STROBE0, Global.WORD_BITS)
+            .resized(Global.ADDR_BITS)
         }
       }
     }
@@ -114,12 +117,13 @@ class MemoryManagementPlugin extends FiberPlugin {
       B"101", // Exec, Read, !Write (Code)
       B"011", // !Exec, Read, Write (Data)
       B"011", // !Exec, Read, Write (Stack)
-      B"000"  // !Exec, !Read, !Write (Reserved)
+      B"000" // !Exec, !Read, !Write (Reserved)
     )
 
     // Address translation
     def translateAddress(logicalAddr: Bits): Bits = {
-      val regionIdx = OHToUInt(for (i <- 0 until 4) yield logicalAddr(31 downto 30) === B(i, 2 bits))
+      val regionIdx =
+        OHToUInt(for (i <- 0 until 4) yield logicalAddr(31 downto 30) === B(i, 2 bits))
       val regionBase = REGION_BASE(regionIdx)
       val offset = logicalAddr(29 downto 0).asBits.resized(Global.ADDR_BITS)
       (regionBase ## offset).resized(Global.ADDR_BITS)
@@ -127,27 +131,43 @@ class MemoryManagementPlugin extends FiberPlugin {
 
     // Memory access validation
     val memAccessAddr = Mux(
-      fetch.isValid, fetch(Fetch.FETCH_PC),
-      decode.isValid, decode(CACHE_ADDR), // Use CACHE_ADDR for workspace access
-      memory.isValid, memory(CACHE_ADDR),
-      writeback.isValid, writeback(CACHE_ADDR),
+      fetch.isValid,
+      fetch(Fetch.FETCH_PC),
+      decode.isValid,
+      decode(CACHE_ADDR), // Use CACHE_ADDR for workspace access
+      memory.isValid,
+      memory(CACHE_ADDR),
+      writeback.isValid,
+      writeback(CACHE_ADDR),
       U(0, Global.ADDR_BITS bits)
     )
     val memAccessType = Mux(
-      fetch.isValid, B"001", // Execute
-      decode.isValid && cacheIf.req.payload.isWrite, B"010", // Write
-      decode.isValid, B"100", // Read
+      fetch.isValid,
+      B"001", // Execute
+      decode.isValid && cacheIf.req.payload.isWrite,
+      B"010", // Write
+      decode.isValid,
+      B"100", // Read
       B"000"
     )
     cacheIf.req.valid := decode.isValid || fetch.isValid || memory.isValid
     cacheIf.req.payload.address := memAccessAddr.asUInt
     cacheIf.req.payload.data := cacheIf.rsp.payload.data
     cacheIf.req.payload.isWrite := memAccessType(1)
-    val regionIdx = OHToUInt(for (i <- 0 until 4) yield REGION_BASE(i) <= memAccessAddr.asUInt && memAccessAddr.asUInt < (REGION_BASE(i) + REGION_SIZE(i)))
+    val regionIdx = OHToUInt(
+      for (i <- 0 until 4)
+        yield REGION_BASE(i) <= memAccessAddr.asUInt && memAccessAddr.asUInt < (REGION_BASE(
+          i
+        ) + REGION_SIZE(i))
+    )
     val isValidAccess = pProcessModeReg && MuxLookup(
       regionIdx,
       False,
-      (0 until 4).map(i => i -> (memAccessType(2) && REGION_PERMS(i)(2) || memAccessType(1) && REGION_PERMS(i)(1) || memAccessType(0) && REGION_PERMS(i)(0)))
+      (0 until 4).map(i =>
+        i -> (memAccessType(2) && REGION_PERMS(i)(2) || memAccessType(1) && REGION_PERMS(i)(
+          1
+        ) || memAccessType(0) && REGION_PERMS(i)(0))
+      )
     )
 
     // Stack extension validation
@@ -159,7 +179,9 @@ class MemoryManagementPlugin extends FiberPlugin {
     }
 
     // Privileged instruction detection
-    val privilegedInstr = execute.isValid && (execute(Global.OPCODE) === B"1111" || execute(Global.OPCODE)(7 downto 4) === B"1010")
+    val privilegedInstr = execute.isValid && (execute(Global.OPCODE) === B"1111" || execute(
+      Global.OPCODE
+    )(7 downto 4) === B"1010")
     when(pProcessModeReg && privilegedInstr) {
       srv.setTrap(execute(Fetch.FETCH_PC), B"0100") // Privileged instruction trap
       execute.haltIt()

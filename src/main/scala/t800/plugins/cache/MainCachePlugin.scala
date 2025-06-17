@@ -5,7 +5,16 @@ import spinal.core.fiber._
 import spinal.lib._
 import spinal.lib.misc.plugin._
 import spinal.lib.misc.pipeline._
-import spinal.lib.bus.bmb.{Bmb, BmbParameter, BmbAccessParameter, BmbOnChipRamMultiPort, BmbUnburstify, BmbArbiter, BmbDecoder, BmbDownSizerBridge}
+import spinal.lib.bus.bmb.{
+  Bmb,
+  BmbParameter,
+  BmbAccessParameter,
+  BmbOnChipRamMultiPort,
+  BmbUnburstify,
+  BmbArbiter,
+  BmbDecoder,
+  BmbDownSizerBridge
+}
 import t800.plugins.pmi.PmiPlugin
 import t800.plugins.{AddressTranslationSrv, WorkspaceCacheSrv, SystemBusSrv, Fetch}
 import t800.plugins.pipeline.PipelineStageSrv
@@ -88,9 +97,9 @@ class MainCachePlugin extends FiberPlugin {
     // Address mappings for four banks (bits 5:4)
     val bankMappings = Seq(
       SizeMapping(0x00000000L, 0x1000L), // Bank 0: addr[5:4] = 00
-      SizeMapping(0x1000L, 0x1000L),     // Bank 1: addr[5:4] = 01
-      SizeMapping(0x2000L, 0x1000L),     // Bank 2: addr[5:4] = 10
-      SizeMapping(0x3000L, 0x1000L)      // Bank 3: addr[5:4] = 11
+      SizeMapping(0x1000L, 0x1000L), // Bank 1: addr[5:4] = 01
+      SizeMapping(0x2000L, 0x1000L), // Bank 2: addr[5:4] = 10
+      SizeMapping(0x3000L, 0x1000L) // Bank 3: addr[5:4] = 11
     )
 
     // Arbiter for pipeline inputs (Fetch/Memory)
@@ -128,7 +137,9 @@ class MainCachePlugin extends FiberPlugin {
       val unburstify = Seq.fill(2)(BmbUnburstify(bmbParameter))
       decoder.io.outputs(portId) >> unburstify(0).io.input // Port 0 (primary read/write)
       unburstify(0).io.output >> ram.io.buses(0)
-      unburstify(1).io.input.cmd.valid := fetch.isValid && fetch(Fetch.FETCH_PC)(5 downto 4).asUInt === portId
+      unburstify(1).io.input.cmd.valid := fetch.isValid && fetch(Fetch.FETCH_PC)(
+        5 downto 4
+      ).asUInt === portId
       unburstify(1).io.input.cmd.opcode := 0 // Read (secondary read port)
       unburstify(1).io.input.cmd.address := fetch(Fetch.FETCH_PC)
       unburstify(1).io.input.cmd.length := 0
@@ -248,7 +259,8 @@ class MainCachePlugin extends FiberPlugin {
     // Cache banks
     val banks = for (i <- 0 until 4) yield CacheBank(i)
 
-    val cacheMode = Reg(Bits(2 bits)) init 0 // 00: Full RAM, 01: Full Cache, 10: Half RAM/Half Cache
+    val cacheMode =
+      Reg(Bits(2 bits)) init 0 // 00: Full RAM, 01: Full Cache, 10: Half RAM/Half Cache
     val isRamMode = cacheMode === 0 || (cacheMode === 2 && fetch(Fetch.FETCH_PC)(13) === 0)
 
     val bankSel = fetch(Fetch.FETCH_PC)(5 downto 4).asUInt
@@ -296,7 +308,10 @@ class MainCachePlugin extends FiberPlugin {
         } otherwise {
           fetch.haltIt()
           val mainCacheData = pmiDownSizer.io.input.rsp.data
-          banks(reqBank).write(reqAddr, mainCacheData ## mainCacheData ## mainCacheData ## mainCacheData)
+          banks(reqBank).write(
+            reqAddr,
+            mainCacheData ## mainCacheData ## mainCacheData ## mainCacheData
+          )
           cacheIf.rsp.valid := True
           cacheIf.rsp.payload.data := mainCacheData(31 downto 0)
           cacheIf.rsp.payload.valid := True

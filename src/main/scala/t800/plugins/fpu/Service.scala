@@ -7,15 +7,7 @@ import t800.Global
 
 // Forward simple command and operation definitions from `Opcodes.scala`.
 // This avoids duplicate type names when both files are included in the build.
-import t800.plugins.fpu.{FpCmd => OpcodeCmd, FpOp}
-
-/** Provide local aliases for command types to avoid duplicate definitions when this file and
-  * `Opcodes.scala` are both compiled.
-  */
-object FpuServiceTypes {
-  type FpCmd = OpcodeCmd
-}
-import FpuServiceTypes.FpCmd
+import t800.plugins.fpu.{FpCmd, FpOp}
 
 trait FpuSrv {
   def pipe: Flow[FpCmd]

@@ -3,15 +3,20 @@ package t800.plugins.decode
 import spinal.core._
 import spinal.lib._
 import spinal.lib.misc.pipeline._
-import spinal.lib.misc.plugin.FiberPlugin
+import spinal.lib.misc.plugin._
 import spinal.core.fiber.Retainer
-import spinal.lib.bus.bmb.{Bmb, BmbParameter, BmbDownSizerBridge, BmbUnburstify}
-import t800.{Global, Opcodes, T800}
-import t800.plugins.{RegfileSrv, Fetch, GrouperPlugin, GroupedInstrSrv, SystemBusSrv}
+import spinal.lib.bus.bmb.{Bmb, BmbParameter, BmbAccessParameter, BmbDownSizerBridge, BmbUnburstify}
+import t800.{Global, Opcode, T800}
+import t800.plugins.registers.RegfileSrv
+import t800.plugins.Fetch
+import t800.plugins.grouper.GroupedInstrSrv
+import t800.plugins.SystemBusSrv
 import t800.plugins.registers.RegName
 import t800.plugins.pipeline.{PipelineSrv, PipelineStageSrv}
 
-/** Implements primary instruction decoding and execution, receiving opcodes from FetchPlugin or GrouperPlugin, and accessing 128-bit system bus via BMB. */
+/** Implements primary instruction decoding and execution, receiving opcodes from FetchPlugin or
+  * GrouperPlugin, and accessing 128-bit system bus via BMB.
+  */
 class PrimaryInstrPlugin extends FiberPlugin with PipelineSrv {
   val version = "PrimaryInstrPlugin v0.6"
   private val retain = Retainer()
@@ -29,17 +34,17 @@ class PrimaryInstrPlugin extends FiberPlugin with PipelineSrv {
     val regfile = Plugin[RegfileSrv]
     val pipe = Plugin[PipelineStageSrv]
     val systemBus = Plugin[SystemBusSrv].bus // 128-bit BMB system bus
-    val grouper = try Plugin[GroupedInstrSrv] catch { case _: Exception => null } // Optional GrouperPlugin
+    val grouper =
+      try Plugin[GroupedInstrSrv]
+      catch { case _: Exception => null } // Optional GrouperPlugin
 
     // Define 32-bit BMB parameters for memory access
     val memParam = BmbParameter(
-      access = BmbAccessParameter(
-        addressWidth = Global.ADDR_BITS,
-        dataWidth = 32,
-        lengthWidth = 0, // Single-beat transactions
-        sourceWidth = 1,
-        contextWidth = 0
-      )
+      addressWidth = Global.ADDR_BITS,
+      dataWidth = 32,
+      sourceWidth = 1,
+      contextWidth = 0,
+      lengthWidth = 0
     )
 
     // BMB pipeline for memory operations
@@ -55,14 +60,14 @@ class PrimaryInstrPlugin extends FiberPlugin with PipelineSrv {
 
     // Select input: grouped or single opcode
     val inst = if (grouper != null) {
-      pipe.execute(GrouperPlugin.GROUP_INSTR)(0) // First opcode from group
+      grouper.groups.payload.instructions(0)
     } else {
-      pipe.execute(Global.OPCODE) // Single opcode from FetchPlugin
+      pipe.execute(Global.OPCODE)
     }
-    val groupCount = if (grouper != null) pipe.execute(GrouperPlugin.GROUP_COUNT) else U(1)
+    val groupCount = if (grouper != null) grouper.groups.payload.count else U(1)
     val nibble = inst(3 downto 0).asUInt
     val accumulated = Reg(UInt(32 bits)) init 0 // Temporary operand accumulator
-    val primary = Opcodes.PrimaryEnum()
+    val primary = Opcode.PrimaryOpcode()
     primary.assignFromBits(inst(7 downto 4))
 
     // Memory command/response handling
@@ -77,20 +82,20 @@ class PrimaryInstrPlugin extends FiberPlugin with PipelineSrv {
 
     // Instruction execution (single-issue for now, group processing TBD)
     switch(primary) {
-      is(Opcodes.PrimaryEnum.PFIX) {
+      is(Opcode.PrimaryOpcode.PFIX) {
         accumulated := (accumulated | nibble.resized) << 4
       }
-      is(Opcodes.PrimaryEnum.NFIX) {
+      is(Opcode.PrimaryOpcode.NFIX) {
         accumulated := ((~accumulated) | nibble.resized) << 4
       }
-      is(Opcodes.PrimaryEnum.LDC) {
+      is(Opcode.PrimaryOpcode.LDC) {
         val operand = accumulated.asSInt
         regfile.write(RegName.Creg, regfile.read(RegName.Breg, 0), 0, shadow = false)
         regfile.write(RegName.Breg, regfile.read(RegName.Areg, 0), 0, shadow = false)
         regfile.write(RegName.Areg, operand.asUInt, 0, shadow = false)
         accumulated := 0
       }
-      is(Opcodes.PrimaryEnum.LDL) {
+      is(Opcode.PrimaryOpcode.LDL) {
         val operand = accumulated.asSInt
         val addr = regfile.read(RegName.WdescReg, 0).asUInt + operand
         memBmb.cmd.valid := True
@@ -104,7 +109,7 @@ class PrimaryInstrPlugin extends FiberPlugin with PipelineSrv {
           accumulated := 0
         }
       }
-      is(Opcodes.PrimaryEnum.STL) {
+      is(Opcode.PrimaryOpcode.STL) {
         val operand = accumulated.asSInt
         val addr = regfile.read(RegName.WdescReg, 0).asUInt + operand
         memBmb.cmd.valid := True
@@ -118,43 +123,73 @@ class PrimaryInstrPlugin extends FiberPlugin with PipelineSrv {
           accumulated := 0
         }
       }
-      is(Opcodes.PrimaryEnum.LDLP) {
+      is(Opcode.PrimaryOpcode.LDLP) {
         val operand = accumulated
         regfile.write(RegName.Creg, regfile.read(RegName.Breg, 0), 0, shadow = false)
         regfile.write(RegName.Breg, regfile.read(RegName.Areg, 0), 0, shadow = false)
-        regfile.write(RegName.Areg, regfile.read(RegName.WdescReg, 0).asUInt + operand, 0, shadow = false)
+        regfile.write(
+          RegName.Areg,
+          regfile.read(RegName.WdescReg, 0).asUInt + operand,
+          0,
+          shadow = false
+        )
         accumulated := 0
       }
-      is(Opcodes.PrimaryEnum.LDNLP) {
-        regfile.write(RegName.Areg, regfile.read(RegName.Areg, 0).asUInt + (accumulated |<< 2), 0, shadow = false)
+      is(Opcode.PrimaryOpcode.LDNLP) {
+        regfile.write(
+          RegName.Areg,
+          regfile.read(RegName.Areg, 0).asUInt + (accumulated |<< 2),
+          0,
+          shadow = false
+        )
         accumulated := 0
       }
-      is(Opcodes.PrimaryEnum.ADC) {
+      is(Opcode.PrimaryOpcode.ADC) {
         val operand = accumulated
-        regfile.write(RegName.Areg, regfile.read(RegName.Areg, 0).asUInt + operand, 0, shadow = false)
+        regfile.write(
+          RegName.Areg,
+          regfile.read(RegName.Areg, 0).asUInt + operand,
+          0,
+          shadow = false
+        )
         accumulated := 0
       }
-      is(Opcodes.PrimaryEnum.EQC) {
+      is(Opcode.PrimaryOpcode.EQC) {
         val operand = accumulated
-        regfile.write(RegName.Areg, (regfile.read(RegName.Areg, 0) === operand).asUInt.resized, 0, shadow = false)
+        regfile.write(
+          RegName.Areg,
+          (regfile.read(RegName.Areg, 0) === operand).asUInt.resized,
+          0,
+          shadow = false
+        )
         accumulated := 0
       }
-      is(Opcodes.PrimaryEnum.J) {
+      is(Opcode.PrimaryOpcode.J) {
         val operand = accumulated.asSInt
-        regfile.write(RegName.IptrReg, (regfile.read(RegName.IptrReg, 0).asSInt + operand).asUInt, 0, shadow = false)
+        regfile.write(
+          RegName.IptrReg,
+          (regfile.read(RegName.IptrReg, 0).asSInt + operand).asUInt,
+          0,
+          shadow = false
+        )
         accumulated := 0
       }
-      is(Opcodes.PrimaryEnum.CJ) {
+      is(Opcode.PrimaryOpcode.CJ) {
         val operand = accumulated.asSInt
         when(regfile.read(RegName.Areg, 0) === 0) {
-          regfile.write(RegName.IptrReg, (regfile.read(RegName.IptrReg, 0).asSInt + operand).asUInt, 0, shadow = false)
+          regfile.write(
+            RegName.IptrReg,
+            (regfile.read(RegName.IptrReg, 0).asSInt + operand).asUInt,
+            0,
+            shadow = false
+          )
         } otherwise {
           regfile.write(RegName.Areg, regfile.read(RegName.Breg, 0), 0, shadow = false)
           regfile.write(RegName.Breg, regfile.read(RegName.Creg, 0), 0, shadow = false)
         }
         accumulated := 0
       }
-      is(Opcodes.PrimaryEnum.LDNL) {
+      is(Opcode.PrimaryOpcode.LDNL) {
         val addr = regfile.read(RegName.Areg, 0).asUInt + accumulated
         memBmb.cmd.valid := True
         memBmb.cmd.opcode := 0 // Read
@@ -165,7 +200,7 @@ class PrimaryInstrPlugin extends FiberPlugin with PipelineSrv {
           accumulated := 0
         }
       }
-      is(Opcodes.PrimaryEnum.STNL) {
+      is(Opcode.PrimaryOpcode.STNL) {
         val addr = regfile.read(RegName.Areg, 0).asUInt + accumulated
         memBmb.cmd.valid := True
         memBmb.cmd.opcode := 1 // Write
@@ -177,7 +212,7 @@ class PrimaryInstrPlugin extends FiberPlugin with PipelineSrv {
           accumulated := 0
         }
       }
-      is(Opcodes.PrimaryEnum.CALL) {
+      is(Opcode.PrimaryOpcode.CALL) {
         val operand = accumulated.asSInt
         val addr = regfile.read(RegName.WdescReg, 0).asUInt + S(-4)
         memBmb.cmd.valid := True
@@ -186,18 +221,33 @@ class PrimaryInstrPlugin extends FiberPlugin with PipelineSrv {
         memBmb.cmd.data := (regfile.read(RegName.IptrReg, 0) + 1).asBits
         pipe.execute.haltWhen(!memBmb.rsp.valid)
         when(pipe.execute.down.isFiring) {
-          regfile.write(RegName.WdescReg, (regfile.read(RegName.WdescReg, 0).asSInt - 4).asUInt, 0, shadow = false)
+          regfile.write(
+            RegName.WdescReg,
+            (regfile.read(RegName.WdescReg, 0).asSInt - 4).asUInt,
+            0,
+            shadow = false
+          )
           regfile.write(RegName.Areg, regfile.read(RegName.IptrReg, 0) + 1, 0, shadow = false)
-          regfile.write(RegName.IptrReg, (regfile.read(RegName.IptrReg, 0).asSInt + operand).asUInt, 0, shadow = false)
+          regfile.write(
+            RegName.IptrReg,
+            (regfile.read(RegName.IptrReg, 0).asSInt + operand).asUInt,
+            0,
+            shadow = false
+          )
           accumulated := 0
         }
       }
-      is(Opcodes.PrimaryEnum.AJW) {
+      is(Opcode.PrimaryOpcode.AJW) {
         val operand = accumulated.asSInt
-        regfile.write(RegName.WdescReg, (regfile.read(RegName.WdescReg, 0).asSInt + operand).asUInt, 0, shadow = false)
+        regfile.write(
+          RegName.WdescReg,
+          (regfile.read(RegName.WdescReg, 0).asSInt + operand).asUInt,
+          0,
+          shadow = false
+        )
         accumulated := 0
       }
-      is(Opcodes.PrimaryEnum.OPR) {
+      is(Opcode.PrimaryOpcode.OPR) {
         // Defer to SecondaryInstrPlugin
         accumulated := 0
       }
