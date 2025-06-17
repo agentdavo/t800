@@ -4,11 +4,11 @@ import spinal.core._
 import spinal.core.sim._
 import org.scalatest.funsuite.AnyFunSuite
 import transputer.plugins._
-import transputer.plugins.timers.TimerSrv
+import transputer.plugins.timers.TimerService
 import transputer.Global
 import spinal.lib.misc.plugin.{PluginHost, FiberPlugin, Plugin}
 
-trait TimerProbeSrv { def hi: UInt; def lo: UInt }
+trait TimerProbeService { def hi: UInt; def lo: UInt }
 
 class TimerProbePlugin extends FiberPlugin {
   var hiOut: UInt = null
@@ -21,10 +21,10 @@ class TimerProbePlugin extends FiberPlugin {
 
   during build new Area {
     implicit val h: PluginHost = host
-    val timer = Plugin[TimerSrv]
+    val timer = Plugin[TimerService]
     hiOut := timer.hi
     loOut := timer.lo
-    addService(new TimerProbeSrv { def hi = hiOut; def lo = loOut })
+    addService(new TimerProbeService { def hi = hiOut; def lo = loOut })
   }
 }
 
@@ -38,7 +38,7 @@ class TimerEnableSpec extends AnyFunSuite {
       }
       .doSim { dut =>
         dut.clockDomain.forkStimulus(10)
-        val timer = dut.host[TimerSrv]
+        val timer = dut.host[TimerService]
 
         dut.clockDomain.waitSampling(5)
         timer.disableHi()

@@ -23,17 +23,17 @@ class FpuOpcodeDut extends Component {
   val plugins = Transputer.unitPlugins() ++ Seq(new DummyTrapPlugin, new FpuPlugin)
   PluginHost(host).on(Database(Transputer.defaultDatabase()).on(Transputer(plugins)))
 
-  val fpuSrv = host[FpuSrv]
-  val ctrl = host[FpuControlSrv]
+  val fpuService = host[FpuService]
+  val ctrl = host[FpuControlService]
 
   when(io.cmdValid) {
     val op = FpOp.fromOpcode(io.opcode)
-    fpuSrv.send(op, io.a.asUInt, io.b.asUInt)
+    fpuService.send(op, io.a.asUInt, io.b.asUInt)
     ctrl.setRoundingMode(io.rounding)
     ctrl.clearErrorFlags
   }
-  io.rsp := fpuSrv.rsp.payload.asBits
-  io.rspValid := fpuSrv.rsp.valid && io.cmdValid
+  io.rsp := fpuService.rsp.payload.asBits
+  io.rspValid := fpuService.rsp.valid && io.cmdValid
 }
 
 class FpuOpcodeSpec extends AnyFunSuite {

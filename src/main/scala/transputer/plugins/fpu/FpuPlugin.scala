@@ -15,13 +15,13 @@ import spinal.lib.bus.bmb.{
 }
 import transputer.Global
 import transputer.{Transputer, Opcode}
-import transputer.plugins.SystemBusSrv
-import transputer.plugins.registers.RegfileSrv
+import transputer.plugins.SystemBusService
+import transputer.plugins.registers.RegfileService
 import transputer.plugins.registers.RegName
-import transputer.plugins.pipeline.{PipelineSrv, PipelineStageSrv}
+import transputer.plugins.pipeline.{PipelineService, PipelineStageService}
 import transputer.plugins.fpu.Utils._
 
-class FpuPlugin extends FiberPlugin with PipelineSrv {
+class FpuPlugin extends FiberPlugin with PipelineService {
   val version = "FpuPlugin v0.3"
   private val retain = Retainer()
   val fpPipe = new StageCtrlPipeline
@@ -44,7 +44,7 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
     srvRsp = Flow(UInt(64 bits))
     srvCmd.setIdle()
     srvRsp.setIdle()
-    addService(new FpuSrv {
+    addService(new FpuService {
       def pipe: Flow[FpCmd] = srvCmd
       def rsp: Flow[UInt] = srvRsp
     })
@@ -56,9 +56,9 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
     retain.await()
     implicit val h: PluginHost = host
     val s0 = new fpPipe.Ctrl(0)
-    val pipe = Plugin[PipelineStageSrv]
-    val regfile = Plugin[RegfileSrv]
-    val systemBus = Plugin[SystemBusSrv].bus
+    val pipe = Plugin[PipelineStageService]
+    val regfile = Plugin[RegfileService]
+    val systemBus = Plugin[SystemBusService].bus
 
     // FPU register file
     val fa = Reg(Bits(64 bits)) init 0 // FPAreg
@@ -344,7 +344,7 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
     }
 
     // Service implementation
-    addService(new FpuOpsSrv {
+    addService(new FpuOpsService {
       def push(operand: Bits): Unit = { fc := fb; fb := fa; fa := operand }
       def pushAfix(operand: AFix): Unit = { push(operand.raw) }
       def pop(): Bits = fa
@@ -361,7 +361,7 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
       def clearErrorFlags: Unit = { status.errorFlags := 0 }
     })
 
-    addService(new FpuControlSrv {
+    addService(new FpuControlService {
       def specialValueDetected: Bool = vcu.io.isSpecial
       def specialResult: Bits = vcu.io.specialResult
       def trapEnable: Bool = vcu.io.trapEnable

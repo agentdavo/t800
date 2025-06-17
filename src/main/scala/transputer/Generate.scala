@@ -2,7 +2,7 @@ package transputer
 
 import spinal.core._
 import spinal.lib.misc.database.Database
-import spinal.lib.misc.{AnalysisUtils, LatencyAnalysis}
+import spinal.lib.{AnalysisUtils, LatencyAnalysis}
 import scopt.OParser
 
 /** Verilog generation utility for Transputer with command-line configuration. */

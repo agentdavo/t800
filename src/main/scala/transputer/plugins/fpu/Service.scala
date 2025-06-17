@@ -9,7 +9,7 @@ import transputer.Global
 // This avoids duplicate type names when both files are included in the build.
 import transputer.plugins.fpu.{FpCmd, FpOp}
 
-trait FpuSrv {
+trait FpuService {
   def pipe: Flow[FpCmd]
   def rsp: Flow[UInt]
   def send(op: FpOp.C, a: UInt, b: UInt): Unit = {
@@ -22,7 +22,7 @@ trait FpuSrv {
   def result: UInt = rsp.payload
 }
 
-trait FpuOpsSrv {
+trait FpuOpsService {
   def push(operand: Bits): Unit // Push to FA/FB
   def pushAfix(operand: AFix): Unit // Push AFix operand
   def pop(): Bits // Pop from FA
@@ -35,7 +35,7 @@ trait FpuOpsSrv {
   def clearErrorFlags: Unit // Clear error flags
 }
 
-trait FpuControlSrv {
+trait FpuControlService {
   def specialValueDetected: Bool // VCU special value flag
   def specialResult: Bits // VCU result
   def trapEnable: Bool // IEEE-754 trap

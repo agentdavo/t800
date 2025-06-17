@@ -82,7 +82,7 @@ case class RegFileWrite(rfpp: RegFilePortParam, withReady: Boolean)
   }
 }
 
-trait RegfileSrv {
+trait RegfileService {
   def rfSpec: TransputerRegFileSpec
   def getPhysicalDepth: Int
   def writeLatency: Int

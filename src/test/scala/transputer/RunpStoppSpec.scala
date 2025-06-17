@@ -6,7 +6,7 @@ import org.scalatest.funsuite.AnyFunSuite
 import spinal.lib.misc.plugin.PluginHost
 import transputer.plugins._
 import transputer.{DummyTimerPlugin, DummyFpuPlugin}
-import transputer.plugins.schedule.{SchedulerPlugin, SchedSrv}
+import transputer.plugins.schedule.{SchedulerPlugin, SchedService}
 import transputer.plugins.grouper.GrouperPlugin
 
 class RunpStoppSpec extends AnyFunSuite {
@@ -36,8 +36,8 @@ class RunpStoppSpec extends AnyFunSuite {
       }
       .doSim { dut =>
         dut.clockDomain.forkStimulus(10)
-        val stack = dut.host[StackSrv]
-        val sched = dut.host[SchedSrv]
+        val stack = dut.host[StackService]
+        val sched = dut.host[SchedService]
         stack.A #= 0x1234
         dut.clockDomain.waitSampling(15)
         val first = sched.nextProc.toBigInt

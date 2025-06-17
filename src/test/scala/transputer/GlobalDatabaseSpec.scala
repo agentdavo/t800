@@ -33,7 +33,7 @@ class GlobalDatabaseSpec extends AnyFunSuite {
         }
       }
       .doSim { dut =>
-        val probe = dut.host[TimerProbeSrv]
+        val probe = dut.host[TimerProbeService]
         assert(probe.hi.getWidth == 16)
         assert(probe.lo.getWidth == 16)
       }

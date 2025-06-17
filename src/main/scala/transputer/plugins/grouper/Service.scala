@@ -9,6 +9,6 @@ case class GroupedInstructions() extends Bundle {
   val count = UInt(4 bits)
 }
 
-trait GroupedInstrSrv {
+trait GroupedInstrService {
   def groups: Flow[GroupedInstructions]
 }

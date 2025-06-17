@@ -38,7 +38,7 @@ class OprStlSpec extends AnyFunSuite {
       .doSim { dut =>
         dut.clockDomain.forkStimulus(10)
         dut.clockDomain.waitSampling(40)
-        val stack = dut.host[StackSrv]
+        val stack = dut.host[StackService]
         assert(stack.A.toBigInt == 0x22)
         assert(stack.B.toBigInt == 0x33)
       }

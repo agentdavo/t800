@@ -34,7 +34,7 @@ class TimerPlugin extends FiberPlugin {
     loTimer.simPublic()
     hiEn.simPublic()
     loEn.simPublic()
-    addService(new TimerSrv {
+    addService(new TimerService {
       override def hi: UInt = hiTimer
       override def lo: UInt = loTimer
       override def set(value: UInt): Unit = {

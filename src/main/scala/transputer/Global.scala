@@ -248,7 +248,7 @@ object Global extends AreaObject {
   }
 
   // Configuration register access service for Ideonf/steonf [cite: t9000hrm.pdf, 225]
-  case class ConfigAccessSrv() extends Bundle {
+  case class ConfigAccessService() extends Bundle {
     val addr = UInt(16 bits) // 16-bit configuration address
     val data = Bits(32 bits) // 32-bit register data
     val writeEnable = Bool() // Write operation flag

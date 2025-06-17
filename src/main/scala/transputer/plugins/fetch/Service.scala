@@ -5,7 +5,7 @@ import spinal.lib._
 import transputer.Global
 
 /** Service interface for instruction fetch, integrated with MainCachePlugin. */
-trait InstrFetchSrv {
+trait InstrFetchService {
   def cmd: Flow[Global.MemReadCmd] // BMB-based read command
   def rsp: Flow[Bits] // Response with opcodes
 }
