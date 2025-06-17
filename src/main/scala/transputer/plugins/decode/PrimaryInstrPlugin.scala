@@ -6,7 +6,8 @@ import spinal.lib.misc.pipeline._
 import spinal.lib.misc.plugin._
 import spinal.core.fiber.Retainer
 import spinal.lib.bus.bmb.{Bmb, BmbParameter, BmbAccessParameter, BmbDownSizerBridge, BmbUnburstify}
-import transputer.{Global, Opcode, Transputer}
+import transputer.Global
+import transputer.{Opcode, Transputer}
 import transputer.plugins.registers.RegfileSrv
 import transputer.plugins.Fetch
 import transputer.plugins.grouper.GroupedInstrSrv

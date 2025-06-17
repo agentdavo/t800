@@ -12,7 +12,8 @@ import transputer.plugins.{TrapHandlerSrv, ConfigAccessSrv, AddressTranslationSr
 import transputer.plugins.registers.RegfileSrv
 import transputer.plugins.pipeline.PipelineStageSrv
 import transputer.plugins.registers.RegName
-import transputer.{Global, Transputer}
+import transputer.Global
+import transputer.Transputer
 
 class MemoryManagementPlugin extends FiberPlugin {
   val version = "MemoryManagementPlugin v1.5"

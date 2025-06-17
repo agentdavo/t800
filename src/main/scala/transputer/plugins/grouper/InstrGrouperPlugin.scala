@@ -5,7 +5,8 @@ import spinal.lib._
 import spinal.lib.misc.plugin.{PluginHost, FiberPlugin, Plugin}
 import spinal.lib.misc.pipeline._
 import spinal.core.fiber.Retainer
-import transputer.{Global, Opcode}
+import transputer.Global
+import transputer.Opcode
 import transputer.plugins.registers.RegfileSrv
 import transputer.plugins.Fetch
 import transputer.plugins.registers.RegName
