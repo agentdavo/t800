@@ -187,7 +187,8 @@ Plugins exchange data through small service traits:
 | `DebugPins` | Area containing optional debug signals. |
 | `ExtMemPins` | Off-chip memory interface pins. |
 | `StackSrv` | Exposes A/B/C/O registers and workspace pointer with read/write helpers. |
-| `FpuSrv` | Command and response interface for the floating-point unit. Supports `AFix` operands via `pushAfix`, `popAfix` and `executeAfix`. |
+| `FpuSrv` | Valid/ready command interface to the floating-point unit. Drive `pipe.valid` with an `FpCmd` and wait for `pipe.ready`; `rsp.valid` pulses with the 64‑bit result. |
+| `FpuOpsSrv` | Stack based helpers (`push`, `pop`, `execute`). `isBusy` stays high while a multi‑cycle operation is in flight. |
 | `SchedSrv` | Scheduler queues and control for process dispatch. |
 | `TimerSrv` | High/low timers with load and enable controls. |
 | `InstrFetchSrv` | Instruction fetch memory request and response flows. |

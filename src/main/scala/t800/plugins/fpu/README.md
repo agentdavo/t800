@@ -72,3 +72,44 @@ Using AFix
         FpOp.Arithmetic.FPADD,
         Vec(AFix(0.5, 8 exp), AFix(1.25, 8 exp))
     )
+
+### Opcode enumeration
+
+`FpOp` groups the secondary opcodes into categories:
+
+* **Load/Store**: FPLDNLSN, FPLDNLDB, FPLDNLSNI, FPLDNLDBI, FPLDZEROSN,
+  FPLDZERODB, FPLDNLADDSN, FPLDNLADDDB, FPLDNLMULSN, FPLDNLMULDB,
+  FPSTNLSN, FPSTNLDB, FPSTNLI32
+* **General**: FPENTRY, FPREV, FPDUP
+* **Rounding**: FPRN, FPRZ, FPRP, FPRM
+* **Error**: FPCHKERR, FPTESTERR, FPSETERR, FPCLRERR
+* **Comparison**: FPGT, FPEQ, FPORDERED, FPNAN, FPNOTFINITE, FPCHKI32, FPCHKI64
+* **Conversion**: FPR32TOR64, FPR64TOR32, FPRTOI32, FPI32TOR32, FPI32TOR64,
+  FPB32TOR64, FPNOROUND, FPINT
+* **Arithmetic**: FPADD, FPSUB, FPMUL, FPDIV, FPABS, FPEXPINC32, FPEXPDEC32,
+  FPMULBY2, FPDIVBY2
+* **T805 Compatibility**: FPUSQRTFIRST, FPUSQRTSTEP, FPUSQRTLAST, FPREMFIRST,
+  FPREMSTEP
+* **Additional**: FPREM, FPSQRT, FPRANGE, FPGE, FPLG
+
+`FpOp.fromOpcode` uses a `switch` over `Opcode.SecondaryOpcode` values and maps
+each byte to the matching `FpOp` entry. Unknown opcodes yield `FpOp.NONE`.
+
+### Rounding modes
+
+The 2-bit `roundingMode` implements IEEE‑754 rounding:
+
+* `00` – round to nearest even
+* `01` – round toward zero
+* `10` – round toward +∞
+* `11` – round toward −∞
+
+### Divider and square-root latency
+
+The divider/root unit executes multi-cycle operations. Typical latencies are:
+
+* `fpdiv` / `fpsqrt` – 15 cycles
+* `fprem` – 529 cycles
+* `fprange` – 17 cycles
+* `fpusqrtfirst`, `fpusqrtstep`, `fpusqrtlast`, `fpremfirst`, `fpremstep`
+  – `divRoot.io.cycles` (1 cycle in the minimal implementation)
