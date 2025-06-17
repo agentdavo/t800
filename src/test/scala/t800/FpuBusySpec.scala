@@ -26,24 +26,28 @@ class FpuBusySpec extends AnyFunSuite {
     SimConfig.compile(new BusyDut).doSim { dut =>
       dut.clockDomain.forkStimulus(10)
 
-      def run(cycles: Int): Unit = {
+      def issue(c: Int): Unit = {
         dut.io.start #= true
-        dut.io.cycles #= cycles
+        dut.io.cycles #= c
         dut.clockDomain.waitSampling()
         dut.io.start #= false
+      }
 
-        // busy asserted for 'cycles' clocks
-        for (i <- 0 until cycles) {
-          assert(dut.io.busy.toBoolean)
-          dut.clockDomain.waitSampling()
-        }
-        // one extra cycle to observe clear
-        assert(!dut.io.busy.toBoolean)
+      issue(2)
+      dut.clockDomain.waitSampling()
+      for (_ <- 0 until 2) {
+        assert(dut.io.busy.toBoolean)
         dut.clockDomain.waitSampling()
       }
 
-      run(2)
-      run(1)
+      issue(1)
+      dut.clockDomain.waitSampling()
+      for (_ <- 0 until 1) {
+        assert(dut.io.busy.toBoolean)
+        dut.clockDomain.waitSampling()
+      }
+
+      assert(!dut.io.busy.toBoolean)
     }
   }
 }
