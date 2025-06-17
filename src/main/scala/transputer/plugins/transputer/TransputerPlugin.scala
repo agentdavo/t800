@@ -1,12 +1,12 @@
-package t800.plugins.transputer
+package transputer.plugins.transputer
 
 import spinal.core._
 import spinal.lib.misc.database.{Database, Element}
 import spinal.lib.misc.plugin.FiberPlugin
-import t800.Global
+import transputer.Global
 
-/** Centralized configuration plugin for T800, setting T9000-specific parameters in the Database.
-  * Reads variant parameters from Database if set, else uses defaults.
+/** Centralized configuration plugin for Transputer, setting T9000-specific parameters in the
+  * Database. Reads variant parameters from Database if set, else uses defaults.
   */
 class TransputerPlugin(
   var wordBits: Int = Global.WordBits,

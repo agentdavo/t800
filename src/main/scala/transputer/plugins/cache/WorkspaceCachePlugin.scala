@@ -1,4 +1,4 @@
-package t800.plugins.cache
+package transputer.plugins.cache
 
 import spinal.core._
 import spinal.core.fiber._
@@ -7,8 +7,8 @@ import spinal.lib.misc.plugin._
 import spinal.lib.misc.pipeline._
 import spinal.lib.misc.database._
 import spinal.lib.bus.bmb.{Bmb, BmbParameter, BmbAccessParameter, BmbOnChipRamMultiPort}
-import t800.plugins.{AddressTranslationSrv, MainCacheSrv}
-import t800.plugins.cache.CacheAccessSrv
+import transputer.plugins.{AddressTranslationSrv, MainCacheSrv}
+import transputer.plugins.cache.CacheAccessSrv
 import spinal.lib.bus.misc.SingleMapping
 
 // The WorkspaceCachePlugin implements a 32-word triple-ported cache (two reads, one write per cycle)
@@ -98,67 +98,67 @@ class WorkspaceCachePlugin extends FiberPlugin {
     // Read port A
     ram.io.buses(0).cmd.valid := decode.isValid
     ram.io.buses(0).cmd.opcode := 0 // Read
-    ram.io.buses(0).cmd.address := Plugin[AddressTranslationSrv].translate(srv.addrA)
+    ram.io.buses(0).cmd.address := Plugin[AddressTranslationSrv].translate(srv.service.addrA)
     ram.io.buses(0).cmd.length := 0
     ram.io.buses(0).cmd.data := 0
     ram.io.buses(0).rsp.ready := True
-    srv.isHitA := validBits(srv.addrA(4 downto 0).asUInt)
-    srv.dataOutA := ram.io.buses(0).rsp.data
-    when(!srv.isHitA) {
+    srv.service.isHitA := validBits(srv.service.addrA(4 downto 0).asUInt)
+    srv.service.dataOutA := ram.io.buses(0).rsp.data
+    when(!srv.service.isHitA) {
       decode.haltWhen(True)
       // Fetch from Main Cache
       val mainCacheData =
-        Plugin[MainCacheSrv].read(Plugin[AddressTranslationSrv].translate(srv.addrA))
+        Plugin[MainCacheSrv].read(Plugin[AddressTranslationSrv].translate(srv.service.addrA))
       ram.io.buses(0).cmd.opcode := 1 // Write
       ram.io.buses(0).cmd.data := mainCacheData(31 downto 0)
-      validBits(srv.addrA(4 downto 0).asUInt) := True
+      validBits(srv.service.addrA(4 downto 0).asUInt) := True
     }
 
     // Read port B
     ram.io.buses(1).cmd.valid := decode.isValid
     ram.io.buses(1).cmd.opcode := 0 // Read
-    ram.io.buses(1).cmd.address := Plugin[AddressTranslationSrv].translate(srv.addrB)
+    ram.io.buses(1).cmd.address := Plugin[AddressTranslationSrv].translate(srv.service.addrB)
     ram.io.buses(1).cmd.length := 0
     ram.io.buses(1).cmd.data := 0
     ram.io.buses(1).rsp.ready := True
-    srv.isHitB := validBits(srv.addrB(4 downto 0).asUInt)
-    srv.dataOutB := ram.io.buses(1).rsp.data
-    when(!srv.isHitB) {
+    srv.service.isHitB := validBits(srv.service.addrB(4 downto 0).asUInt)
+    srv.service.dataOutB := ram.io.buses(1).rsp.data
+    when(!srv.service.isHitB) {
       decode.haltWhen(True)
       // Fetch from Main Cache
       val mainCacheData =
-        Plugin[MainCacheSrv].read(Plugin[AddressTranslationSrv].translate(srv.addrB))
+        Plugin[MainCacheSrv].read(Plugin[AddressTranslationSrv].translate(srv.service.addrB))
       ram.io.buses(1).cmd.opcode := 1 // Write
       ram.io.buses(1).cmd.data := mainCacheData(31 downto 0)
-      validBits(srv.addrB(4 downto 0).asUInt) := True
+      validBits(srv.service.addrB(4 downto 0).asUInt) := True
     }
 
     // Write port
-    ram.io.buses(2).cmd.valid := srv.writeEnable
+    ram.io.buses(2).cmd.valid := srv.service.writeEnable
     ram.io.buses(2).cmd.opcode := 1 // Write
-    ram.io.buses(2).cmd.address := Plugin[AddressTranslationSrv].translate(srv.writeAddr)
+    ram.io.buses(2).cmd.address := Plugin[AddressTranslationSrv].translate(srv.service.writeAddr)
     ram.io.buses(2).cmd.length := 0
-    ram.io.buses(2).cmd.data := srv.writeData
+    ram.io.buses(2).cmd.data := srv.service.writeData
     ram.io.buses(2).rsp.ready := True
-    when(srv.writeEnable) {
-      validBits(srv.writeAddr(4 downto 0).asUInt) := True
+    when(srv.service.writeEnable) {
+      validBits(srv.service.writeAddr(4 downto 0).asUInt) := True
       // Write-through to Main Cache
       Plugin[MainCacheSrv].write(
-        Plugin[AddressTranslationSrv].translate(srv.writeAddr),
-        srv.writeData ## srv.writeData ## srv.writeData ## srv.writeData
+        Plugin[AddressTranslationSrv].translate(srv.service.writeAddr),
+        srv.service.writeData ## srv.service.writeData ## srv.service.writeData ## srv.service.writeData
       )
     }
 
     val wsCacheLogic = new Area {
       when(decode.isValid) {
-        decode.insert(WS_CACHE_ADDR_A) := srv.addrA
-        decode.insert(WS_CACHE_ADDR_B) := srv.addrB
-        decode.insert(WS_CACHE_DATA_A) := srv.dataOutA
-        decode.insert(WS_CACHE_DATA_B) := srv.dataOutB
+        decode.insert(WS_CACHE_ADDR_A) := srv.service.addrA
+        decode.insert(WS_CACHE_ADDR_B) := srv.service.addrB
+        decode.insert(WS_CACHE_DATA_A) := srv.service.dataOutA
+        decode.insert(WS_CACHE_DATA_B) := srv.service.dataOutB
       }
     }
 
-    when((srv.isHitA || srv.isHitB) && debugEn) {
+    when((srv.service.isHitA || srv.service.isHitB) && debugEn) {
       report(L"WS_CACHE addrA=$WS_CACHE_ADDR_A addrB=$WS_CACHE_ADDR_B hitA=$isHitA hitB=$isHitB")
     }
   }

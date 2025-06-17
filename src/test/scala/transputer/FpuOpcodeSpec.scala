@@ -1,11 +1,11 @@
-package t800
+package transputer
 
 import spinal.core._
 import spinal.core.sim._
 import org.scalatest.funsuite.AnyFunSuite
 import spinal.lib.misc.plugin.PluginHost
 import spinal.lib.misc.database.Database
-import t800.plugins.fpu._
+import transputer.plugins.fpu._
 
 /** Execute FPU opcodes using their raw byte encoding. */
 class FpuOpcodeDut extends Component {
@@ -20,8 +20,8 @@ class FpuOpcodeDut extends Component {
   }
 
   val host = new PluginHost
-  val plugins = T800.unitPlugins() ++ Seq(new DummyTrapPlugin, new FpuPlugin)
-  PluginHost(host).on(Database(T800.defaultDatabase()).on(T800(plugins)))
+  val plugins = Transputer.unitPlugins() ++ Seq(new DummyTrapPlugin, new FpuPlugin)
+  PluginHost(host).on(Database(Transputer.defaultDatabase()).on(Transputer(plugins)))
 
   val fpuSrv = host[FpuSrv]
   val ctrl = host[FpuControlSrv]

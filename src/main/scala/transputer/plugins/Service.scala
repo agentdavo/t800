@@ -1,10 +1,10 @@
-package t800.plugins
+package transputer.plugins
 
 import spinal.core._
 import spinal.lib._
 import spinal.lib.misc.pipeline._
 import spinal.lib.bus.bmb.Bmb
-import t800.Global
+import transputer.Global
 
 trait LinkPins
 trait DebugPins extends Area
@@ -28,22 +28,22 @@ trait SystemBusSrv {
 }
 
 trait DataBusSrv {
-  def rdCmd: Flow[t800.MemReadCmd]
+  def rdCmd: Flow[transputer.MemReadCmd]
   def rdRsp: Flow[Bits]
-  def wrCmd: Flow[t800.MemWriteCmd]
+  def wrCmd: Flow[transputer.MemWriteCmd]
 }
 
 trait LinkBusSrv {
-  def rdCmd: Flow[t800.MemReadCmd]
+  def rdCmd: Flow[transputer.MemReadCmd]
   def rdRsp: Flow[Bits]
-  def wrCmd: Flow[t800.MemWriteCmd]
+  def wrCmd: Flow[transputer.MemWriteCmd]
 }
 
 trait LinkBusArbiterSrv {
-  def exeRd: Flow[t800.MemReadCmd]
-  def exeWr: Flow[t800.MemWriteCmd]
-  def chanRd: Flow[t800.MemReadCmd]
-  def chanWr: Flow[t800.MemWriteCmd]
+  def exeRd: Flow[transputer.MemReadCmd]
+  def exeWr: Flow[transputer.MemWriteCmd]
+  def chanRd: Flow[transputer.MemReadCmd]
+  def chanWr: Flow[transputer.MemWriteCmd]
 }
 
 case class ChannelTxCmd() extends Bundle {

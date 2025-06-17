@@ -1,4 +1,4 @@
-package t800.plugins.decode
+package transputer.plugins.decode
 
 import spinal.core._
 import spinal.lib._
@@ -6,13 +6,13 @@ import spinal.lib.misc.pipeline._
 import spinal.lib.misc.plugin._
 import spinal.core.fiber.Retainer
 import spinal.lib.bus.bmb.{Bmb, BmbParameter, BmbAccessParameter, BmbDownSizerBridge, BmbUnburstify}
-import t800.{Global, Opcode, T800}
-import t800.plugins.registers.RegfileSrv
-import t800.plugins.Fetch
-import t800.plugins.grouper.GroupedInstrSrv
-import t800.plugins.SystemBusSrv
-import t800.plugins.registers.RegName
-import t800.plugins.pipeline.{PipelineSrv, PipelineStageSrv}
+import transputer.{Global, Opcode, Transputer}
+import transputer.plugins.registers.RegfileSrv
+import transputer.plugins.Fetch
+import transputer.plugins.grouper.GroupedInstrSrv
+import transputer.plugins.SystemBusSrv
+import transputer.plugins.registers.RegName
+import transputer.plugins.pipeline.{PipelineSrv, PipelineStageSrv}
 
 /** Implements primary instruction decoding and execution, receiving opcodes from FetchPlugin or
   * GrouperPlugin, and accessing 128-bit system bus via BMB.
@@ -51,7 +51,7 @@ class PrimaryInstrPlugin extends FiberPlugin with PipelineSrv {
     val memBmb = Bmb(memParam)
     val unburstify = BmbUnburstify(memParam)
     val downSizer = BmbDownSizerBridge(
-      inputParameter = T800.systemBusParam,
+      inputParameter = Transputer.systemBusParam,
       outputParameter = memParam
     )
     memBmb >> unburstify.io.input
@@ -90,46 +90,46 @@ class PrimaryInstrPlugin extends FiberPlugin with PipelineSrv {
       }
       is(Opcode.PrimaryOpcode.LDC) {
         val operand = accumulated.asSInt
-        regfile.write(RegName.Creg, regfile.read(RegName.Breg, 0), 0, shadow = false)
-        regfile.write(RegName.Breg, regfile.read(RegName.Areg, 0), 0, shadow = false)
+        regfile.write(RegName.Creg, regfile.read(RegName.Breg, 0, shadow = false), 0, shadow = false)
+        regfile.write(RegName.Breg, regfile.read(RegName.Areg, 0, shadow = false), 0, shadow = false)
         regfile.write(RegName.Areg, operand.asUInt, 0, shadow = false)
         accumulated := 0
       }
       is(Opcode.PrimaryOpcode.LDL) {
         val operand = accumulated.asSInt
-        val addr = regfile.read(RegName.WdescReg, 0).asUInt + operand
+        val addr = regfile.read(RegName.WdescReg, 0, shadow = false).asUInt + operand
         memBmb.cmd.valid := True
         memBmb.cmd.opcode := 0 // Read
         memBmb.cmd.address := addr.resized
         pipe.execute.haltWhen(!memBmb.rsp.valid)
         when(pipe.execute.down.isFiring) {
-          regfile.write(RegName.Creg, regfile.read(RegName.Breg, 0), 0, shadow = false)
-          regfile.write(RegName.Breg, regfile.read(RegName.Areg, 0), 0, shadow = false)
+          regfile.write(RegName.Creg, regfile.read(RegName.Breg, 0, shadow = false), 0, shadow = false)
+          regfile.write(RegName.Breg, regfile.read(RegName.Areg, 0, shadow = false), 0, shadow = false)
           regfile.write(RegName.Areg, memBmb.rsp.data.asUInt, 0, shadow = false)
           accumulated := 0
         }
       }
       is(Opcode.PrimaryOpcode.STL) {
         val operand = accumulated.asSInt
-        val addr = regfile.read(RegName.WdescReg, 0).asUInt + operand
+        val addr = regfile.read(RegName.WdescReg, 0, shadow = false).asUInt + operand
         memBmb.cmd.valid := True
         memBmb.cmd.opcode := 1 // Write
         memBmb.cmd.address := addr.resized
-        memBmb.cmd.data := regfile.read(RegName.Areg, 0).asBits
+        memBmb.cmd.data := regfile.read(RegName.Areg, 0, shadow = false).asBits
         pipe.execute.haltWhen(!memBmb.rsp.valid)
         when(pipe.execute.down.isFiring) {
-          regfile.write(RegName.Areg, regfile.read(RegName.Breg, 0), 0, shadow = false)
-          regfile.write(RegName.Breg, regfile.read(RegName.Creg, 0), 0, shadow = false)
+          regfile.write(RegName.Areg, regfile.read(RegName.Breg, 0, shadow = false), 0, shadow = false)
+          regfile.write(RegName.Breg, regfile.read(RegName.Creg, 0, shadow = false), 0, shadow = false)
           accumulated := 0
         }
       }
       is(Opcode.PrimaryOpcode.LDLP) {
         val operand = accumulated
-        regfile.write(RegName.Creg, regfile.read(RegName.Breg, 0), 0, shadow = false)
-        regfile.write(RegName.Breg, regfile.read(RegName.Areg, 0), 0, shadow = false)
+        regfile.write(RegName.Creg, regfile.read(RegName.Breg, 0, shadow = false), 0, shadow = false)
+        regfile.write(RegName.Breg, regfile.read(RegName.Areg, 0, shadow = false), 0, shadow = false)
         regfile.write(
           RegName.Areg,
-          regfile.read(RegName.WdescReg, 0).asUInt + operand,
+          regfile.read(RegName.WdescReg, 0, shadow = false).asUInt + operand,
           0,
           shadow = false
         )
@@ -138,7 +138,7 @@ class PrimaryInstrPlugin extends FiberPlugin with PipelineSrv {
       is(Opcode.PrimaryOpcode.LDNLP) {
         regfile.write(
           RegName.Areg,
-          regfile.read(RegName.Areg, 0).asUInt + (accumulated |<< 2),
+          regfile.read(RegName.Areg, 0, shadow = false).asUInt + (accumulated |<< 2),
           0,
           shadow = false
         )
@@ -148,7 +148,7 @@ class PrimaryInstrPlugin extends FiberPlugin with PipelineSrv {
         val operand = accumulated
         regfile.write(
           RegName.Areg,
-          regfile.read(RegName.Areg, 0).asUInt + operand,
+          regfile.read(RegName.Areg, 0, shadow = false).asUInt + operand,
           0,
           shadow = false
         )
@@ -158,7 +158,7 @@ class PrimaryInstrPlugin extends FiberPlugin with PipelineSrv {
         val operand = accumulated
         regfile.write(
           RegName.Areg,
-          (regfile.read(RegName.Areg, 0) === operand).asUInt.resized,
+          (regfile.read(RegName.Areg, 0, shadow = false) === operand).asUInt.resized,
           0,
           shadow = false
         )
@@ -168,7 +168,7 @@ class PrimaryInstrPlugin extends FiberPlugin with PipelineSrv {
         val operand = accumulated.asSInt
         regfile.write(
           RegName.IptrReg,
-          (regfile.read(RegName.IptrReg, 0).asSInt + operand).asUInt,
+          (regfile.read(RegName.IptrReg, 0, shadow = false).asSInt + operand).asUInt,
           0,
           shadow = false
         )
@@ -176,21 +176,21 @@ class PrimaryInstrPlugin extends FiberPlugin with PipelineSrv {
       }
       is(Opcode.PrimaryOpcode.CJ) {
         val operand = accumulated.asSInt
-        when(regfile.read(RegName.Areg, 0) === 0) {
+        when(regfile.read(RegName.Areg, 0, shadow = false) === 0) {
           regfile.write(
             RegName.IptrReg,
-            (regfile.read(RegName.IptrReg, 0).asSInt + operand).asUInt,
+            (regfile.read(RegName.IptrReg, 0, shadow = false).asSInt + operand).asUInt,
             0,
             shadow = false
           )
         } otherwise {
-          regfile.write(RegName.Areg, regfile.read(RegName.Breg, 0), 0, shadow = false)
-          regfile.write(RegName.Breg, regfile.read(RegName.Creg, 0), 0, shadow = false)
+          regfile.write(RegName.Areg, regfile.read(RegName.Breg, 0, shadow = false), 0, shadow = false)
+          regfile.write(RegName.Breg, regfile.read(RegName.Creg, 0, shadow = false), 0, shadow = false)
         }
         accumulated := 0
       }
       is(Opcode.PrimaryOpcode.LDNL) {
-        val addr = regfile.read(RegName.Areg, 0).asUInt + accumulated
+        val addr = regfile.read(RegName.Areg, 0, shadow = false).asUInt + accumulated
         memBmb.cmd.valid := True
         memBmb.cmd.opcode := 0 // Read
         memBmb.cmd.address := addr.resized
@@ -201,36 +201,36 @@ class PrimaryInstrPlugin extends FiberPlugin with PipelineSrv {
         }
       }
       is(Opcode.PrimaryOpcode.STNL) {
-        val addr = regfile.read(RegName.Areg, 0).asUInt + accumulated
+        val addr = regfile.read(RegName.Areg, 0, shadow = false).asUInt + accumulated
         memBmb.cmd.valid := True
         memBmb.cmd.opcode := 1 // Write
         memBmb.cmd.address := addr.resized
-        memBmb.cmd.data := regfile.read(RegName.Breg, 0).asBits
+        memBmb.cmd.data := regfile.read(RegName.Breg, 0, shadow = false).asBits
         pipe.execute.haltWhen(!memBmb.rsp.valid)
         when(pipe.execute.down.isFiring) {
-          regfile.write(RegName.Areg, regfile.read(RegName.Creg, 0), 0, shadow = false)
+          regfile.write(RegName.Areg, regfile.read(RegName.Creg, 0, shadow = false), 0, shadow = false)
           accumulated := 0
         }
       }
       is(Opcode.PrimaryOpcode.CALL) {
         val operand = accumulated.asSInt
-        val addr = regfile.read(RegName.WdescReg, 0).asUInt + S(-4)
+        val addr = regfile.read(RegName.WdescReg, 0, shadow = false).asUInt + S(-4)
         memBmb.cmd.valid := True
         memBmb.cmd.opcode := 1 // Write
         memBmb.cmd.address := addr.resized
-        memBmb.cmd.data := (regfile.read(RegName.IptrReg, 0) + 1).asBits
+        memBmb.cmd.data := (regfile.read(RegName.IptrReg, 0, shadow = false) + 1).asBits
         pipe.execute.haltWhen(!memBmb.rsp.valid)
         when(pipe.execute.down.isFiring) {
           regfile.write(
             RegName.WdescReg,
-            (regfile.read(RegName.WdescReg, 0).asSInt - 4).asUInt,
+            (regfile.read(RegName.WdescReg, 0, shadow = false).asSInt - 4).asUInt,
             0,
             shadow = false
           )
-          regfile.write(RegName.Areg, regfile.read(RegName.IptrReg, 0) + 1, 0, shadow = false)
+          regfile.write(RegName.Areg, regfile.read(RegName.IptrReg, 0, shadow = false) + 1, 0, shadow = false)
           regfile.write(
             RegName.IptrReg,
-            (regfile.read(RegName.IptrReg, 0).asSInt + operand).asUInt,
+            (regfile.read(RegName.IptrReg, 0, shadow = false).asSInt + operand).asUInt,
             0,
             shadow = false
           )
@@ -241,7 +241,7 @@ class PrimaryInstrPlugin extends FiberPlugin with PipelineSrv {
         val operand = accumulated.asSInt
         regfile.write(
           RegName.WdescReg,
-          (regfile.read(RegName.WdescReg, 0).asSInt + operand).asUInt,
+          (regfile.read(RegName.WdescReg, 0, shadow = false).asSInt + operand).asUInt,
           0,
           shadow = false
         )

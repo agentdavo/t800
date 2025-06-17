@@ -1,4 +1,4 @@
-package t800.plugins.timers
+package transputer.plugins.timers
 
 import spinal.core._
 

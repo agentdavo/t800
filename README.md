@@ -75,7 +75,7 @@ t800/
 │  │     ├─ transputer/         # TransputerPlugin
 │  │     └─ ...
 │  └─ test/scala/transputer/
-│      ├─ T800CoreSim.scala
+│      ├─ TransputerCoreSim.scala
 │      └─ ...
 ├─ ext/
 │  └─ SpinalHDL/                # git sub-module (optional)
@@ -102,7 +102,7 @@ pipeline consistent:
    (Fetch, Decode, Execute, Memory, Writeback). Prefix with the subsystem name
    if it spans multiple stages.
 4. **Avoid overlap** – reuse existing services and keep names unique.
-5. **SpinalHDL conventions** – define services in `t800.plugins.<subsystem>`
+5. **SpinalHDL conventions** – define services in `transputer.plugins.<subsystem>`
    packages and use camelCase for methods.
 
 ---

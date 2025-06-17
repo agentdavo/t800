@@ -1,3 +1,3 @@
-package t800.plugins.decode
+package transputer.plugins.decode
 
 trait DecodeSrv

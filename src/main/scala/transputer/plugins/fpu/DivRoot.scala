@@ -1,8 +1,8 @@
-package t800.plugins.fpu
+package transputer.plugins.fpu
 
 import spinal.core._
 import spinal.lib._
-import t800.plugins.fpu.Utils._
+import transputer.plugins.fpu.Utils._
 
 /** Minimal IEEE‑754 divider/square‑root unit used by the unit tests. The design performs the
   * operations in a single cycle using integer math which is sufficient for the small set of

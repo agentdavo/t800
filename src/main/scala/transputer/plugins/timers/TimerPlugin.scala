@@ -1,12 +1,12 @@
-package t800.plugins.timers
+package transputer.plugins.timers
 
 import spinal.core._
 import spinal.lib._
 import spinal.core.sim._
 import spinal.core.fiber.Retainer
 import spinal.lib.misc.plugin._
-import t800.Global
-import t800.plugins.timers._
+import transputer.Global
+import transputer.plugins.timers._
 
 /** Simple high/low priority timers. High increments every cycle; low every 64 cycles. */
 class TimerPlugin extends FiberPlugin {

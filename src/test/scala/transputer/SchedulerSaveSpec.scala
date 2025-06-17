@@ -1,13 +1,13 @@
-package t800
+package transputer
 
 import spinal.core._
 import spinal.core.sim._
 import org.scalatest.funsuite.AnyFunSuite
 import spinal.lib.misc.plugin.PluginHost
-import t800.plugins._
-import t800.{DummyTimerPlugin, DummyFpuPlugin}
-import t800.plugins.schedule.{SchedulerPlugin, SchedSrv}
-import t800.plugins.grouper.GrouperPlugin
+import transputer.plugins._
+import transputer.{DummyTimerPlugin, DummyFpuPlugin}
+import transputer.plugins.schedule.{SchedulerPlugin, SchedSrv}
+import transputer.plugins.grouper.GrouperPlugin
 
 class SchedulerSaveSpec extends AnyFunSuite {
   test("LEND re-enqueues current workspace") {
@@ -31,7 +31,7 @@ class SchedulerSaveSpec extends AnyFunSuite {
           new SchedulerPlugin,
           new PipelineBuilderPlugin
         )
-        PluginHost(host).on(T800(plugins))
+        PluginHost(host).on(Transputer(plugins))
       }
       .doSim { dut =>
         dut.clockDomain.forkStimulus(10)

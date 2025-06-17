@@ -1,9 +1,9 @@
-package t800
+package transputer
 
 import spinal.core._
 
-/** Primary and secondary opcode definitions for the T800 ISA, aligned with IMS T9000 Instruction
-  * Set Manual (Appendix B).
+/** Primary and secondary opcode definitions for the Transputer ISA, aligned with IMS T9000
+  * Instruction Set Manual (Appendix B).
   */
 
 object Opcode {

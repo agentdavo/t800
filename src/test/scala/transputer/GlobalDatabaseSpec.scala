@@ -1,11 +1,11 @@
-package t800
+package transputer
 
 import spinal.core._
 import spinal.core.sim._
 import spinal.lib.misc.database.Database
 import org.scalatest.funsuite.AnyFunSuite
-import t800.plugins._
-import t800.plugins.timers.TimerPlugin
+import transputer.plugins._
+import transputer.plugins.timers.TimerPlugin
 import spinal.lib.misc.plugin.PluginHost
 
 class GlobalDatabaseSpec extends AnyFunSuite {
@@ -29,7 +29,7 @@ class GlobalDatabaseSpec extends AnyFunSuite {
         val host = new PluginHost
         val plugins = Seq(new TimerPlugin, new TimerProbePlugin)
         PluginHost(host).on {
-          Database(db).on(T800(plugins))
+          Database(db).on(Transputer(plugins))
         }
       }
       .doSim { dut =>

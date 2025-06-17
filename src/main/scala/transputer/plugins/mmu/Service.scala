@@ -1,8 +1,8 @@
-package t800.plugins.mmu
+package transputer.plugins.mmu
 
 import spinal.core._
 import spinal.lib._
-import t800.Global
+import transputer.Global
 
 case class TrapHandlerSrv() extends Bundle {
   val trapAddr = Bits(Global.ADDR_BITS bits)

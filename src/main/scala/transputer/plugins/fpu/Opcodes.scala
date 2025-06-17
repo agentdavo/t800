@@ -1,8 +1,8 @@
-package t800.plugins.fpu
+package transputer.plugins.fpu
 
 import spinal.core._
 import spinal.lib._
-import t800.Opcode
+import transputer.Opcode
 
 case class FpCmd() extends Bundle {
   val op = FpOp()
@@ -61,7 +61,7 @@ object FpOp extends SpinalEnum(binarySequential) {
 
   val NONE = newElement()
 
-  // Mapping from raw opcodes to FpOp value. The full T800 implementation uses
+  // Mapping from raw opcodes to FpOp value. The full Transputer implementation uses
   // a large MuxCase statement which pulls in additional dependencies. For the
   // minimal build we only require the enumeration definitions, so this helper is
   // implemented here using a simple decoder. Unknown opcodes map to [[FpOp.NONE]].

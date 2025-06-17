@@ -1,7 +1,7 @@
-package t800.plugins.pmi
+package transputer.plugins.pmi
 
-import t800.plugins._
-import t800.plugins.cache.{MainCachePlugin, WorkspaceCachePlugin}
+import transputer.plugins._
+import transputer.plugins.cache.{MainCachePlugin, WorkspaceCachePlugin}
 
 import spinal.core._
 import spinal.core.fiber._

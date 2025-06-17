@@ -1,4 +1,4 @@
-package t800
+package transputer
 
 import spinal.core._
 import spinal.core.sim._
