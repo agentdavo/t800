@@ -2,6 +2,7 @@ package transputer.plugins.cache
 
 import spinal.core._
 import spinal.lib._
+import spinal.lib.bus.bmb.Bmb
 import transputer.Global
 
 case class CacheReq() extends Bundle {
