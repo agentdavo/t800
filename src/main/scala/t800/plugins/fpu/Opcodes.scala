@@ -2,6 +2,7 @@ package t800.plugins.fpu
 
 import spinal.core._
 import spinal.lib._
+import t800.Opcode
 
 case class FpCmd() extends Bundle {
   val op = FpOp()
@@ -63,10 +64,70 @@ object FpOp extends SpinalEnum(binarySequential) {
   // Mapping from raw opcodes to FpOp value. The full T800 implementation uses
   // a large MuxCase statement which pulls in additional dependencies. For the
   // minimal build we only require the enumeration definitions, so this helper is
-  // left unimplemented.
+  // implemented here using a simple decoder. Unknown opcodes map to [[FpOp.NONE]].
   def fromOpcode(opcode: Bits): FpOp.C = {
     val op = FpOp()
     op := FpOp.NONE
+    switch(opcode) {
+      // Load / store
+      is(Opcode.SecondaryOpcode.FPLDNLSN) { op := FpOp.LoadStore.FPLDNLSN }
+      is(Opcode.SecondaryOpcode.FPLDNLDB) { op := FpOp.LoadStore.FPLDNLDB }
+      is(Opcode.SecondaryOpcode.FPLDNLSNI) { op := FpOp.LoadStore.FPLDNLSNI }
+      is(Opcode.SecondaryOpcode.FPLDNLDBI) { op := FpOp.LoadStore.FPLDNLDBI }
+      is(Opcode.SecondaryOpcode.FPLDZEROSN) { op := FpOp.LoadStore.FPLDZEROSN }
+      is(Opcode.SecondaryOpcode.FPLDZERODB) { op := FpOp.LoadStore.FPLDZERODB }
+      is(Opcode.SecondaryOpcode.FPLDNLADDSN) { op := FpOp.LoadStore.FPLDNLADDSN }
+      is(Opcode.SecondaryOpcode.FPLDNLADDDB) { op := FpOp.LoadStore.FPLDNLADDDB }
+      is(Opcode.SecondaryOpcode.FPLDNLMULSN) { op := FpOp.LoadStore.FPLDNLMULSN }
+      is(Opcode.SecondaryOpcode.FPLDNLMULDB) { op := FpOp.LoadStore.FPLDNLMULDB }
+      is(Opcode.SecondaryOpcode.FPSTNLSN) { op := FpOp.LoadStore.FPSTNLSN }
+      is(Opcode.SecondaryOpcode.FPSTNLDB) { op := FpOp.LoadStore.FPSTNLDB }
+      is(Opcode.SecondaryOpcode.FPSTNLI32) { op := FpOp.LoadStore.FPSTNLI32 }
+
+      // General
+      is(Opcode.SecondaryOpcode.FPREV) { op := FpOp.General.FPREV }
+      is(Opcode.SecondaryOpcode.FPDUP) { op := FpOp.General.FPDUP }
+
+      // Rounding
+      is(Opcode.SecondaryOpcode.FPRN) { op := FpOp.Rounding.FPRN }
+      is(Opcode.SecondaryOpcode.FPRZ) { op := FpOp.Rounding.FPRZ }
+      is(Opcode.SecondaryOpcode.FPRP) { op := FpOp.Rounding.FPRP }
+      is(Opcode.SecondaryOpcode.FPRM) { op := FpOp.Rounding.FPRM }
+
+      // Comparison
+      is(Opcode.SecondaryOpcode.FPGT) { op := FpOp.Comparison.FPGT }
+      is(Opcode.SecondaryOpcode.FPEQ) { op := FpOp.Comparison.FPEQ }
+      is(Opcode.SecondaryOpcode.FPORDERED) { op := FpOp.Comparison.FPORDERED }
+      is(Opcode.SecondaryOpcode.FPNAN) { op := FpOp.Comparison.FPNAN }
+      is(Opcode.SecondaryOpcode.FPNOTFINITE) { op := FpOp.Comparison.FPNOTFINITE }
+
+      // Conversion
+      is(Opcode.SecondaryOpcode.FPR32TOR64) { op := FpOp.Conversion.FPR32TOR64 }
+      is(Opcode.SecondaryOpcode.FPR64TOR32) { op := FpOp.Conversion.FPR64TOR32 }
+      is(Opcode.SecondaryOpcode.FPRTOI32) { op := FpOp.Conversion.FPRTOI32 }
+      is(Opcode.SecondaryOpcode.FPI32TOR32) { op := FpOp.Conversion.FPI32TOR32 }
+      is(Opcode.SecondaryOpcode.FPI32TOR64) { op := FpOp.Conversion.FPI32TOR64 }
+      is(Opcode.SecondaryOpcode.FPB32TOR64) { op := FpOp.Conversion.FPB32TOR64 }
+      is(Opcode.SecondaryOpcode.FPINT) { op := FpOp.Conversion.FPINT }
+
+      // Arithmetic
+      is(Opcode.SecondaryOpcode.FPADD) { op := FpOp.Arithmetic.FPADD }
+      is(Opcode.SecondaryOpcode.FPSUB) { op := FpOp.Arithmetic.FPSUB }
+      is(Opcode.SecondaryOpcode.FPMUL) { op := FpOp.Arithmetic.FPMUL }
+      is(Opcode.SecondaryOpcode.FPDIV) { op := FpOp.Arithmetic.FPDIV }
+      is(Opcode.SecondaryOpcode.FPABS) { op := FpOp.Arithmetic.FPABS }
+      is(Opcode.SecondaryOpcode.FPEXPINC32) { op := FpOp.Arithmetic.FPEXPINC32 }
+      is(Opcode.SecondaryOpcode.FPEXPDEC32) { op := FpOp.Arithmetic.FPEXPDEC32 }
+      is(Opcode.SecondaryOpcode.FPMULBY2) { op := FpOp.Arithmetic.FPMULBY2 }
+      is(Opcode.SecondaryOpcode.FPDIVBY2) { op := FpOp.Arithmetic.FPDIVBY2 }
+
+      // Additional
+      is(Opcode.SecondaryOpcode.FPREM) { op := FpOp.Additional.FPREM }
+      is(Opcode.SecondaryOpcode.FPSQRT) { op := FpOp.Additional.FPSQRT }
+      is(Opcode.SecondaryOpcode.FPRANGE) { op := FpOp.Additional.FPRANGE }
+      is(Opcode.SecondaryOpcode.FPGE) { op := FpOp.Additional.FPGE }
+      is(Opcode.SecondaryOpcode.FPLG) { op := FpOp.Additional.FPLG }
+    }
     op
   }
 
