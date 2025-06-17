@@ -38,11 +38,29 @@ class FpuDivRoot extends Component {
   val opa = parseIeee754(io.op1)
   val opb = parseIeee754(io.op2)
 
+  // Pre-compute exponent difference for later adjustment
+  val expDiff = (opa.exponent.asSInt - opb.exponent.asSInt).resize(11)
+
   // Build mantissas with the implicit leading 1
   val mantA = ((opa.exponent === 0) ? U(0, 1 bits) | U(1, 1 bits)) @@ opa.mantissa.asUInt
   val mantB = ((opb.exponent === 0) ? U(0, 1 bits) | U(1, 1 bits)) @@ opb.mantissa.asUInt
 
   val resSign = opa.sign ^ opb.sign
+
+  // Registers used by the iterative algorithm (simplified placeholder)
+  val P = Reg(UInt(106 bits)) init (0)
+  val Q = Reg(UInt(53 bits)) init (0)
+  val busyCnt = Reg(UInt(10 bits)) init (0)
+  val maxCycles = UInt(10 bits)
+  maxCycles := Mux(io.isRem, U(5), U(15))
+
+  when(busyCnt === 0) {
+    busyCnt := maxCycles
+    P := 0
+    Q := 0
+  } otherwise {
+    busyCnt := busyCnt - 1
+  }
 
   // --------------------------------------------------------------------------
   // Divide path
@@ -51,8 +69,7 @@ class FpuDivRoot extends Component {
   val divQuot = divDividend / mantB
   val divOv = divQuot(52)
   val divMant = Mux(divOv, divQuot(51 downto 0), divQuot(50 downto 0))
-  val divExp =
-    (opa.exponent.asSInt - opb.exponent.asSInt + 1023).asUInt
+  val divExp = ((expDiff + S(1023, 11 bits)).asUInt + divOv.asUInt).resize(11)
 
   // --------------------------------------------------------------------------
   // Square root path
@@ -88,6 +105,6 @@ class FpuDivRoot extends Component {
 
   io.result := resSign ## resultExp.asBits ## resultMant(51 downto 0)
   io.resultAfix := AFix(resultMant, 0 exp)
-  io.cycles := U(1, 10 bits)
+  io.cycles := maxCycles
   io.t805State := B(0, 64 bits)
 }

@@ -37,6 +37,7 @@ class DivRootSpec extends AnyFunSuite {
   private val huge = BigInt("4630000000000000", 16) // 2^100
   private val halfHuge = BigInt("4620000000000000", 16)
   private val sqrtHuge = BigInt("431000002aa7ffff", 16)
+  private val one = BigInt("3ff0000000000000", 16)
 
   private def sign(v: BigInt) = (v >> 63) & 1
   private def exp(v: BigInt) = (v >> 52) & 0x7ff
@@ -156,6 +157,20 @@ class DivRootSpec extends AnyFunSuite {
       dut.clockDomain.waitSampling(16)
       assert(dut.io.result.toBigInt == sqrtHuge)
       assert(exp(dut.io.result.toBigInt) == 0x431)
+    }
+  }
+
+  test("large exponent remainder") {
+    SimConfig.compile(new DivRootDut).doSim { dut =>
+      dut.clockDomain.forkStimulus(10)
+      dut.io.op1 #= huge
+      dut.io.op2 #= three
+      dut.io.isSqrt #= false
+      dut.io.isRem #= true
+      dut.io.roundingMode #= 0
+      dut.clockDomain.waitSampling(16)
+      assert(dut.io.result.toBigInt == one)
+      assert(exp(dut.io.result.toBigInt) == 0x3ff)
     }
   }
 }

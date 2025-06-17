@@ -116,9 +116,9 @@ class FpuPlugin extends FiberPlugin with PipelineSrv {
       is(Opcode.SecondaryOpcode.FPADD) { opCycles := 2 }
       is(Opcode.SecondaryOpcode.FPSUB) { opCycles := 2 }
       is(Opcode.SecondaryOpcode.FPMUL) { opCycles := 3 }
-      is(Opcode.SecondaryOpcode.FPDIV) { opCycles := 15 }
-      is(Opcode.SecondaryOpcode.FPSQRT) { opCycles := 15 }
-      is(Opcode.SecondaryOpcode.FPREM) { opCycles := 529 }
+      is(Opcode.SecondaryOpcode.FPDIV) { opCycles := divRoot.io.cycles }
+      is(Opcode.SecondaryOpcode.FPSQRT) { opCycles := divRoot.io.cycles }
+      is(Opcode.SecondaryOpcode.FPREM) { opCycles := divRoot.io.cycles }
       is(Opcode.SecondaryOpcode.FPRANGE) { opCycles := 17 }
       is(B"01000001", B"01000010", B"01000011", B"5F", B"90") { opCycles := divRoot.io.cycles }
     }
