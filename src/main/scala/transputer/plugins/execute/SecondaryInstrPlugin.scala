@@ -5,7 +5,8 @@ import spinal.lib._
 import spinal.lib.misc.pipeline._
 import spinal.lib.misc.plugin.{Plugin, PluginHost}
 import spinal.core.fiber.Retainer
-import transputer.{Opcode, Global}
+import transputer.Opcode
+import transputer.Global
 import transputer.plugins.{ChannelSrv, ChannelTxCmd, LinkBusSrv, LinkBusArbiterSrv}
 import transputer.plugins.schedule.SchedSrv
 import transputer.plugins.fpu.{FpuSrv, FpOp}

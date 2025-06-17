@@ -18,7 +18,8 @@ import spinal.lib.bus.bmb.{
 import transputer.plugins.pmi.PmiPlugin
 import transputer.plugins.{AddressTranslationSrv, WorkspaceCacheSrv, SystemBusSrv, Fetch}
 import transputer.plugins.pipeline.PipelineStageSrv
-import transputer.{Global, Transputer}
+import transputer.Global
+import transputer.Transputer
 
 class MainCachePlugin extends FiberPlugin {
   val version = "MainCachePlugin v1.7"

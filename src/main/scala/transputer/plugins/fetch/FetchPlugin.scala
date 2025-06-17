@@ -6,7 +6,8 @@ import spinal.lib.misc.plugin.{PluginHost, FiberPlugin, Plugin}
 import spinal.lib.misc.pipeline._
 import spinal.lib.bus.bmb.{Bmb, BmbParameter, BmbAccessParameter, BmbQueue, BmbDownSizerBridge}
 import spinal.core.fiber.Retainer
-import transputer.{Global, Transputer}
+import transputer.Global
+import transputer.Transputer
 import transputer.plugins.SystemBusSrv
 import transputer.plugins.registers.RegfileSrv
 import transputer.plugins.registers.RegName

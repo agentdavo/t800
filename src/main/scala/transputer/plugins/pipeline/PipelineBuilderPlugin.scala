@@ -4,7 +4,8 @@ import spinal.core._
 import spinal.lib.misc.plugin.{PluginHost, FiberPlugin}
 import spinal.lib.misc.pipeline._
 import spinal.core.fiber.Retainer
-import transputer.{Global, Transputer}
+import transputer.Global
+import transputer.Transputer
 import transputer.plugins.pipeline.PipelineStageSrv
 
 class PipelineBuilderPlugin extends FiberPlugin {

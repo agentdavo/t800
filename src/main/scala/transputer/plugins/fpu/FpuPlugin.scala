@@ -13,7 +13,8 @@ import spinal.lib.bus.bmb.{
   BmbUnburstify,
   BmbDownSizerBridge
 }
-import transputer.{Global, Transputer, Opcode}
+import transputer.Global
+import transputer.{Transputer, Opcode}
 import transputer.plugins.SystemBusSrv
 import transputer.plugins.registers.RegfileSrv
 import transputer.plugins.registers.RegName
