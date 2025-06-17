@@ -1,14 +1,14 @@
-package t800
+package transputer
 
 import spinal.core._
 import spinal.core.sim._
 import org.scalatest.funsuite.AnyFunSuite
 import spinal.lib.misc.plugin.PluginHost
-import t800.plugins._
-import t800.plugins.timers.TimerPlugin
-import t800.plugins.grouper.GrouperPlugin
+import transputer.plugins._
+import transputer.plugins.timers.TimerPlugin
+import transputer.plugins.grouper.GrouperPlugin
 
-import t800.plugins.schedule.SchedulerPlugin
+import transputer.plugins.schedule.SchedulerPlugin
 class TinAltwtSpec extends AnyFunSuite {
   def buildRom(opcodes: Seq[Int]): Seq[BigInt] = {
     val bytes = opcodes.map(_.toByte)

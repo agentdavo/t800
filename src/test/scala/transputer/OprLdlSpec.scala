@@ -1,15 +1,15 @@
-package t800
+package transputer
 
 import spinal.core._
 import spinal.core.sim._
 import org.scalatest.funsuite.AnyFunSuite
-import t800.plugins._
+import transputer.plugins._
 import spinal.lib._
-import t800.plugins.schedule.SchedulerPlugin
+import transputer.plugins.schedule.SchedulerPlugin
 import spinal.lib.misc.plugin.PluginHost
 
-import t800.{DummyTimerPlugin, DummyFpuPlugin}
-import t800.plugins.grouper.GrouperPlugin
+import transputer.{DummyTimerPlugin, DummyFpuPlugin}
+import transputer.plugins.grouper.GrouperPlugin
 
 class OprLdlSpec extends AnyFunSuite {
   test("LDL loads from workspace") {

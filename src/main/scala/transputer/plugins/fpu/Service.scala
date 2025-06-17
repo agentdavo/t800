@@ -1,13 +1,13 @@
-package t800.plugins.fpu
+package transputer.plugins.fpu
 
 import spinal.core._
 import spinal.lib._
 import spinal.lib.misc.pipeline._
-import t800.Global
+import transputer.Global
 
 // Forward simple command and operation definitions from `Opcodes.scala`.
 // This avoids duplicate type names when both files are included in the build.
-import t800.plugins.fpu.{FpCmd, FpOp}
+import transputer.plugins.fpu.{FpCmd, FpOp}
 
 trait FpuSrv {
   def pipe: Flow[FpCmd]

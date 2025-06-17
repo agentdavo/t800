@@ -1,8 +1,8 @@
-package t800.plugins.cache
+package transputer.plugins.cache
 
 import spinal.core._
 import spinal.lib._
-import t800.Global
+import transputer.Global
 
 case class CacheReq() extends Bundle {
   val address = UInt(Global.ADDR_BITS bits)

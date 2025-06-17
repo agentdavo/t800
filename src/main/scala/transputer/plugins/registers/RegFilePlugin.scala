@@ -1,9 +1,9 @@
-package t800.plugins.registers
+package transputer.plugins.registers
 
 import spinal.core._
 import spinal.lib._
 import spinal.lib.misc.plugin.FiberPlugin
-import t800.Global
+import transputer.Global
 
 /** Minimal stub register file for unit tests. */
 class RegFilePlugin extends FiberPlugin with RegfileSrv {

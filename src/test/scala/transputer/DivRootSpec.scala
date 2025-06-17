@@ -1,9 +1,9 @@
-package t800
+package transputer
 
 import spinal.core._
 import spinal.core.sim._
 import org.scalatest.funsuite.AnyFunSuite
-import t800.plugins.fpu.FpuDivRoot
+import transputer.plugins.fpu.FpuDivRoot
 
 class DivRootDut extends Component {
   val io = new Bundle {

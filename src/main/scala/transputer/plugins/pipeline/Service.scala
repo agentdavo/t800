@@ -1,4 +1,4 @@
-package t800.plugins.pipeline
+package transputer.plugins.pipeline
 
 import spinal.core._
 import spinal.lib._

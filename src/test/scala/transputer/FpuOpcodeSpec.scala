@@ -1,11 +1,11 @@
-package t800
+package transputer
 
 import spinal.core._
 import spinal.core.sim._
 import org.scalatest.funsuite.AnyFunSuite
 import spinal.lib.misc.plugin.PluginHost
 import spinal.lib.misc.database.Database
-import t800.plugins.fpu._
+import transputer.plugins.fpu._
 
 /** Execute FPU opcodes using their raw byte encoding. */
 class FpuOpcodeDut extends Component {

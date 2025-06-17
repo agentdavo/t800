@@ -1,12 +1,12 @@
-package t800
+package transputer
 
 import spinal.core._
 import spinal.core.sim._
 import spinal.lib._
 import scala.math
 import org.scalatest.funsuite.AnyFunSuite
-import t800.plugins.pipeline.PipelineSrv
-import t800.plugins.fpu.{FpuAdder, Adder}
+import transputer.plugins.pipeline.PipelineSrv
+import transputer.plugins.fpu.{FpuAdder, Adder}
 
 class AdderDutTiny extends Component {
   val io = new Bundle {

@@ -1,11 +1,11 @@
-package t800
+package transputer
 
 import spinal.core._
 import spinal.core.sim._
 import org.scalatest.funsuite.AnyFunSuite
-import t800.plugins._
-import t800.plugins.timers.TimerSrv
-import t800.Global
+import transputer.plugins._
+import transputer.plugins.timers.TimerSrv
+import transputer.Global
 import spinal.lib.misc.plugin.{PluginHost, FiberPlugin, Plugin}
 
 trait TimerProbeSrv { def hi: UInt; def lo: UInt }

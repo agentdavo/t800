@@ -1,8 +1,8 @@
-package t800.plugins.fetch
+package transputer.plugins.fetch
 
 import spinal.core._
 import spinal.lib._
-import t800.Global
+import transputer.Global
 
 /** Service interface for instruction fetch, integrated with MainCachePlugin. */
 trait InstrFetchSrv {

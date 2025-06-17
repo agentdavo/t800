@@ -1,14 +1,14 @@
-package t800
+package transputer
 
 import spinal.core._
 import spinal.core.sim._
 import spinal.lib._
 import org.scalatest.funsuite.AnyFunSuite
-import t800.plugins._
+import transputer.plugins._
 import spinal.lib.misc.plugin.PluginHost
-import t800.plugins.schedule.SchedulerPlugin
-import t800.{DummyTimerPlugin, DummyFpuPlugin}
-import t800.plugins.grouper.GrouperPlugin
+import transputer.plugins.schedule.SchedulerPlugin
+import transputer.{DummyTimerPlugin, DummyFpuPlugin}
+import transputer.plugins.grouper.GrouperPlugin
 
 class ChannelDmaSpec extends AnyFunSuite {
   test("DMA opcode transfers bytes") {

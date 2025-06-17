@@ -1,8 +1,8 @@
-package t800
+package transputer
 
 import spinal.core._
 import spinal.lib._
-import t800.plugins.transputer.TransputerPlugin
+import transputer.plugins.transputer.TransputerPlugin
 
 /** Configuration for the Transputer board core. */
 case class CoreConfig(coreFrequency: IClockDomainFrequency)
@@ -49,7 +49,7 @@ class TransputerBoard(boardCfg: CoreConfig) extends Component {
   // Application-specific clocking area
   val coreArea = new ClockingArea(clkCtrl.coreClockDomain) {
     // Instantiate T9000 core with default plugins
-    val t9000Core = new T800(T800.defaultPlugins())
+    val t9000Core = new Transputer(Transputer.defaultPlugins())
     t9000Core.io.reset := clkCtrl.coreClockDomain.reset
     t9000Core.io.clock := clkCtrl.coreClockDomain.clock
 
@@ -61,7 +61,7 @@ class TransputerBoard(boardCfg: CoreConfig) extends Component {
 object TransputerBoardVerilog {
   
   def main(args: Array[String]): Unit = {
-    val db = T800.defaultDatabase()
+    val db = Transputer.defaultDatabase()
     println("[Transputer] Create the Transputer for a Generic Board")
 
     // Generate Verilog with export to two folders

@@ -1,15 +1,15 @@
-package t800.plugins.grouper
+package transputer.plugins.grouper
 
 import spinal.core._
 import spinal.lib._
 import spinal.lib.misc.plugin.{PluginHost, FiberPlugin, Plugin}
 import spinal.lib.misc.pipeline._
 import spinal.core.fiber.Retainer
-import t800.{Global, Opcode}
-import t800.plugins.registers.RegfileSrv
-import t800.plugins.Fetch
-import t800.plugins.registers.RegName
-import t800.plugins.pipeline.{PipelineSrv, PipelineStageSrv}
+import transputer.{Global, Opcode}
+import transputer.plugins.registers.RegfileSrv
+import transputer.plugins.Fetch
+import transputer.plugins.registers.RegName
+import transputer.plugins.pipeline.{PipelineSrv, PipelineStageSrv}
 
 /** Assembles groups of up to eight instructions from the fetch stage, respecting pipeline stage
   * constraints and dependencies, for delivery to the PrimaryInstrPlugin (decode) stage.

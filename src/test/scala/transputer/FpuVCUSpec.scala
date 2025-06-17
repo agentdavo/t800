@@ -1,9 +1,9 @@
-package t800
+package transputer
 
 import spinal.core._
 import spinal.core.sim._
 import org.scalatest.funsuite.AnyFunSuite
-import t800.plugins.fpu.FpuVCU
+import transputer.plugins.fpu.FpuVCU
 
 class VcuDut extends Component {
   val io = new Bundle {

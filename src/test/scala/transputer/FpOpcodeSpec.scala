@@ -1,9 +1,9 @@
-package t800
+package transputer
 
 import spinal.core._
 import spinal.core.sim._
 import org.scalatest.funsuite.AnyFunSuite
-import t800.plugins.fpu.FpOp
+import transputer.plugins.fpu.FpOp
 
 class FpDecodeDut extends Component {
   val io = new Bundle {

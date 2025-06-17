@@ -1,13 +1,13 @@
-package t800
+package transputer
 
 import spinal.core._
 import spinal.core.sim._
 import org.scalatest.funsuite.AnyFunSuite
 import spinal.lib.misc.plugin.PluginHost
-import t800.plugins._
-import t800.{DummyTimerPlugin, DummyFpuPlugin}
-import t800.plugins.schedule.{SchedulerPlugin, SchedSrv}
-import t800.plugins.grouper.GrouperPlugin
+import transputer.plugins._
+import transputer.{DummyTimerPlugin, DummyFpuPlugin}
+import transputer.plugins.schedule.{SchedulerPlugin, SchedSrv}
+import transputer.plugins.grouper.GrouperPlugin
 
 class RunpStoppSpec extends AnyFunSuite {
   test("RUNP enqueues A and STOPP enqueues WPtr") {

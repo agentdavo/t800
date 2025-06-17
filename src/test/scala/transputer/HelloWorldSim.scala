@@ -1,12 +1,12 @@
-package t800
+package transputer
 
 import spinal.core._
 import spinal.core.sim._
-import t800.plugins._
+import transputer.plugins._
 import spinal.lib.misc.plugin.PluginHost
-import t800.plugins.schedule.SchedulerPlugin
-import t800.plugins.timers.TimerPlugin
-import t800.plugins.grouper.GrouperPlugin
+import transputer.plugins.schedule.SchedulerPlugin
+import transputer.plugins.timers.TimerPlugin
+import transputer.plugins.grouper.GrouperPlugin
 
 object HelloWorldSim {
 

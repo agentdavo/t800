@@ -1,7 +1,7 @@
-package t800.plugins.vcp
+package transputer.plugins.vcp
 
-import t800.plugins._
-import t800.plugins.schedule.SchedulerPlugin
+import transputer.plugins._
+import transputer.plugins.schedule.SchedulerPlugin
 
 import spinal.core._
 import spinal.core.fiber._
@@ -16,7 +16,7 @@ import spinal.lib.bus.bmb.{
   BmbQueue
 }
 import spinal.lib.com.spi.ddr.{SpiXdrMasterCtrl, SpiXdrParameter}
-import t800.Global
+import transputer.Global
 
 /** Plugin for T9000 Virtual Channel Processor (VCP) with four SpiXdrMasterCtrl links. */
 class VcpPlugin extends FiberPlugin {

@@ -1,11 +1,11 @@
-package t800.plugins.pipeline
+package transputer.plugins.pipeline
 
 import spinal.core._
 import spinal.lib.misc.plugin.{PluginHost, FiberPlugin}
 import spinal.lib.misc.pipeline._
 import spinal.core.fiber.Retainer
-import t800.{Global, T800}
-import t800.plugins.pipeline.PipelineStageSrv
+import transputer.{Global, Transputer}
+import transputer.plugins.pipeline.PipelineStageSrv
 
 class PipelineBuilderPlugin extends FiberPlugin {
   val version = "PipelineBuilderPlugin v0.5"
