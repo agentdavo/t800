@@ -13,12 +13,20 @@ object Generate {
       import builder._
       OParser.sequence(
         programName("transputerGenerate"),
-        opt[Int]("word-width").action((x, c) => c.copy(wordWidth = x)).text("Width of words in bits"),
-        opt[Int]("link-count").action((x, c) => c.copy(linkCount = x)).text("Number of link channels"),
+        opt[Int]("word-width")
+          .action((x, c) => c.copy(wordWidth = x))
+          .text("Width of words in bits"),
+        opt[Int]("link-count")
+          .action((x, c) => c.copy(linkCount = x))
+          .text("Number of link channels"),
         opt[Boolean]("fpu").action((x, c) => c.copy(enableFpu = x)).text("Enable FPU"),
-        opt[Int]("fpu-precision").action((x, c) => c.copy(fpuPrecision = x)).text("FPU precision in bits (32/64)"),
+        opt[Int]("fpu-precision")
+          .action((x, c) => c.copy(fpuPrecision = x))
+          .text("FPU precision in bits (32/64)"),
         opt[Int]("cache-size").action((x, c) => c.copy(cacheSize = x)).text("Cache size in bytes"),
-        opt[Unit]("report-model").action((_, c) => c.copy(reportModel = true)).text("Print pipeline model and instruction details post-generation"),
+        opt[Unit]("report-model")
+          .action((_, c) => c.copy(reportModel = true))
+          .text("Print pipeline model and instruction details post-generation"),
         help("help").text("Display this help message")
       )
     }
