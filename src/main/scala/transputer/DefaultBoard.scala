@@ -4,7 +4,7 @@ import spinal.core._
 import spinal.lib._
 import t800.plugins.transputer.TransputerPlugin
 
-/** Configuration for the T9000 board core. */
+/** Configuration for the Transputer board core. */
 case class CoreConfig(coreFrequency: IClockDomainFrequency)
 
 /** Default board configuration object. */
@@ -23,7 +23,7 @@ object CoreConfig {
 
 /** Default board configuration with clock source for T9000 FPU. */
 
-class T9000Board(boardCfg: CoreConfig) extends Component {
+class TransputerBoard(boardCfg: CoreConfig) extends Component {
   val io = new Bundle {
     val reset = in Bool
     val boardClk = in Bool
@@ -58,7 +58,7 @@ class T9000Board(boardCfg: CoreConfig) extends Component {
 }
 
 /** Verilog generation with export to multiple folders. */
-object T9000BoardVerilog {
+object TransputerBoardVerilog {
   
   def main(args: Array[String]): Unit = {
     val db = T800.defaultDatabase()
@@ -70,7 +70,7 @@ object T9000BoardVerilog {
       targetDirectory = "gen/src/verilog" // Primary export folder
     )
     val report = spinalConfig.generateVerilog {
-      new T9000Board(CoreConfig.default)
+      new TransputerBoard(CoreConfig.default)
     }
     println(s"Verilog generated in gen/src/verilog: ${report.toplevelName}")
     
