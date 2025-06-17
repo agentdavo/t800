@@ -19,13 +19,13 @@ regular data bus but is reserved for link DMA and VCP traffic.  Plugins issue
 `rdRsp` and `wrCmd` streams.  The address space exposes the link input/output
 registers defined in `Global` (e.g. `Link0Output`, `Link0Input`).
 
-## T9000 VCP design
+## Transputer VCP design
 
-The T9000 used a small virtual channel processor (VCP) to move packets between
+The Transputer used a small virtual channel processor (VCP) to move packets between
 the links and memory.  In this project a future `VcpPlugin` will implement that
 logic as yet another `FiberPlugin`.  It will subscribe to `ChannelSrv` for raw
 words and use `LinkBusSrv` to fetch or store packet payloads.  Expected register
-usage follows the classic INMOS scheme: the link output registers accept command
+usage follows the classic Transputer scheme: the link output registers accept command
 words while the input registers deliver completed messages.
 
 ### Integration points

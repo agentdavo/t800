@@ -75,7 +75,7 @@ t800/
 │  │     ├─ transputer/         # TransputerPlugin
 │  │     └─ ...
 │  └─ test/scala/transputer/
-│      ├─ T800CoreSim.scala
+│      ├─ TransputerCoreSim.scala
 │      └─ ...
 ├─ ext/
 │  └─ SpinalHDL/                # git sub-module (optional)
