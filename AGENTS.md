@@ -12,10 +12,14 @@ Guide for OpenAI Codex to assist development of the Transputer project, a Spinal
 | `src/main/scala/transputer/Generate.scala` | CLI for Verilog generation |
 | `src/main/scala/transputer/Param.scala` | Plugin selection parameters |
 | `src/test/scala/transputer/` | ScalaTest and SpinalSim tests |
-| `ext/SpinalHDL/` | SpinalHDL library official source code  (git submodule) |
-| `ext/.ivy2/`       | ivy2 cached published SpinalHDL jar |
-| `doc/SpinalHDL_api.md` | SpinalHDL DSL guide (update for new features) |
-| `doc/SpinalHDL_bmb.md` | SpinalHDL BMB guide (update for new features) |
+| `gen/` | synthesis scripts and generated sources |
+| `ext/SpinalHDL/` | SpinalHDL library official source code (git submodule) |
+| `ext/.ivy2/` | ivy2 cached published SpinalHDL jar |
+| `doc/SpinalHDL_api.md` | Pipeline and plugin DSL reference |
+| `doc/SpinalHDL_bmb.md` | BMB bus guide |
+| `doc/SpinalHDL_docs.txt` | SpinalHDL user documentation |
+| `doc/Transputer_core.md` | CPU architecture notes |
+| `doc/Transputer_links.md` | Link interface description |
 
 ## Development
 ```bash
