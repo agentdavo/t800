@@ -51,7 +51,7 @@ lazy val transputer = (project in file("."))
         "Opcode.scala",
         "Transputer.scala",
         "Param.scala",
-        "transputerGenerate.scala",
+        "Generate.scala",
         "Service.scala",
         "pipeline/Service.scala",
         "registers/Service.scala",
