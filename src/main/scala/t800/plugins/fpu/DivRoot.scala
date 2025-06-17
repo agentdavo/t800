@@ -51,17 +51,20 @@ class FpuDivRoot extends Component {
   val divQuot = divDividend / mantB
   val divOv = divQuot(52)
   val divMant = Mux(divOv, divQuot(51 downto 0), divQuot(50 downto 0))
-  val divExp = (opa.exponent.asSInt - opb.exponent.asSInt + 1023).asUInt
+  val divExp =
+    (opa.exponent.asSInt - opb.exponent.asSInt + 1023).asUInt
 
   // --------------------------------------------------------------------------
   // Square root path
   // --------------------------------------------------------------------------
+  // Shift the radicand when the exponent is odd
   val sqrtInput = Mux(opa.exponent(0), mantA.resize(106) << 1, mantA.resize(106))
   val sqrtRadicand = sqrtInput << 52
   val sqrtVal = isqrt(sqrtRadicand)
   val sqrtOv = sqrtVal(53)
   val sqrtMant = Mux(sqrtOv, sqrtVal(52 downto 0), sqrtVal(51 downto 0))
-  val sqrtExp = (((opa.exponent.asSInt - 1023) >> 1) + 1023).asUInt + sqrtOv.asUInt
+  val sqrtExp =
+    (((opa.exponent.asSInt - 1023) >> 1) + 1023).asUInt + sqrtOv.asUInt
 
   // --------------------------------------------------------------------------
   // Remainder path - not fully implemented, forward operand A
