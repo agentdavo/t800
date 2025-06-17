@@ -1,4 +1,4 @@
-# T800 Core Architecture & SpinalHDL Guidelines
+# Transputer Core Architecture & SpinalHDL Guidelines
 
 This handbook describes the plugin-based CPU used in this repository. It collects the pipeline layout, the roles of each plugin and the SpinalHDL conventions we follow.
 
