@@ -64,9 +64,14 @@ class FpuAdderSpec extends AnyFunSuite {
     assert(math.abs(run(2.5, -1.25) - 1.25) < 1e-12)
   }
 
-  test("rounding to minus") {
+  test("rounding modes") {
     val eps = math.pow(2, -54)
-    val expected = java.lang.Double.longBitsToDouble(java.lang.Double.doubleToRawLongBits(-1.0) + 1)
-    assert(run(-1.0, -eps, rounding = 3) == expected)
+    val plusLSB = java.lang.Double.longBitsToDouble(java.lang.Double.doubleToRawLongBits(1.0) + 1)
+    val minusLSB = java.lang.Double.longBitsToDouble(java.lang.Double.doubleToRawLongBits(-1.0) + 1)
+
+    assert(run(1.0, eps, rounding = 0) == 1.0)
+    assert(run(1.0, eps, rounding = 1) == 1.0)
+    assert(run(1.0, eps, rounding = 2) == plusLSB)
+    assert(run(-1.0, -eps, rounding = 3) == minusLSB)
   }
 }
