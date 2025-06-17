@@ -6,10 +6,10 @@ import t800.plugins.fpu.Utils._
 
 class FpuMultiplier extends Area {
   val io = new Bundle {
-    val op1         = in Bits (64 bits)
-    val op2         = in Bits (64 bits)
-    val isAbs       = in Bool ()
-    val isSingle    = in Bool () // Single-precision flag
+    val op1 = in Bits (64 bits)
+    val op2 = in Bits (64 bits)
+    val isAbs = in Bool ()
+    val isSingle = in Bool () // Single-precision flag
     val roundingMode = in Bits (2 bits)
     val result = out Bits (64 bits)
     val resultAfix = out(AFix(UQ(56, 0)))
