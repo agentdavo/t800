@@ -2,6 +2,7 @@ package transputer.plugins.cache
 
 import spinal.core._
 import spinal.lib._
+import spinal.lib.bus.bmb.Bmb
 import transputer.Global
 
 case class CacheReq() extends Bundle {
@@ -15,7 +16,7 @@ case class CacheRsp() extends Bundle {
   val valid = Bool()
 }
 
-case class WorkspaceCacheAccessSrv() extends Bundle {
+case class WorkspaceCacheAccessService() extends Bundle {
   val addrA = Bits(Global.ADDR_BITS bits)
   val addrB = Bits(Global.ADDR_BITS bits)
   val writeAddr = Bits(Global.ADDR_BITS bits)
@@ -27,7 +28,7 @@ case class WorkspaceCacheAccessSrv() extends Bundle {
   val dataOutB = Bits(Global.WORD_BITS bits)
 }
 
-case class MainCacheAccessSrv() extends Bundle {
+case class MainCacheAccessService() extends Bundle {
   val addr = Bits(Global.ADDR_BITS bits)
   val dataOut = Bits(128 bits) // 128-bit cache line
   val isHit = Bool()
@@ -35,17 +36,17 @@ case class MainCacheAccessSrv() extends Bundle {
   val writeData = Bits(128 bits)
 }
 
-trait CacheAccessSrv {
+trait CacheAccessService {
   def req: Flow[CacheReq]
   def rsp: Flow[CacheRsp]
 }
 
-trait MainCacheSrv {
+trait MainCacheService {
   def read(addr: UInt): Bits
   def write(addr: UInt, data: Bits): Unit
 }
 
-trait WorkspaceCacheSrv {
+trait WorkspaceCacheService {
   def read(addr: UInt): Bits
   def write(addr: UInt, data: Bits): Unit
   def bus: Bmb // BMB interface for workspace cache

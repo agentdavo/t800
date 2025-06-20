@@ -8,6 +8,9 @@ val spinalSrcPath = sys.env.getOrElse("SPINALHDL_PATH", "./ext/SpinalHDL")
 val spinalPublishedPath = sys.env.getOrElse("SPINALHDL_PUBLISHED_PATH", "./ext/.ivy2/cache")
 val usePublishedPath = sys.env.getOrElse("SPINALHDL_FROM_PUBLISHED_PATH", "0") == "1"
 
+import GeneratorKeys._
+generator := Generator.Unit
+
 ThisBuild / organization := "org.example"
 ThisBuild / version := "1.0.0"
 ThisBuild / scalaVersion := (if (sourceBuild) "2.12.18" else "2.13.14")
@@ -44,23 +47,52 @@ lazy val transputer = (project in file("."))
     name := "transputer",
     Compile / scalaSource := baseDirectory.value / "src" / "main" / "scala",
     Test / scalaSource := baseDirectory.value / "src" / "test" / "scala",
-    // Limit sources for the minimal unit build
+    // Limit sources based on Generator mode
     Compile / unmanagedSources := {
-      val keep = Set(
-        "Global.scala",
-        "Opcode.scala",
-        "Transputer.scala",
-        "Param.scala",
-        "Generate.scala",
-        "Service.scala",
-        "pipeline/Service.scala",
-        "pipeline/PipelinePlugin.scala",
-        "pipeline/PipelineBuilderPlugin.scala",
-        "TransputerPlugin.scala",
-        "fetch/FetchPlugin.scala",
-        "registers/Service.scala",
-        "registers/RegFilePlugin.scala"
-      )
+      val keep = generator.value match {
+        case Generator.BareBones =>
+          Set(
+            "TransputerPlugin.scala",
+            "pipeline/PipelinePlugin.scala",
+            "pipeline/PipelineBuilderPlugin.scala",
+            "fetch/FetchPlugin.scala",
+            "plugins/Service.scala",
+            "plugins/pipeline/Service.scala",
+            "plugins/registers/Service.scala"
+          )
+        case _ =>
+          Set(
+            "Global.scala",
+            "Opcode.scala",
+            "Transputer.scala",
+            "Param.scala",
+            "Generate.scala",
+            "Service.scala",
+            "pipeline/Service.scala",
+            "registers/Service.scala",
+            "registers/RegFilePlugin.scala",
+            "fpu/VCU.scala",
+            "fpu/Service.scala",
+            "fpu/Opcodes.scala",
+            "fpu/Adder.scala",
+            "fpu/Multiplier.scala",
+            "fpu/DivRoot.scala",
+            "fpu/RangeReducer.scala",
+            "fpu/FpuPlugin.scala",
+            "fpu/Utils.scala",
+            "pipeline/PipelinePlugin.scala",
+            "pipeline/PipelineBuilderPlugin.scala",
+            "TransputerPlugin.scala",
+            "fetch/FetchPlugin.scala",
+            "grouper/InstrGrouperPlugin.scala",
+            "decode/PrimaryInstrPlugin.scala",
+            "execute/SecondaryInstrPlugin.scala",
+            "mmu/MemoryManagementPlugin.scala",
+            "stack/StackPlugin.scala",
+            "cache/MainCachePlugin.scala",
+            "cache/WorkspaceCachePlugin.scala"
+          )
+      }
       val srcDir = (Compile / scalaSource).value
       val selected = (srcDir ** "*.scala").get.filter(f =>
         f.getPath.contains("spinal/lib") || keep.exists(k => f.getPath.endsWith(k))
@@ -106,6 +138,10 @@ lazy val transputer = (project in file("."))
 
 // --- 4 ▪ Aliases ---------------------------------------------------------
 addCommandAlias("coreVerilog", ";clean; runMain transputer.TransputerCoreVerilog")
+addCommandAlias(
+  "bareBones",
+  ";set generator := Generator.BareBones; clean; runMain transputer.Generate"
+)
 
 // --- 5 ▪ FPGA synthesis helpers ---------------------------------------
 lazy val synth = taskKey[Unit]("Run FPGA synthesis")

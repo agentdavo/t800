@@ -4,8 +4,9 @@ import spinal.core._
 import spinal.lib.misc.plugin.{PluginHost, FiberPlugin}
 import spinal.lib.misc.pipeline._
 import spinal.core.fiber.Retainer
-import transputer.{Global, Transputer}
-import transputer.plugins.pipeline.PipelineStageSrv
+import transputer.Global
+import transputer.Transputer
+import transputer.plugins.pipeline.PipelineStageService
 
 class PipelineBuilderPlugin extends FiberPlugin {
   val version = "PipelineBuilderPlugin v0.5"

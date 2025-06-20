@@ -5,9 +5,10 @@ import spinal.core.fiber.Retainer
 import spinal.lib._
 import spinal.lib.misc.plugin.{FiberPlugin, Plugin}
 import spinal.lib.bus.bmb.{Bmb, BmbParameter, BmbAccessParameter, BmbDownSizerBridge, BmbUnburstify}
-import transputer.{Global, Transputer}
-import transputer.plugins.SystemBusSrv
-import transputer.plugins.registers.RegfileSrv
+import transputer.Global
+import transputer.Transputer
+import transputer.plugins.SystemBusService
+import transputer.plugins.registers.RegfileService
 import transputer.plugins.registers.RegName
 
 /** Manages workspace memory access for local variable operations (LDL, STL, CALL) in the Transputer
@@ -29,10 +30,10 @@ class StackPlugin extends FiberPlugin {
     println(s"[${this.getDisplayName()}] build start")
     retain.await()
     implicit val h: PluginHost = host
-    val regfile = Plugin[RegfileSrv]
-    val systemBus = Plugin[SystemBusSrv].bus // 128-bit BMB system bus
+    val regfile = Plugin[RegfileService]
+    val systemBus = Plugin[SystemBusService].bus // 128-bit BMB system bus
     val workspaceCache =
-      try Plugin[WorkspaceCacheSrv]
+      try Plugin[WorkspaceCacheService]
       catch { case _: Exception => null } // Optional WorkspaceCachePlugin
 
     // Define 32-bit BMB parameters for workspace access
@@ -63,7 +64,7 @@ class StackPlugin extends FiberPlugin {
       downSizer.io.output >> systemBus
     }
 
-    addService(new StackSrv {
+    addService(new StackService {
       override def read(offset: SInt): UInt = {
         val addr = (regfile.read(RegName.WdescReg, 0).asSInt + offset).asUInt
           .resize(log2Up(Global.RAM_WORDS) bits)
@@ -102,6 +103,6 @@ class StackPlugin extends FiberPlugin {
   }
 }
 
-trait WorkspaceCacheSrv {
+trait WorkspaceCacheService {
   def bus: Bmb // BMB interface for workspace cache
 }

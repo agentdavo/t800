@@ -6,17 +6,18 @@ import spinal.lib.misc.plugin.{PluginHost, FiberPlugin, Plugin}
 import spinal.lib.misc.pipeline._
 import spinal.lib.bus.bmb.{Bmb, BmbParameter, BmbAccessParameter, BmbQueue, BmbDownSizerBridge}
 import spinal.core.fiber.Retainer
-import transputer.{Global, Transputer}
-import transputer.plugins.SystemBusSrv
-import transputer.plugins.registers.RegfileSrv
+import transputer.Global
+import transputer.Transputer
+import transputer.plugins.SystemBusService
+import transputer.plugins.registers.RegfileService
 import transputer.plugins.registers.RegName
-import transputer.plugins.fetch.Service.InstrFetchSrv
-import transputer.plugins.pipeline.{PipelineSrv, PipelineStageSrv}
+import transputer.plugins.fetch.Service.InstrFetchService
+import transputer.plugins.pipeline.{PipelineService, PipelineStageService}
 
 /** Instruction fetch unit with T9000-style Instruction Prefetch Buffer (IPB) supporting
   * eight-instruction dispatch.
   */
-class FetchPlugin extends FiberPlugin with PipelineSrv {
+class FetchPlugin extends FiberPlugin with PipelineService {
   setName("fetch")
   val elaborationLock = Retainer()
   val version = "FetchPlugin v1.7"
@@ -32,10 +33,10 @@ class FetchPlugin extends FiberPlugin with PipelineSrv {
     println(s"[${this.getDisplayName()}] build start")
     elaborationLock.await()
     implicit val h: PluginHost = host
-    val imem = Plugin[InstrFetchSrv]
-    val pipe = Plugin[PipelineStageSrv]
-    val regfile = Plugin[RegfileSrv]
-    val systemBus = Plugin[SystemBusSrv].bus // 128-bit system bus
+    val imem = Plugin[InstrFetchService]
+    val pipe = Plugin[PipelineStageService]
+    val regfile = Plugin[RegfileService]
+    val systemBus = Plugin[SystemBusService].bus // 128-bit system bus
 
     // IPB parameters: 4 entries, 32-bit fetch width, 128-bit burst
     val ipbDepth = 4
@@ -73,7 +74,7 @@ class FetchPlugin extends FiberPlugin with PipelineSrv {
     ipbQueue.io.output.cmd.length := 3 // 4-word burst (128 bits)
 
     // Fetch logic
-    val currentPC = regfile.read(RegName.IptrReg, 0).asUInt // Use IptrReg from RegfileSrv
+    val currentPC = regfile.read(RegName.IptrReg, 0).asUInt // Use IptrReg from RegfileService
     val isSequential = currentPC === (RegNext(currentPC) + 4)
     when(!isSequential || !ipbFull) {
       // Flush and reload on non-sequential fetch

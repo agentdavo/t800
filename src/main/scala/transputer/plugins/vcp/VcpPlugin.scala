@@ -36,7 +36,7 @@ class VcpPlugin extends FiberPlugin {
   lazy val VCP_VLCB_BASE = Payload(Bits(32 bits)) // Base for VLCB memory
 
   lazy val srv = during setup new Area {
-    val service = new VcpSrv {
+    val service = new VcpService {
       def txReady(link: UInt): Bool = links(link).spiCtrl.io.tx.ready
       def push(link: UInt, data: Bits): Bool = links(link).spiCtrl.io.tx.push(data)
       def rxValid(link: UInt): Bool = links(link).spiCtrl.io.rx.valid
@@ -53,7 +53,7 @@ class VcpPlugin extends FiberPlugin {
       def enqueueMessage(channel: Int, data: Bits): Unit = channels(channel).enqueueMessage(data)
     }
     addService(service)
-    addService(new LinkBusSrv {
+    addService(new LinkBusService {
       def rdCmd = Flow(MemReadCmd())
       def rdRsp = Flow(Bits(32 bits))
       def wrCmd = Flow(MemWriteCmd())
@@ -108,7 +108,7 @@ class VcpPlugin extends FiberPlugin {
     )
 
     // VCP configuration registers
-    val configSrv = host.find[Global.ConfigAccessSrv]
+    val configService = host.find[Global.ConfigAccessService]
     val vcpCommand = Reg(Bits(32 bits)) init (0) // #0804
     val vcpStatus = Reg(Bits(32 bits)) init (0) // #0802
     val hdrAreaBase = Reg(Bits(32 bits)) init (Global.InternalMemStart) // #0901

@@ -5,7 +5,7 @@ import spinal.lib.misc.pipeline._
 import spinal.core.fiber.Retainer
 import spinal.lib.misc.plugin._
 import transputer.Global
-import transputer.plugins.pipeline.PipelineStageSrv
+import transputer.plugins.pipeline.PipelineStageService
 
 /** Defines the global CPU pipeline structure and exposes stage handles. */
 class PipelinePlugin extends FiberPlugin {
@@ -44,7 +44,7 @@ class PipelinePlugin extends FiberPlugin {
   during build new Area {
     println(s"[${this.getDisplayName()}] build start")
     pipeline.build()
-    addService(new PipelineStageSrv {
+    addService(new PipelineStageService {
       override def fetch = fetchReg
       override def decode = decodeReg
       override def execute = executeReg

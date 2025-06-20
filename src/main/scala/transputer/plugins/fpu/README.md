@@ -1,12 +1,12 @@
 ## The FpuPlugin provides two services:
-FpuSrv
+FpuService
 
     send(op: FpCmd, a: Bits, b: Bits): Sends an FPU operation with command (FpCmd) and operands (64-bit IEEE-754).
     result: Bits: Retrieves the 64-bit result.
     resultAfix: AFix: Retrieves the result as an AFix (fixed-point).
     isBusy: Bool: Indicates if the FPU is processing a multi-cycle operation.
 
-FpuControlSrv
+FpuControlService
 
     specialValueDetected: Bool: Flags NaN, infinity, denormal, or zero detection.
     specialResult: Bits: Provides special value results.
@@ -37,7 +37,7 @@ Special values
 
     The Utils object exposes `genNaN` and `genInfinity(sign)` helpers.
     These 64-bit constants are supplied to the VCU and can also be pushed
-    to FA/FB via `FpuOpsSrv.push`.
+    to FA/FB via `FpuOpsService.push`.
 
 Supported Instructions
 
@@ -54,11 +54,11 @@ Supported Instructions
 Integration
 
     Pipeline: Execute stage, parallel to PrimaryInstrPlugin and SecondaryInstrPlugin.
-    Dependencies: RegFilePlugin (FPAreg, FPBreg, FPCreg), SystemBusSrv (128-bit BMB), TrapHandlerSrv.
+    Dependencies: RegFilePlugin (FPAreg, FPBreg, FPCreg), SystemBusService (128-bit BMB), TrapHandlerService.
 
 Using AFix
 
-    val fpu = host[FpuOpsSrv]
+    val fpu = host[FpuOpsService]
 
     // Push fixed-point operands onto the FA/FB stack
     fpu.pushAfix(AFix(1.0, 8 exp))

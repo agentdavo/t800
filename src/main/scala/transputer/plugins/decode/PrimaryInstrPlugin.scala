@@ -6,18 +6,19 @@ import spinal.lib.misc.pipeline._
 import spinal.lib.misc.plugin._
 import spinal.core.fiber.Retainer
 import spinal.lib.bus.bmb.{Bmb, BmbParameter, BmbAccessParameter, BmbDownSizerBridge, BmbUnburstify}
-import transputer.{Global, Opcode, Transputer}
-import transputer.plugins.registers.RegfileSrv
+import transputer.Global
+import transputer.{Opcode, Transputer}
+import transputer.plugins.registers.RegfileService
 import transputer.plugins.Fetch
-import transputer.plugins.grouper.GroupedInstrSrv
-import transputer.plugins.SystemBusSrv
+import transputer.plugins.grouper.GroupedInstrService
+import transputer.plugins.SystemBusService
 import transputer.plugins.registers.RegName
-import transputer.plugins.pipeline.{PipelineSrv, PipelineStageSrv}
+import transputer.plugins.pipeline.{PipelineService, PipelineStageService}
 
 /** Implements primary instruction decoding and execution, receiving opcodes from FetchPlugin or
   * GrouperPlugin, and accessing 128-bit system bus via BMB.
   */
-class PrimaryInstrPlugin extends FiberPlugin with PipelineSrv {
+class PrimaryInstrPlugin extends FiberPlugin with PipelineService {
   val version = "PrimaryInstrPlugin v0.6"
   private val retain = Retainer()
 
@@ -31,11 +32,11 @@ class PrimaryInstrPlugin extends FiberPlugin with PipelineSrv {
   during build new Area {
     println(s"[${this.getDisplayName()}] build start")
     retain.await()
-    val regfile = Plugin[RegfileSrv]
-    val pipe = Plugin[PipelineStageSrv]
-    val systemBus = Plugin[SystemBusSrv].bus // 128-bit BMB system bus
+    val regfile = Plugin[RegfileService]
+    val pipe = Plugin[PipelineStageService]
+    val systemBus = Plugin[SystemBusService].bus // 128-bit BMB system bus
     val grouper =
-      try Plugin[GroupedInstrSrv]
+      try Plugin[GroupedInstrService]
       catch { case _: Exception => null } // Optional GrouperPlugin
 
     // Define 32-bit BMB parameters for memory access

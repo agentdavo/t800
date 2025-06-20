@@ -39,7 +39,7 @@ class SchedulerPlugin extends FiberPlugin {
     loBackReg = Reg(UInt(Global.ADDR_BITS bits)) init 0
     termReq = Reg(Bool()) init (False)
 
-    addService(new SchedSrv {
+    addService(new SchedService {
       override def newProc: Flow[SchedCmd] = cmdReg
       override def nextProc: UInt = nextReg
       override def enqueue(ptr: UInt, high: Bool): Unit = {

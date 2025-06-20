@@ -5,7 +5,7 @@ import spinal.core.sim._
 import spinal.lib._
 import scala.math
 import org.scalatest.funsuite.AnyFunSuite
-import transputer.plugins.pipeline.PipelineSrv
+import transputer.plugins.pipeline.PipelineService
 import transputer.plugins.fpu.{FpuAdder, Adder}
 
 class AdderDutTiny extends Component {

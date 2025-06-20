@@ -31,15 +31,15 @@ class HelloWorldSpec extends AnyFunSuite {
       }
       .doSim { dut =>
         dut.clockDomain.forkStimulus(10)
-        val memSrv = dut.host[MemAccessSrv]
-        val chan = dut.host[ChannelPinsSrv].pins
+        val memService = dut.host[MemAccessService]
+        val chan = dut.host[ChannelPinsService].pins
         val prog = Seq(
           0x40, 0x25, 0xf4, 0x24, 0x48, 0xfe, 0x26, 0x45, 0xfe, 0x26, 0x4c, 0xfe, 0x26, 0x4c, 0xfe,
           0x26, 0x4f, 0xfe, 0x22, 0x40, 0xfe, 0x27, 0x47, 0xfe, 0x26, 0x4f, 0xfe, 0x27, 0x42, 0xfe,
           0x26, 0x4c, 0xfe, 0x26, 0x44, 0xfe, 0x4a, 0xfe, 0x00
         )
         // load program into ROM
-        val rom = memSrv.rom
+        val rom = memService.rom
         for ((b, idx) <- prog.zipWithIndex) {
           val addr = idx / 4
           val shift = (idx % 4) * 8

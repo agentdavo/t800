@@ -1,9 +1,9 @@
 package transputer.plugins.vcp
 
 import spinal.core._
-import transputer.plugins.ChannelSrv
+import transputer.plugins.ChannelService
 
-trait VcpSrv extends ChannelSrv {
+trait VcpService extends ChannelService {
   def scheduleInput(channel: Int): Unit
   def scheduleOutput(channel: Int): Unit
   def getChannelState(channel: Int): Bits

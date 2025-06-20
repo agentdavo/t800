@@ -6,9 +6,9 @@ import spinal.lib.misc.database.Database
 import spinal.lib.misc.plugin.{PluginHost, FiberPlugin, Hostable}
 import spinal.lib.bus.bmb.{Bmb, BmbParameter}
 import transputer.plugins.transputer.TransputerPlugin
-import transputer.pipeline.{PipelinePlugin, PipelineBuilderPlugin}
-import transputer.registers.RegFilePlugin
-import transputer.SystemBusSrv
+import transputer.plugins.pipeline.{PipelinePlugin, PipelineBuilderPlugin}
+import transputer.plugins.registers.RegFilePlugin
+import transputer.plugins.SystemBusService
 
 object Transputer {
 
@@ -50,7 +50,7 @@ object Transputer {
 class Transputer(val database: Database = new Database) extends Component {
   val host = database on new PluginHost
   val systemBus = master(Bmb(Transputer.systemBusParam))
-  host.addService(new SystemBusSrv { def bus: Bmb = systemBus })
+  host.addService(new SystemBusService { def bus: Bmb = systemBus })
 }
 
 class TransputerCore extends Component {

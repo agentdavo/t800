@@ -47,7 +47,7 @@ class TinAltwtSpec extends AnyFunSuite {
       .doSim { dut =>
         dut.clockDomain.forkStimulus(10)
         dut.clockDomain.waitSampling(40)
-        val stack = dut.host[StackSrv]
+        val stack = dut.host[StackService]
         assert(stack.A.toBigInt == 0x0b)
       }
   }

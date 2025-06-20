@@ -6,13 +6,19 @@ import spinal.lib._
 import spinal.lib.misc.plugin._
 import spinal.lib.misc.pipeline._
 import transputer.plugins.pmi.PmiPlugin
-import transputer.plugins.cache.{MainCachePlugin, WorkspaceCachePlugin, CacheAccessSrv}
+import transputer.plugins.cache.{MainCachePlugin, WorkspaceCachePlugin, CacheAccessService}
 import transputer.plugins.schedule.SchedulerPlugin
-import transputer.plugins.{TrapHandlerSrv, ConfigAccessSrv, AddressTranslationSrv, Fetch}
-import transputer.plugins.registers.RegfileSrv
-import transputer.plugins.pipeline.PipelineStageSrv
+import transputer.plugins.{
+  TrapHandlerService,
+  ConfigAccessService,
+  AddressTranslationService,
+  Fetch
+}
+import transputer.plugins.registers.RegfileService
+import transputer.plugins.pipeline.PipelineStageService
 import transputer.plugins.registers.RegName
-import transputer.{Global, Transputer}
+import transputer.Global
+import transputer.Transputer
 
 class MemoryManagementPlugin extends FiberPlugin {
   val version = "MemoryManagementPlugin v1.5"
@@ -42,14 +48,14 @@ class MemoryManagementPlugin extends FiberPlugin {
   lazy val REGION_PERMS = Payload(Vec(Bits(3 bits), 4)) // Exec, Read, Write
 
   lazy val srv = during setup new Area {
-    val service = new TrapHandlerSrv {
+    val service = new TrapHandlerService {
       val trapAddr = Reg(Bits(Global.ADDR_BITS bits)) init 0
       val trapType = Reg(Bits(4 bits)) init 0
       val trapEnable = Reg(Bool()) init False
       val trapHandlerAddr = Reg(Bits(Global.ADDR_BITS bits)) init 0
     }
     addService(service)
-    addService(new ConfigAccessSrv {
+    addService(new ConfigAccessService {
       val addr = Reg(Bits(Global.ADDR_BITS bits)) init 0
       val data = Reg(Bits(Global.WORD_BITS bits)) init 0
       val writeEnable = Reg(Bool()) init False
@@ -81,14 +87,14 @@ class MemoryManagementPlugin extends FiberPlugin {
 
   lazy val logic = during build new Area {
     println(s"[${this.getDisplayName()}] build start")
-    val pipe = host[PipelineStageSrv]
-    val regfile = host[RegfileSrv]
+    val pipe = host[PipelineStageService]
+    val regfile = host[RegfileService]
     val fetch = pipe.ctrl(0) // Fetch stage
     val decode = pipe.ctrl(2) // Decode stage
     val execute = pipe.ctrl(3) // Execute stage
     val memory = pipe.ctrl(4) // Memory stage
     val writeback = pipe.ctrl(5) // Writeback stage
-    val cacheIf = host[CacheAccessSrv]
+    val cacheIf = host[CacheAccessService]
 
     // P-process mode
     val pProcessModeReg = Reg(Bool()) init False
@@ -98,14 +104,14 @@ class MemoryManagementPlugin extends FiberPlugin {
 
     // Region configuration
     val regionConfig = Reg(Vec(Bits(Global.ADDR_BITS bits), 4)) init 0
-    val configSrv = host[ConfigAccessSrv]
-    when(configSrv.writeEnable && configSrv.isValid) {
-      switch(configSrv.addr) {
+    val configService = host[ConfigAccessService]
+    when(configService.writeEnable && configService.isValid) {
+      switch(configService.addr) {
         is(Global.ConfigAddr.CACHE) {
-          regionConfig(0) := configSrv.data.resized(Global.ADDR_BITS)
+          regionConfig(0) := configService.data.resized(Global.ADDR_BITS)
         }
         is(Global.ConfigAddr.PMI_STROBE) {
-          regionConfig(1) := configSrv
+          regionConfig(1) := configService
             .read(Global.ConfigAddr.RAS_STROBE0, Global.WORD_BITS)
             .resized(Global.ADDR_BITS)
         }
@@ -199,7 +205,7 @@ class MemoryManagementPlugin extends FiberPlugin {
       }
     }
 
-    addService(new AddressTranslationSrv {
+    addService(new AddressTranslationService {
       def translate(addr: Bits): Bits = translateAddress(addr)
     })
 

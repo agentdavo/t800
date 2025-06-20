@@ -36,7 +36,7 @@ class PrefixSpec extends AnyFunSuite {
       .doSim { dut =>
         dut.clockDomain.forkStimulus(10)
         dut.clockDomain.waitSampling(20)
-        val stack = dut.host[StackSrv]
+        val stack = dut.host[StackService]
         assert(stack.A.toBigInt == BigInt("ffffffff", 16))
       }
   }

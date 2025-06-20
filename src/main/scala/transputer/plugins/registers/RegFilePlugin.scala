@@ -6,7 +6,7 @@ import spinal.lib.misc.plugin.FiberPlugin
 import transputer.Global
 
 /** Minimal stub register file for unit tests. */
-class RegFilePlugin extends FiberPlugin with RegfileSrv {
+class RegFilePlugin extends FiberPlugin with RegfileService {
   val version = "RegFilePlugin v0.5"
 
   override def writeLatency = 1
