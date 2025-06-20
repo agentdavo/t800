@@ -113,6 +113,7 @@ lazy val transputer = (project in file("."))
         "TestPlugins.scala",
         "FpOpcodeSpec.scala",
         "FpuOpcodeSpec.scala"
+        ,"TransputerBarebonesSpec.scala"
       )
       keep.flatMap(p => (srcDir ** p).get)
     },
