@@ -115,3 +115,48 @@ class DummyFpuControlPlugin extends FiberPlugin {
   }
   during build new Area {}
 }
+
+/** Simple memory service exposing ROM/RAM access for unit tests. */
+trait MemAccessService {
+  def rom: Mem[UInt]
+  def ram: Mem[UInt]
+}
+
+/** On-chip memory plugin providing small ROM/RAM blocks. Optionally connects the ROM to
+  * [[InstrFetchService]] if present.
+  */
+class MemoryPlugin(romInit: Seq[BigInt] = Seq()) extends FiberPlugin {
+  private var _rom: Mem[UInt] = null
+  private var _ram: Mem[UInt] = null
+
+  during setup new Area {
+    _rom = Mem(UInt(Global.WordBits bits), Global.RomWords)
+    for ((v, i) <- romInit.zipWithIndex if i < _rom.wordCount) {
+      _rom(i) init v
+    }
+    _ram = Mem(UInt(Global.WordBits bits), Global.RamWords)
+    addService(new MemAccessService {
+      override def rom: Mem[UInt] = _rom
+      override def ram: Mem[UInt] = _ram
+    })
+  }
+
+  during build new Area {
+    // If an instruction fetch service exists, serve it from the ROM
+    val fetch = host.services
+      .find(_.isInstanceOf[plugins.fetch.InstrFetchService])
+      .map(_.asInstanceOf[plugins.fetch.InstrFetchService])
+
+    fetch.foreach { srv =>
+      val addrWidth = log2Up(_rom.wordCount)
+      srv.cmd.ready := True
+      val readAddr = srv.cmd.address.resized(addrWidth)
+      val readNext = (srv.cmd.address + 1).resized(addrWidth)
+      val dataLow = _rom.readSync(readAddr)
+      val dataHigh = _rom.readSync(readNext)
+      val rspData = RegNextWhen(Cat(dataHigh, dataLow), srv.cmd.valid) init 0
+      srv.rsp.valid := RegNext(srv.cmd.valid) init False
+      srv.rsp.payload := rspData
+    }
+  }
+}
