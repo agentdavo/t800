@@ -3,13 +3,11 @@ package transputer.plugins.fetch
 import spinal.core._
 import spinal.lib._
 import spinal.lib.misc.plugin.FiberPlugin
-import transputer.MemReadCmd
+import transputer.{Global, MemReadCmd}
 import transputer.plugins.fetch.InstrFetchService
 
-/** Simplified instruction fetch plugin used by the BareBones build. */
-class FetchPlugin extends FiberPlugin {
-  setName("fetch")
-
+/** Dummy provider for [[InstrFetchService]] used by the BareBones build. */
+class DummyInstrFetchPlugin extends FiberPlugin {
   private var cmdReg: Flow[MemReadCmd] = null
   private var rspReg: Flow[Bits] = null
 

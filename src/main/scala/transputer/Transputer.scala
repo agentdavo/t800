@@ -8,6 +8,7 @@ import spinal.lib.bus.bmb.{Bmb, BmbParameter}
 import transputer.plugins.transputer.TransputerPlugin
 import transputer.plugins.pipeline.{PipelinePlugin, PipelineBuilderPlugin}
 import transputer.plugins.registers.RegFilePlugin
+import transputer.plugins.fetch.{DummyInstrFetchPlugin, FetchPlugin}
 import transputer.plugins.SystemBusService
 
 object Transputer {
@@ -33,6 +34,8 @@ object Transputer {
       new TransputerPlugin,
       new RegFilePlugin,
       new PipelinePlugin,
+      new DummyInstrFetchPlugin,
+      new FetchPlugin,
       new PipelineBuilderPlugin
     )
 

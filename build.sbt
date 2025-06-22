@@ -62,7 +62,11 @@ lazy val transputer = (project in file("."))
             "plugins/transputer/TransputerPlugin.scala",
             "pipeline/PipelinePlugin.scala",
             "pipeline/PipelineBuilderPlugin.scala",
-            "registers/RegFilePlugin.scala"
+            "registers/RegFilePlugin.scala",
+            "plugins/fetch/Service.scala",
+            "plugins/fetch/Fetch.scala",
+            "plugins/fetch/DummyInstrFetchPlugin.scala",
+            "plugins/fetch/FetchPlugin.scala"
           )
         case _ =>
           Set(
@@ -87,7 +91,7 @@ lazy val transputer = (project in file("."))
             "pipeline/PipelinePlugin.scala",
             "pipeline/PipelineBuilderPlugin.scala",
             "TransputerPlugin.scala",
-            "fetch/FetchPlugin.scala",
+            "plugins/fetch/FetchPlugin.scala",
             "grouper/InstrGrouperPlugin.scala",
             "decode/PrimaryInstrPlugin.scala",
             "execute/SecondaryInstrPlugin.scala",
