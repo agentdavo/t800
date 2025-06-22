@@ -141,6 +141,16 @@ sbt bareBones                  # emit Verilog for the minimal core
 # new services are added.
 ```
 
+### Boot ROM example
+
+The repository includes a small ROM program that prints `hello world` using the
+link protocol. The compiled image lives in `bootrom.hex`. Generate a standalone
+design with:
+
+```bash
+sbt "runMain transputer.BootRomVerilog"
+```
+
 ---
 
 ## Synthesis

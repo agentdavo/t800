@@ -87,16 +87,16 @@ trait RegfileService {
   def getPhysicalDepth: Int
   def writeLatency: Int
   def readLatency: Int
-  def read(reg: RegName.C, processId: UInt, shadow: Boolean): Bits
-  def write(reg: RegName.C, data: Bits, processId: UInt, shadow: Boolean): Unit
+  def read(reg: RegName.C, processId: UInt, shadow: Boolean = false): Bits
+  def write(reg: RegName.C, data: Bits, processId: UInt, shadow: Boolean = false): Unit
   def readShadow(reg: RegName.C, processId: UInt): Bits
   def writeShadow(reg: RegName.C, data: Bits, processId: UInt): Unit
-  def readStatusBit(field: StatusRegBits => Bool, processId: UInt, shadow: Boolean): Bool
+  def readStatusBit(field: StatusRegBits => Bool, processId: UInt, shadow: Boolean = false): Bool
   def writeStatusBit(
     field: StatusRegBits => Bool,
     value: Bool,
     processId: UInt,
-    shadow: Boolean
+    shadow: Boolean = false
   ): Unit
   def copyToShadow(processId: UInt): Unit
   def restoreFromShadow(processId: UInt): Unit

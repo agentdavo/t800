@@ -3,11 +3,17 @@ package transputer.plugins.execute
 import spinal.core._
 import spinal.lib._
 import spinal.lib.misc.pipeline._
-import spinal.lib.misc.plugin.{Plugin, PluginHost}
-import spinal.core.fiber.Retainer
+import spinal.lib.misc.plugin.{Plugin, PluginHost, FiberPlugin}
+import spinal.core.fiber.{Retainer, _}
 import transputer.Opcode
 import transputer.Global
-import transputer.plugins.{ChannelService, ChannelTxCmd, LinkBusService, LinkBusArbiterService}
+import transputer.plugins.{
+  ChannelService,
+  ChannelTxCmd,
+  LinkBusService,
+  LinkBusArbiterService,
+  ChannelDmaService
+}
 import transputer.plugins.schedule.SchedService
 import transputer.plugins.fpu.{FpuService, FpOp}
 import transputer.plugins.timers.TimerService

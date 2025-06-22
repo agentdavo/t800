@@ -53,8 +53,9 @@ lazy val transputer = (project in file("."))
         case Generator.BareBones =>
           Set(
             "BareBones.scala",
-            "barebones/BareBonesParamStub.scala",
             "Global.scala",
+            "Param.scala",
+            "Opcode.scala",
             "Transputer.scala",
             "plugins/Service.scala",
             "pipeline/Service.scala",
@@ -65,10 +66,13 @@ lazy val transputer = (project in file("."))
             "registers/RegFilePlugin.scala",
             "plugins/fetch/Service.scala",
             "plugins/fetch/Fetch.scala",
-            "plugins/fetch/DummyInstrFetchPlugin.scala",
             "plugins/fetch/FetchPlugin.scala",
-            "grouper/InstrGrouperPlugin.scala",
-            "decode/PrimaryInstrPlugin.scala"
+            "plugins/execute/DummySecondaryInstrPlugin.scala",
+            "plugins/grouper/Service.scala",
+            "plugins/grouper/DummyGrouperPlugin.scala",
+            "decode/DummyPrimaryInstrPlugin.scala",
+            "BootRomVerilog.scala",
+            "BootRomDesign.scala"
           )
         case _ =>
           Set(
