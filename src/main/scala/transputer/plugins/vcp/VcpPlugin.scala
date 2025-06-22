@@ -161,6 +161,7 @@ class VcpPlugin extends FiberPlugin {
       val isEnd = Reg(Bool()) init (False)
       val tokenType = Reg(Bits(2 bits)) init (B"00") // 00: Data, 01: EOP, 10: EOM
       val parityBit = Reg(Bool()) init (False)
+      val resetCounter = Reg(UInt(8 bits)) init (0)
 
       // Bit-level protocol simulation
       val bitClock = Counter(8) // 8-bit token cycle
@@ -178,9 +179,13 @@ class VcpPlugin extends FiberPlugin {
       // State transitions based on VCPCommand
       when(vcpCommand(0)) {
         linkState := U"001" // Reset
-        // TODO: implement proper hold for 256 cycles
+        resetCounter := U(255)
       }
-      when(vcpCommand(1) && linkState === U"001") { linkState := U"010" } // Start
+      when(resetCounter =/= 0) {
+        linkState := U"001"
+        resetCounter := resetCounter - 1
+      }
+      when(vcpCommand(1) && linkState === U"001" && resetCounter === 0) { linkState := U"010" } // Start
       when(vcpCommand(2) && linkState === U"010") { linkState := U"100" } // Stop
       when(linkState === U"100") { // Stopping
         // Deactivate channels
@@ -193,7 +198,7 @@ class VcpPlugin extends FiberPlugin {
       when(packetState === U"00" && srv.txReady(U(i)) && linkState === U"010") {
         packetState := U"01" // Sending SP
         tokenType := B"00" // Data token for SP
-        parityBit := False // TODO: compute parity
+        parityBit := (B"0" ## B"00000000").xorR
         buffer := B"00000000" // Placeholder SP
         packetCount := 1
       }
@@ -203,8 +208,9 @@ class VcpPlugin extends FiberPlugin {
           packetCount := packetCount + 1
         } otherwise {
           // Pick end-of-message or end-of-packet token
-          tokenType := Mux(isEnd, B"10", B"01")
-          parityBit := False // TODO: compute parity
+          val nextType = Mux(isEnd, B"10", B"01")
+          tokenType := nextType
+          parityBit := (B"1" ## nextType).xorR
           packetState := U"10" // Receiving
         }
       }

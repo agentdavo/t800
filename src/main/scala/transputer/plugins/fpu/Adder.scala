@@ -118,15 +118,27 @@ class FpuAdder extends Component {
 
     val lz = CountLeadingZeroes(mantAdj.asBits)
     val shift = (lz.asSInt - 3)
-    val normMant = UInt(53 bits)
-    val normExp = UInt(11 bits)
+    val normMantPre = UInt(53 bits)
+    val normExpPre = SInt(12 bits)
     when(shift >= 0) {
-      normMant := (mantAdj << shift.asUInt).resize(53)
-      normExp := (expAdj.asSInt - shift).asUInt.resize(11)
+      normMantPre := (mantAdj << shift.asUInt).resize(53)
+      normExpPre := (expAdj.asSInt - shift)
     } otherwise {
       val r = (-shift).asUInt
-      normMant := (mantAdj >> r).resize(53)
-      normExp := (expAdj.asSInt + r.asSInt).asUInt.resize(11)
+      normMantPre := (mantAdj >> r).resize(53)
+      normExpPre := (expAdj.asSInt + r.asSInt)
+    }
+
+    val underflow = normExpPre <= 0
+    val normExp = UInt(11 bits)
+    val normMant = UInt(53 bits)
+    when(underflow) {
+      val r = (S(1, 12 bits) - normExpPre).asUInt.min(63)
+      normMant := (normMantPre >> r).resize(53)
+      normExp := U(0)
+    } otherwise {
+      normMant := normMantPre
+      normExp := normExpPre.asUInt.resize(11)
     }
 
     val signedMant = signRes ? (~normMant + 1).asSInt | normMant.asSInt
