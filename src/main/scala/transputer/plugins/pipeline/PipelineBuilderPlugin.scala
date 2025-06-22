@@ -10,10 +10,11 @@ import spinal.lib.misc.pipeline._
 class PipelineBuilderPlugin extends FiberPlugin {
   val version = "PipelineBuilderPlugin v0.5"
 
-  private var builtLinks: Seq[Link] = Seq()
+  // Use scala.collection.Seq for compatibility across Scala versions
+  private var builtLinks: scala.collection.Seq[Link] = Seq()
 
   /** Return the links created during build. Useful for unit tests. */
-  def buildPipeline(): Seq[Link] = builtLinks
+  def buildPipeline(): scala.collection.Seq[Link] = builtLinks
 
   during setup new Area {
     println(s"[${this.getDisplayName()}] setup start")
