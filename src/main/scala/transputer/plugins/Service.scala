@@ -28,22 +28,22 @@ trait SystemBusService {
 }
 
 trait DataBusService {
-  def rdCmd: Flow[transputer.MemReadCmd]
+  def rdCmd: Flow[_root_.transputer.MemReadCmd]
   def rdRsp: Flow[Bits]
-  def wrCmd: Flow[transputer.MemWriteCmd]
+  def wrCmd: Flow[_root_.transputer.MemWriteCmd]
 }
 
 trait LinkBusService {
-  def rdCmd: Flow[transputer.MemReadCmd]
+  def rdCmd: Flow[_root_.transputer.MemReadCmd]
   def rdRsp: Flow[Bits]
-  def wrCmd: Flow[transputer.MemWriteCmd]
+  def wrCmd: Flow[_root_.transputer.MemWriteCmd]
 }
 
 trait LinkBusArbiterService {
-  def exeRd: Flow[transputer.MemReadCmd]
-  def exeWr: Flow[transputer.MemWriteCmd]
-  def chanRd: Flow[transputer.MemReadCmd]
-  def chanWr: Flow[transputer.MemWriteCmd]
+  def exeRd: Flow[_root_.transputer.MemReadCmd]
+  def exeWr: Flow[_root_.transputer.MemWriteCmd]
+  def chanRd: Flow[_root_.transputer.MemReadCmd]
+  def chanWr: Flow[_root_.transputer.MemWriteCmd]
 }
 
 case class ChannelTxCmd() extends Bundle {
@@ -74,4 +74,9 @@ trait ChannelPinsService {
 
 trait ChannelDmaService {
   def cmd: Stream[ChannelTxCmd]
+}
+
+trait MemAccessService {
+  def rom: Mem[UInt]
+  def ram: Mem[UInt]
 }

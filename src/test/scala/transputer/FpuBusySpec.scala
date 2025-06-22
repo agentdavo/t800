@@ -13,7 +13,7 @@ class BusyDut extends Component {
   val counter = Reg(UInt(10 bits)) init (0)
 
   when(io.start) {
-    counter := io.cycles
+    counter := io.cycles + 1
   } elsewhen (counter =/= 0) {
     counter := counter - 1
   }
