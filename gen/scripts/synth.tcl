@@ -1,7 +1,7 @@
 #!/usr/bin/env tclsh
 # Enhanced ECP5 synthesis script for Yosys + nextpnr-ecp5
 # Usage: tclsh synth.tcl <constraints.lpf> <device>
-# Example device: LFE5U-45F
+# Example: tclsh synth.tcl gen/constraints/ecp5.lpf LFE5U-45F
 # Notes: Assumes Transputer.v is in gen/src/verilog
 
 # Retrieve command-line arguments
