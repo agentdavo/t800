@@ -20,10 +20,11 @@ class FpuDut extends Component {
   }
 
   // Build minimal plugin stack with mock trap handler
-  val host = new PluginHost
   val plugins = Transputer.unitPlugins() ++ Seq(new DummyTrapPlugin, new FpuPlugin)
-  PluginHost(host).on(Database(Transputer.defaultDatabase()).on(Transputer(plugins)))
-
+  val core = PluginHost.on {
+    Database(Transputer.defaultDatabase()).on(Transputer(plugins))
+  }
+  val host = core.host
   val fpuService = host[FpuService]
   val ctrl = host[FpuControlService]
 
