@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ivy-module version="2.0" xmlns:e="http://ant.apache.org/ivy/extra">
+  <info organisation="com.github.spinalhdl" module="spinalhdl-lib_2.12" revision="dev" status="release" publication="20250622114512">
+    <description>SpinalHDL-lib</description>
+  </info>
+  <configurations>
+    <conf name="plugin" visibility="public" description=""/>
+    <conf name="pom" visibility="public" description=""/>
+    <conf extends="runtime" name="test" visibility="public" description=""/>
+    <conf name="provided" visibility="public" description=""/>
+    <conf extends="compile,optional,provided" name="compile-internal" visibility="public" description=""/>
+    <conf name="docs" visibility="public" description=""/>
+    <conf name="optional" visibility="public" description=""/>
+    <conf name="compile" visibility="public" description=""/>
+    <conf extends="test,optional,provided" name="test-internal" visibility="public" description=""/>
+    <conf name="scala-tool" visibility="public" description=""/>
+    <conf name="scala-doc-tool" visibility="public" description=""/>
+    <conf name="sources" visibility="public" description=""/>
+    <conf extends="compile" name="runtime" visibility="public" description=""/>
+    <conf extends="runtime,optional" name="runtime-internal" visibility="public" description=""/>
+  </configurations>
+  <publications>
+    <artifact name="spinalhdl-lib_2.12" type="jar" ext="jar" conf="compile"/>
+    <artifact e:classifier="sources" name="spinalhdl-lib_2.12" type="src" ext="jar" conf="sources"/>
+    <artifact e:classifier="javadoc" name="spinalhdl-lib_2.12" type="doc" ext="jar" conf="docs"/>
+    <artifact name="spinalhdl-lib_2.12" type="pom" ext="pom" conf="pom"/>
+  </publications>
+  <dependencies>
+    <dependency org="org.scala-lang" name="scala-compiler" rev="2.12.18" conf="scala-tool->default"> </dependency>
+    <dependency org="org.scala-lang" name="scala-compiler" rev="2.12.18" conf="scala-tool->optional(default)"> </dependency>
+    <dependency org="org.scala-lang" name="scala-library" rev="2.12.18" conf="scala-tool->default"> </dependency>
+    <dependency org="org.scala-lang" name="scala-library" rev="2.12.18" conf="scala-tool->optional(default)"> </dependency>
+    <dependency org="com.github.spinalhdl" name="spinalhdl-sim_2.12" rev="dev" conf="compile->default(compile)"> </dependency>
+    <dependency org="com.github.spinalhdl" name="spinalhdl-core_2.12" rev="dev" conf="compile->default(compile)"> </dependency>
+    <dependency org="org.scala-lang" name="scala-library" rev="2.12.18" conf="compile->default(compile)"> </dependency>
+    <dependency org="org.scala-lang" name="scala-library" rev="2.12.18" conf="compile->default(compile)"> </dependency>
+    <dependency org="org.scalatest" name="scalatest_2.12" rev="3.2.14" conf="test->default(compile)"> </dependency>
+    <dependency org="org.scalactic" name="scalactic_2.12" rev="3.2.10" conf="compile->default(compile)"> </dependency>
+    <dependency org="commons-io" name="commons-io" rev="2.11.0" conf="compile->default(compile)"> </dependency>
+  </dependencies>
+</ivy-module>
