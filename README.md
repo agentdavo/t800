@@ -1,5 +1,7 @@
 # Transputer Core
 
+[![CI](https://github.com/agentdavo/t800/actions/workflows/ci.yml/badge.svg)](https://github.com/agentdavo/t800/actions/workflows/ci.yml)
+
 *(rev 2025-06-17 – includes plugin & pipeline details)*
 
 ---
@@ -131,6 +133,15 @@ sbt "runMain transputer.Generate --word-width 32 --link-count 4 --fpu true"
 --link-count    Number of communication links
 --fpu           Enable or disable the floating-point unit (Generate.scala flag)
 ```
+
+---
+
+## Synthesis
+
+Run `sbt synth` to generate a bitstream for Lattice ECP5 targets. The task calls
+`gen/scripts/synth.tcl`, which expects a constraint LPF and device string. The
+default setup uses `gen/constraints/ecp5.lpf` and `LFE5U-45F`. Ensure
+`nextpnr-ecp5` and `trellis` are installed as shown in the CI workflow.
 
 ---
 
