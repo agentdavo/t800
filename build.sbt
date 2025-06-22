@@ -66,7 +66,9 @@ lazy val transputer = (project in file("."))
             "plugins/fetch/Service.scala",
             "plugins/fetch/Fetch.scala",
             "plugins/fetch/DummyInstrFetchPlugin.scala",
-            "plugins/fetch/FetchPlugin.scala"
+            "plugins/fetch/FetchPlugin.scala",
+            "grouper/InstrGrouperPlugin.scala",
+            "decode/PrimaryInstrPlugin.scala"
           )
         case _ =>
           Set(
