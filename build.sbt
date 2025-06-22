@@ -52,13 +52,17 @@ lazy val transputer = (project in file("."))
       val keep = generator.value match {
         case Generator.BareBones =>
           Set(
-            "TransputerPlugin.scala",
+            "BareBones.scala",
+            "barebones/BareBonesParamStub.scala",
+            "Global.scala",
+            "Transputer.scala",
+            "plugins/Service.scala",
+            "pipeline/Service.scala",
+            "registers/Service.scala",
+            "plugins/transputer/TransputerPlugin.scala",
             "pipeline/PipelinePlugin.scala",
             "pipeline/PipelineBuilderPlugin.scala",
-            "fetch/FetchPlugin.scala",
-            "plugins/Service.scala",
-            "plugins/pipeline/Service.scala",
-            "plugins/registers/Service.scala"
+            "registers/RegFilePlugin.scala"
           )
         case _ =>
           Set(
@@ -94,27 +98,38 @@ lazy val transputer = (project in file("."))
           )
       }
       val srcDir = (Compile / scalaSource).value
-      val selected = (srcDir ** "*.scala").get.filter(f =>
-        f.getPath.contains("spinal/lib") || keep.exists(k => f.getPath.endsWith(k))
-      )
+      val exclude =
+        if (generator.value == Generator.BareBones)
+          Set("plugins/execute/SecondaryInstrPlugin.scala")
+        else Set.empty[String]
+      val selected = (srcDir ** "*.scala").get
+        .filter(f => f.getPath.contains("spinal/lib") || keep.exists(k => f.getPath.endsWith(k)))
+        .filterNot(f => exclude.exists(e => f.getPath.endsWith(e)))
       selected
     },
     Test / unmanagedSources := {
       val srcDir = (Test / scalaSource).value
-      val keep = Seq(
-        "InitTransputerSpec.scala",
-        "Real32ToReal64Spec.scala",
-        "FpuVCUSpec.scala",
-        "FpuPluginSpec.scala",
-        "FpuAdderSpec.scala",
-        "DivRootSpec.scala",
-        "RangeReducerSpec.scala",
-        "FpuBusySpec.scala",
-        "TestPlugins.scala",
-        "FpOpcodeSpec.scala",
-        "FpuOpcodeSpec.scala"
-        ,"TransputerBarebonesSpec.scala"
-      )
+      val keep =
+        if (generator.value == Generator.BareBones)
+          Seq(
+            "BareBonesSpec.scala"
+          )
+        else
+          Seq(
+            "InitTransputerSpec.scala",
+            "Real32ToReal64Spec.scala",
+            "FpuVCUSpec.scala",
+            "FpuPluginSpec.scala",
+            "FpuAdderSpec.scala",
+            "DivRootSpec.scala",
+            "RangeReducerSpec.scala",
+            "FpuBusySpec.scala",
+            "TestPlugins.scala",
+            "FpOpcodeSpec.scala",
+            "FpuOpcodeSpec.scala",
+            "TransputerBarebonesSpec.scala",
+            "BareBonesSpec.scala"
+          )
       keep.flatMap(p => (srcDir ** p).get)
     },
     libraryDependencies ++=
@@ -140,7 +155,11 @@ lazy val transputer = (project in file("."))
 addCommandAlias("coreVerilog", ";clean; runMain transputer.TransputerCoreVerilog")
 addCommandAlias(
   "bareBones",
-  ";set generator := Generator.BareBones; clean; runMain transputer.Generate"
+  ";set GeneratorKeys.generator := Generator.BareBones; clean; runMain transputer.Generate"
+)
+addCommandAlias(
+  "bareBonesTest",
+  ";set GeneratorKeys.generator := Generator.BareBones; clean; test"
 )
 
 // --- 5 ▪ FPGA synthesis helpers ---------------------------------------

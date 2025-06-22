@@ -132,6 +132,13 @@ sbt "runMain transputer.Generate --word-width 32 --link-count 4 --fpu true"
 --word-width    CPU data width in bits
 --link-count    Number of communication links
 --fpu           Enable or disable the floating-point unit (Generate.scala flag)
+
+# Minimal compile
+sbt bareBonesTest              # compile & test the BareBones core
+sbt bareBones                  # emit Verilog for the minimal core
+# bareBonesTest relies on TestPlugins.scala to stub some services
+# when the real plugins are excluded. Update these dummies when
+# new services are added.
 ```
 
 ---

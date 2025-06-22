@@ -26,6 +26,11 @@ Guide for OpenAI Codex to assist development of the Transputer project, a Spinal
 sbt scalafmtAll                      # Format
 sbt test                             # Test
 sbt "runMain transputer.Generate"  # Generate Verilog
+sbt bareBonesTest                    # Minimal compile & unit test
+sbt bareBones                        # Minimal Verilog generation
+# bareBonesTest compiles TestPlugins.scala which provides dummy services for
+# the minimal build. Extend those dummies whenever new plugins require
+# additional services.
 ```
 
 ## Coding Rules
