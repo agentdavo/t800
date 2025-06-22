@@ -10,29 +10,6 @@ import transputer.plugins.timers.TimerPlugin
 import transputer.plugins.grouper.GrouperPlugin
 
 class HelloWorldSpec extends AnyFunSuite {
-  // Minimal memory service for ROM/RAM access
-  trait MemAccessService {
-    def rom: Mem[UInt]
-    def ram: Mem[UInt]
-  }
-
-  // Simple on-chip memory plugin used by this test
-  class MemoryPlugin(romInit: Seq[BigInt] = Seq()) extends FiberPlugin {
-    private var _rom: Mem[UInt] = null
-    private var _ram: Mem[UInt] = null
-    during setup new Area {
-      _rom = Mem(UInt(Global.WORD_BITS bits), Global.RomWords)
-      for ((v, i) <- romInit.zipWithIndex if i < _rom.wordCount) {
-        _rom(i) init v
-      }
-      _ram = Mem(UInt(Global.WORD_BITS bits), Global.RamWords)
-      addService(new MemAccessService {
-        override def rom: Mem[UInt] = _rom
-        override def ram: Mem[UInt] = _ram
-      })
-    }
-    during build new Area {}
-  }
 
   // Simple link plugin exposing ChannelPinsService
   class ChannelPlugin extends FiberPlugin {
