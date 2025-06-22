@@ -144,8 +144,10 @@ sbt bareBones                  # emit Verilog for the minimal core
 ### Boot ROM example
 
 The repository includes a small ROM program that prints `hello world` using the
-link protocol. The compiled image lives in `bootrom.hex`. Generate a standalone
-design with:
+link protocol. The compiled image lives in `bootrom.hex`. `BootRomDesign` now
+fetches instructions via the `FetchPlugin`, connecting the ROM through a
+`BmbDownSizerBridge` that reduces the 128‑bit system bus to a 64‑bit fetch
+path. Generate a standalone design with:
 
 ```bash
 sbt "runMain transputer.BootRomVerilog"
