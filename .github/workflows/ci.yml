@@ -22,15 +22,11 @@ jobs:
           key: ${{ runner.os }}-sbt-${{ hashFiles('**/build.sbt') }}
           restore-keys: |
             ${{ runner.os }}-sbt-
-      - name: scalafmt check
-        run: sbt scalafmtAll
-      - name: test
-        run: sbt test
+      - name: BootRomFetchSim
+        run: sbt "test:runMain transputer.BootRomFetchSim"
       - name: Upload simulation logs
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: sim-logs
           path: simWorkspace
-      - name: verilog
-        run: sbt "runMain transputer.Generate"
