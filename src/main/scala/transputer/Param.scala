@@ -28,12 +28,10 @@ case class Param(
       wordBits = wordWidth,
       linkCount = linkCount
     )
-    if (enableFpu)
-      plugins += new transputer.plugins.fpu.FpuPlugin
     plugins += new transputer.plugins.pipeline.PipelinePlugin
     plugins += new transputer.plugins.registers.RegFilePlugin
-    plugins += new transputer.plugins.mmu.MemoryManagementPlugin
-    plugins += new transputer.plugins.cache.MainCachePlugin
-    plugins += new transputer.plugins.cache.WorkspaceCachePlugin
+    plugins += new transputer.plugins.execute.DummySecondaryInstrPlugin
+    plugins += new transputer.plugins.fetch.FetchPlugin
+    plugins += new transputer.plugins.pipeline.PipelineBuilderPlugin
   }
 }

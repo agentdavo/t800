@@ -15,7 +15,6 @@ case class Param() {
 
     plugins += new transputer.plugins.pipeline.PipelinePlugin
     plugins += new transputer.plugins.registers.RegFilePlugin
-    plugins += new transputer.plugins.fetch.DummyInstrFetchPlugin
     plugins += new transputer.plugins.fetch.FetchPlugin
     plugins += new transputer.plugins.pipeline.PipelineBuilderPlugin
     plugins += new transputer.plugins.grouper.GrouperPlugin
