@@ -18,10 +18,12 @@ class FetchPlugin extends FiberPlugin {
     cmdReg.setIdle()
     rspReg = Flow(Bits(64 bits))
     rspReg.setIdle()
-    addService(new InstrFetchService {
+    val service = new InstrFetchService {
       override def cmd: Flow[MemReadCmd] = cmdReg
       override def rsp: Flow[Bits] = rspReg
-    })
+    }
+    addService(service)
+    host.addService(service)
   }
 
   during build new Area {}

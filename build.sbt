@@ -122,7 +122,8 @@ lazy val transputer = (project in file("."))
       val keep =
         if (generator.value == Generator.BareBones)
           Seq(
-            "BareBonesSpec.scala"
+            "BareBonesSpec.scala",
+            "BootRomFetchSim.scala"
           )
         else
           Seq(
@@ -138,7 +139,8 @@ lazy val transputer = (project in file("."))
             "FpOpcodeSpec.scala",
             "FpuOpcodeSpec.scala",
             "TransputerBarebonesSpec.scala",
-            "BareBonesSpec.scala"
+            "BareBonesSpec.scala",
+            "BootRomFetchSim.scala"
           )
       keep.flatMap(p => (srcDir ** p).get)
     },
@@ -146,7 +148,8 @@ lazy val transputer = (project in file("."))
       Seq(
         "org.scalatest" %% "scalatest" % "3.2.17" % Test,
         "com.github.scopt" %% "scopt" % "4.1.0"
-      ) ++ (if (sourceBuild && !usePublishedPath) Nil else Seq(spinalCoreDep, spinalLibDep, spinalPlugDep)),
+      ) ++ (if (sourceBuild && !usePublishedPath) Nil
+            else Seq(spinalCoreDep, spinalLibDep, spinalPlugDep)),
     scalacOptions ++= Seq("-language:reflectiveCalls"),
     scalacOptions ++= Def.taskDyn {
       if (sourceBuild && !usePublishedPath) {
@@ -182,7 +185,8 @@ synth := {
   val top = baseDir / "gen" / "src" / "verilog" / "Transputer.v"
   val lpf = baseDir / "gen" / "constraints" / "ecp5.lpf"
   val script = baseDir / "gen" / "scripts" / "synth.tcl"
-  val cmd = Seq("tclsh", script.getAbsolutePath, top.getAbsolutePath, lpf.getAbsolutePath, "LFE5U-45F")
+  val cmd =
+    Seq("tclsh", script.getAbsolutePath, top.getAbsolutePath, lpf.getAbsolutePath, "LFE5U-45F")
   streams.value.log.info(cmd.mkString(" "))
   cmd.!
 }
