@@ -100,6 +100,8 @@ object FpOp extends SpinalEnum(binarySequential) {
       is(Opcode.SecondaryOpcode.FPORDERED) { op := FpOp.Comparison.FPORDERED }
       is(Opcode.SecondaryOpcode.FPNAN) { op := FpOp.Comparison.FPNAN }
       is(Opcode.SecondaryOpcode.FPNOTFINITE) { op := FpOp.Comparison.FPNOTFINITE }
+      is(Opcode.SecondaryOpcode.FPCHKI32) { op := FpOp.Comparison.FPCHKI32 }
+      is(Opcode.SecondaryOpcode.FPCHKI64) { op := FpOp.Comparison.FPCHKI64 }
 
       // Conversion
       is(Opcode.SecondaryOpcode.FPR32TOR64) { op := FpOp.Conversion.FPR32TOR64 }

@@ -7,9 +7,9 @@ import spinal.lib.misc.plugin.{PluginHost, FiberPlugin, Hostable}
 import spinal.lib.bus.bmb.{Bmb, BmbParameter}
 import transputer.plugins.transputer.TransputerPlugin
 import transputer.plugins.pipeline.{PipelinePlugin, PipelineBuilderPlugin}
-import transputer.plugins.registers.RegFilePlugin
+import transputer.plugins.regstack.RegStackPlugin
 import transputer.plugins.fetch.FetchPlugin
-import transputer.plugins.execute.DummySecondaryInstrPlugin
+// import transputer.plugins.execute.DummySecondaryInstrPlugin
 import transputer.plugins.SystemBusService
 
 object Transputer {
@@ -29,16 +29,23 @@ object Transputer {
   /** Standard plugin stack for Transputer, aligned with T9000 architecture. */
   def defaultPlugins(): Seq[FiberPlugin] = Param().plugins()
 
-  /** Minimal plugin set used by unit tests. */
+  /** Minimal plugin set used by unit tests. Uses real implementations to test the T9000-inspired
+    * pipeline flow.
+    */
   def unitPlugins(): Seq[FiberPlugin] =
     Seq(
       new TransputerPlugin,
-      new RegFilePlugin,
+      new RegStackPlugin,
       new PipelinePlugin,
-      new DummySecondaryInstrPlugin,
-      new FetchPlugin,
-      new transputer.plugins.grouper.DummyGrouperPlugin,
-      new transputer.plugins.decode.DummyPrimaryInstrPlugin,
+      new transputer.plugins.bus.SystemBusPlugin, // Bus arbitration
+      // T9000-inspired instruction processing pipeline
+      new FetchPlugin, // systemBus -> FetchPlugin
+      new transputer.plugins.grouper.InstrGrouperPlugin, // FetchPlugin -> GrouperPlugin
+      // T9000 three-register stack is now part of RegStackPlugin above
+      // new transputer.plugins.timers.TimerPlugin,                   // T9000 dual timer system
+      // new transputer.plugins.schedule.SchedulerPlugin,             // T9000 process scheduler
+      // new transputer.plugins.decode.DummyPrimaryInstrPlugin,       // GrouperPlugin -> PrimaryInstrPlugin (dummy for now)
+      // new DummySecondaryInstrPlugin,    // PrimaryInstrPlugin -> SecondaryInstrPlugin (dummy for now)
       new PipelineBuilderPlugin
     )
 
@@ -71,7 +78,8 @@ object TransputerCoreVerilog {
   def main(args: Array[String]): Unit = {
     // Configure Database for variant support
     val db = Transputer.defaultDatabase()
-    val param = Param()
+
+    // Parse command line arguments and configure database
     args.find(_.startsWith("--double-precision")).foreach { _ =>
       db(Global.FPU_PRECISION) = 64
     }
@@ -82,9 +90,26 @@ object TransputerCoreVerilog {
       db(Global.RAM_WORDS) = arg.split("=")(1).toInt
     }
 
-    // Generate Verilog with configured plugins
-    val core = Database(db).on(Transputer(param.plugins()))
-    val report = SpinalVerilog(core)
+    println("Generating Transputer Core...")
+    println(s"Configuration:")
+    println(
+      s"  FPU Precision: ${if (db.storageExists(Global.FPU_PRECISION)) db(Global.FPU_PRECISION)
+        else "32"} bits"
+    )
+    println(
+      s"  Link Count: ${if (db.storageExists(Global.LINK_COUNT)) db(Global.LINK_COUNT) else "4"}"
+    )
+    println(
+      s"  RAM Words: ${if (db.storageExists(Global.RAM_WORDS)) db(Global.RAM_WORDS) else "65536"}"
+    )
+
+    // Generate Verilog with database context - create plugins inside SpinalHDL context
+    val report = SpinalVerilog {
+      Database(db).on {
+        val param = Param() // Create param inside SpinalHDL context
+        Transputer(param.plugins()) // Now plugins are created in proper context
+      }
+    }
     println(s"Verilog generated: ${report.toplevelName}")
   }
 }

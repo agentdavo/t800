@@ -9,7 +9,30 @@ import transputer.Global
 // This avoids duplicate type names when both files are included in the build.
 import transputer.plugins.fpu.{FpCmd, FpOp}
 
+/** Service interface for T9000 FPU with hybrid signal-method architecture.
+  *
+  * This interface uses a hybrid approach:
+  *   - Direct signal access for performance-critical FPU register operations
+  *   - Method interfaces for complex FPU operations and pipeline control
+  *   - Proper SpinalHDL signal ownership patterns
+  */
 trait FpuService {
+  // ========================================
+  // DIRECT SIGNAL ACCESS (for performance-critical operations)
+  // ========================================
+  // These are mutable signals owned by the FpuPlugin
+  // They can be read directly and assigned from other plugins
+  def FPA: Bits // Direct access to FPAreg (FP stack top)
+  def FPB: Bits // Direct access to FPBreg (FP stack second)
+  def FPC: Bits // Direct access to FPCreg (FP stack third)
+  def FPStatus: Bits // Direct access to FPstatusReg
+  def roundingMode: Bits // Direct access to current rounding mode
+  def errorFlags: Bits // Direct access to IEEE 754 error flags
+  def isBusy: Bool // Direct access to FPU busy status
+
+  // ========================================
+  // METHOD INTERFACES (for complex operations with pipeline control)
+  // ========================================
   def pipe: Flow[FpCmd]
   def rsp: Flow[UInt]
   def send(op: FpOp.C, a: UInt, b: UInt): Unit = {
@@ -20,6 +43,10 @@ trait FpuService {
   }
   def resultValid: Bool = rsp.valid
   def result: UInt = rsp.payload
+  def setRoundingMode(mode: Bits): Unit
+
+  // Signal update triggers (called when direct signal assignment occurs)
+  def updateRegisters(): Unit // Sync signals back to register file
 }
 
 trait FpuOpsService {

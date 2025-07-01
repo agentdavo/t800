@@ -5,7 +5,16 @@ import spinal.lib.misc.database.Database
 import spinal.lib.{AnalysisUtils, LatencyAnalysis}
 import scopt.OParser
 
-/** Verilog generation utility for Transputer with command-line configuration. */
+/** Verilog generation utility for Transputer with command-line configuration.
+  *
+  * DEPRECATION NOTICE: This generator is deprecated in favor of T9000Generate which provides a more
+  * comprehensive T9000-compliant implementation with enhanced features including cache hierarchy,
+  * MMU, VCP, and analysis plugins.
+  *
+  * Please use: sbt "runMain transputer.T9000Generate [options]"
+  *
+  * This generator will be removed in a future release.
+  */
 object Generate {
   def main(args: Array[String]): Unit = {
     val builder = OParser.builder[Param]
@@ -45,9 +54,10 @@ object Generate {
       defaultConfigForClockDomains = ClockDomainConfig(RISING, SYNC, HIGH)
     )
     val report = spinalConfig.generateVerilog {
-      val plugins = param.plugins()
-      val core = Transputer(plugins)
-      core
+      Database(db).on {
+        val plugins = param.plugins() // Create plugins inside SpinalHDL context
+        Transputer(plugins)
+      }
     }
     analysis.report(report)
 

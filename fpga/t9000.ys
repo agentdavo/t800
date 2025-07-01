@@ -1,0 +1,23 @@
+# Yosys synthesis script for T9000 FPGA
+# Target: ECP5-25K FPGA
+
+# Read Verilog files
+read_verilog T9000_FPGA.v
+
+# Set top module
+hierarchy -top T9000_FPGA
+
+# Show design stats before synthesis
+stat
+
+# High-level synthesis
+proc; opt; fsm; opt; memory; opt
+
+# Technology mapping for ECP5
+synth_ecp5 -top T9000_FPGA -json t9000.json
+
+# Show final stats
+stat
+
+# Report
+tee -o synthesis_report.txt stat

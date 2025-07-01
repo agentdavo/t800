@@ -153,6 +153,7 @@ object Opcode {
 
       // Error and Trap Handling
       def TESTERR = B(0x29, 8 bits) // Test error flag
+      def TESTPRANAL = B(0x2a, 8 bits) // Test processor analyzing
       def STOPERR = B(0x55, 8 bits) // Stop on error
       def CLRHALTERR = B(0x57, 8 bits) // Clear halt-on-error
       def SETHALTERR = B(0x58, 8 bits) // Set halt-on-error
@@ -163,7 +164,7 @@ object Opcode {
       // Floating-Point Operations
       def FMUL = B(0x72, 8 bits) // Fractional multiply
       def FPLDNLDBI = B(0x82, 8 bits) // FP load non-local indexed double
-      def FPSTNLDB = B(0x84, 8 bits) // FP store non-local double
+      // def FPSTNLDB = B(0x84, 8 bits) // FP store non-local double - conflicts with T9000 LDPRODID
       def FPLDNLSNI = B(0x86, 8 bits) // FP load non-local indexed single
       def FPADD = B(0x87, 8 bits) // FP add
       def FPSTNLSN = B(0x88, 8 bits) // FP store non-local single
@@ -207,6 +208,8 @@ object Opcode {
       def FPEXPDEC32 = B(0xd9, 8 bits) // FP divide by 2^32
       def FPEXPINC32 = B(0xda, 8 bits) // FP multiply by 2^32
       def FPABS = B(0xdb, 8 bits) // FP absolute
+      def FPCHKI32 = B(0xdc, 8 bits) // FP check in range of INT32
+      def FPCHKI64 = B(0xdd, 8 bits) // FP check in range of INT64
 
       // Bit Operations
       def CRCWORD = B(0x74, 8 bits) // Calculate CRC on word
@@ -297,7 +300,7 @@ object Opcode {
       def FDCA = B(0x30, 8 bits) // Flush dirty cache address (-0x30)
 
       // Device Operations
-      def DEVMOVE = B(0x2c, 8 bits) // Device move (-0x2C)
+      // def DEVMOVE = B(0x2c, 8 bits) // Device move (-0x2C) - conflicts with DIV
 
       // Miscellaneous
       def STMOVE2DINIT = B(0x20, 8 bits) // Store move2dinit data (-0x20)
@@ -325,7 +328,7 @@ object Opcode {
     RESETCH, CSUB, STOPP, LADD, STLB, STHF, NORM, LDIV, LDPI, STLF, XDBLE, LDPRI, REM, RET, LEND, LDTIMER,
     TESTERR, TIN, DIV, DIST, DISC, DISS, LMUL, NOT, XOR, BCNT, LSHR, LSHL, LSUM, LSUB, RUNP, XWORD, SB, GAJW,
     SAVEL, SAVEH, WCNT, SHR, SHL, MINT, ALT, ALTWT, ALTEND, AND, ENBT, ENBC, ENBS, MOVE, OR, CSNGL, CCNT,
-    TALT, LDIFF, STHB, TALTWT, SUM, MUL, STTIMER, STOPERR, CWORD, CLRHALTERR, SETHALTERR, TESTHALTERR, DUP,
+    TALT, LDIFF, STHB, TALTWT, SUM, MUL, STTIMER, STOPERR, CWORD, CLRHALTERR, SETHALTERR, TESTHALTERR, TESTPRANAL, DUP,
     MOVE2DINIT, MOVE2DALL, MOVE2DNONZERO, MOVE2DZERO, GTU, FMUL, CRCWORD, CRCBYTE, BITCNT, BITREVWORD,
     BITREVNBITS, POP, TIMERDISABLEH, TIMERDISABLEL, TIMERENABLEH, TIMERENABLEL, LDMEMSTARTVAL, WSUBDB,
     FPLDNLDBI, FPSTNLDB, FPLDNLSNI, FPADD, FPSTNLSN, FPSUB, FPLDNLDB, FPMUL, FPDIV, FPRANGE, FPLDNLSN,
@@ -333,7 +336,7 @@ object Opcode {
     FPSTNLI32, FPLDZEROSN, FPLDZERODB, FPINT, FPDUP, FPREV, FPLDNLADDDB, FPLDNLMULDB, FPLDNLADDSN,
     FPLDNLMULSN, LDFLAGS, STFLAGS, XBWORD, LBX, CB, CBU, INSPHDR, READBFR, LDCONF, STCONF, LDCNT, SSUB,
     LDTH, LDCHSTATUS, INTDIS, INTENB, CIR, SS, CHANTYPE, CIRU, FPREM, FPRN, FPDIVBY2, FPMULBY2, FPSQRT,
-    FPRP, FPRM, FPRZ, FPR32TOR64, FPR64TOR32, FPEXPDEC32, FPEXPINC32, FPABS, DEVLB, DEVSB, DEVLS, DEVSS,
+    FPRP, FPRM, FPRZ, FPR32TOR64, FPR64TOR32, FPEXPDEC32, FPEXPINC32, FPABS, FPCHKI32, FPCHKI64, DEVLB, DEVSB, DEVLS, DEVSS,
     DEVLW, DEVSW, XSWORD, LSX, CS, CSU,
 	
     // Negative Prefix (Table B.4)
@@ -381,6 +384,7 @@ object Opcode {
       LEND -> 0x21,
       LDTIMER -> 0x22,
       TESTERR -> 0x29,
+      TESTPRANAL -> 0x2a,
       TIN -> 0x2b,
       DIV -> 0x2c,
       DIST -> 0x2e,
@@ -511,6 +515,8 @@ object Opcode {
       FPEXPDEC32 -> 0xd9,
       FPEXPINC32 -> 0xda,
       FPABS -> 0xdb,
+      FPCHKI32 -> 0xdc,
+      FPCHKI64 -> 0xdd,
       DEVLB -> 0xf0,
       DEVSB -> 0xf1,
       DEVLS -> 0xf2,
@@ -522,48 +528,50 @@ object Opcode {
       CS -> 0xfa,
       CSU -> 0xfb,
 
-      // Negative Prefix (Table B.4)
-      FPSTALL -> 0x01,
-      FPLDALL -> 0x02,
-      STSHADOW -> 0x03,
-      LDSHADOW -> 0x04,
-      TRET -> 0x05,
-      GOPROT -> 0x06,
-      SELTH -> 0x07,
-      SYSCALL -> 0x08,
-      WAIT -> 0x0b,
-      SIGNAL -> 0x0c,
-      TIMESLICE -> 0x0d,
-      INSERTQUEUE -> 0x0e,
-      SWAPTIMER -> 0x0f,
-      SWAPQUEUE -> 0x10,
-      STOPCH -> 0x12,
-      VOUT -> 0x13,
-      VIN -> 0x14,
-      SWAPBFR -> 0x17,
-      SETHDR -> 0x18,
-      SETCHMODE -> 0x19,
-      INITVLCB -> 0x1a,
-      WRITEHDR -> 0x1b,
-      READHDR -> 0x1c,
-      DISG -> 0x1d,
-      ENBG -> 0x1e,
-      GRANT -> 0x1f,
-      STMOVE2DINIT -> 0x20,
-      CAUSEERROR -> 0x21,
-      UNMKRC -> 0x23,
-      MKRC -> 0x24,
-      IRDSQ -> 0x25,
-      ERDSQ -> 0x26,
-      STRESPTR -> 0x27,
-      LDRESPTR -> 0x28,
-      DEVMOVE -> 0x2c,
-      ICL -> 0x2d,
-      FDCL -> 0x2e,
-      ICA -> 0x2f,
-      FDCA -> 0x30,
-      NOP -> 0x40,
-      LDPRODID -> 0x84
+      // Negative Prefix (Table B.4) - T9000 negative function codes use high enum values
+      FPSTALL -> 0x101, // Hardware: -0x01
+      FPLDALL -> 0x102, // Hardware: -0x02
+      STSHADOW -> 0x103, // Hardware: -0x03
+      LDSHADOW -> 0x104, // Hardware: -0x04
+      TRET -> 0x105, // Hardware: -0x05
+      GOPROT -> 0x106, // Hardware: -0x06
+      SELTH -> 0x107, // Hardware: -0x07
+      SYSCALL -> 0x108, // Hardware: -0x08
+      WAIT -> 0x10b, // Hardware: -0x0B
+      SIGNAL -> 0x10c, // Hardware: -0x0C
+      TIMESLICE -> 0x10d, // Hardware: -0x0D
+      INSERTQUEUE -> 0x10e, // Hardware: -0x0E
+      SWAPTIMER -> 0x10f, // Hardware: -0x0F
+      SWAPQUEUE -> 0x110, // Hardware: -0x10
+      STOPCH -> 0x112, // Hardware: -0x12
+      VOUT -> 0x113, // Hardware: -0x13
+      VIN -> 0x114, // Hardware: -0x14
+      // T9000 negative function codes - using high values to avoid conflicts
+      SWAPBFR -> 0x117, // Hardware: -0x17
+      SETHDR -> 0x118, // Hardware: -0x18
+      SETCHMODE -> 0x119, // Hardware: -0x19
+      INITVLCB -> 0x11a, // Hardware: -0x1A
+      WRITEHDR -> 0x11b, // Hardware: -0x1B
+      READHDR -> 0x11c, // Hardware: -0x1C
+      DISG -> 0x11d, // Hardware: -0x1D
+      ENBG -> 0x11e, // Hardware: -0x1E
+      GRANT -> 0x11f, // Hardware: -0x1F
+      // More T9000 negative function codes
+      STMOVE2DINIT -> 0x120, // Hardware: -0x20
+      CAUSEERROR -> 0x121, // Hardware: -0x21
+      UNMKRC -> 0x123, // Hardware: -0x23
+      MKRC -> 0x124, // Hardware: -0x24
+      IRDSQ -> 0x125, // Hardware: -0x25
+      ERDSQ -> 0x126, // Hardware: -0x26
+      STRESPTR -> 0x127, // Hardware: -0x27
+      LDRESPTR -> 0x128, // Hardware: -0x28
+      DEVMOVE -> 0x12c, // Hardware: -0x2C
+      ICL -> 0x12d, // Hardware: -0x2D
+      FDCL -> 0x12e, // Hardware: -0x2E
+      ICA -> 0x12f, // Hardware: -0x2F  
+      FDCA -> 0x130, // Hardware: -0x30
+      NOP -> 0x140, // Hardware: -0x40
+      LDPRODID -> 0x184 // Hardware: -0x84
     )
   }
 }

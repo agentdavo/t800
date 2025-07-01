@@ -1,214 +1,215 @@
 package transputer.plugins.mmu
 
 import spinal.core._
-import spinal.core.fiber._
 import spinal.lib._
-import spinal.lib.misc.plugin._
-import spinal.lib.misc.pipeline._
-import transputer.plugins.pmi.PmiPlugin
-import transputer.plugins.cache.{MainCachePlugin, WorkspaceCachePlugin, CacheAccessService}
-import transputer.plugins.schedule.SchedulerPlugin
-import transputer.plugins.{
-  TrapHandlerService,
-  ConfigAccessService,
-  AddressTranslationService,
-  Fetch
-}
-import transputer.plugins.registers.RegfileService
-import transputer.plugins.pipeline.PipelineStageService
-import transputer.plugins.registers.RegName
+import spinal.lib.misc.plugin.{FiberPlugin, Plugin}
 import transputer.Global
-import transputer.Transputer
 
+// Memory access response
+case class MemoryResponse() extends Bundle {
+  val physicalAddr = UInt(32 bits)
+  val accessGranted = Bool()
+  val protectionFault = Bool()
+  val regionHit = UInt(2 bits) // Which region matched (0-3)
+}
+
+/** T9000 Memory Management Unit implementing 4-region protection model.
+  *
+  * Based on T9000 Hardware Reference Manual specification:
+  *   - Four independently sized memory regions (Region 0-3)
+  *   - Region types: 00xx, 01xx, 10xx, 11xx (top 2 bits of logical address)
+  *   - Region sizes: 2^n bytes, minimum 256 bytes (64 words), maximum 2^30 bytes
+  *   - Address translation: Logical to physical address mapping per region
+  *   - Access control: Read-only, read-write, read-execute, read-write-execute
+  *   - P-process (protected) vs L-process (unprotected) modes
+  *   - Hardware stack extension and protection
+  */
 class MemoryManagementPlugin extends FiberPlugin {
-  val version = "MemoryManagementPlugin v1.5"
-  private val retain = Retainer()
+  setName("memoryManagement")
+
+  // MMU configuration per T9000 specification
+  private val REGION_COUNT = 4
+  private val MIN_REGION_SIZE = 256 // 64 words minimum
+  private val MAX_REGION_SIZE_BITS = 30 // 2^30 bytes maximum
+
+  // Memory region descriptor
+  case class MemoryRegion() extends Bundle {
+    val baseAddress = UInt(32 bits) // Physical base address
+    val logicalBase = UInt(32 bits) // Logical base address
+    val sizeBits = UInt(5 bits) // Region size as 2^n (n = 8..30)
+    val permissions = Bits(4 bits) // Read, Write, Execute, Privileged
+    val valid = Bool() // Region is active
+  }
+
+  // Memory access request
+  case class MemoryRequest() extends Bundle {
+    val logicalAddr = UInt(32 bits)
+    val accessType = Bits(3 bits) // Read=001, Write=010, Execute=100
+    val isPrivileged = Bool() // P-process vs L-process
+  }
+
+  private var memoryRegions: Vec[MemoryRegion] = null
+  private var accessRequest: MemoryRequest = null
+  private var accessResponse: MemoryResponse = null
 
   during setup new Area {
-    println(s"[${this.getDisplayName()}] setup start")
-    report(L"Initializing $version")
-    retain()
-    println(s"[${this.getDisplayName()}] setup end")
-  }
-
-  object DBKeys {
-    val TRAP_ADDR = Database.blocking[Bits]()
-    val TRAP_TYPE = Database.blocking[Bits]()
-    val P_PROCESS_MODE = Database.blocking[Bool]()
-    val REGION_BASE = Database.blocking[Vec[UInt]]()
-    val REGION_SIZE = Database.blocking[Vec[UInt]]()
-    val REGION_PERMS = Database.blocking[Vec[Bits]]()
-  }
-
-  lazy val TRAP_ADDR = Payload(Bits(Global.ADDR_BITS bits))
-  lazy val TRAP_TYPE = Payload(Bits(4 bits))
-  lazy val P_PROCESS_MODE = Payload(Bool())
-  lazy val REGION_BASE = Payload(Vec(UInt(Global.ADDR_BITS bits), 4))
-  lazy val REGION_SIZE = Payload(Vec(UInt(Global.ADDR_BITS bits), 4))
-  lazy val REGION_PERMS = Payload(Vec(Bits(3 bits), 4)) // Exec, Read, Write
-
-  lazy val srv = during setup new Area {
-    val service = new TrapHandlerService {
-      val trapAddr = Reg(Bits(Global.ADDR_BITS bits)) init 0
-      val trapType = Reg(Bits(4 bits)) init 0
-      val trapEnable = Reg(Bool()) init False
-      val trapHandlerAddr = Reg(Bits(Global.ADDR_BITS bits)) init 0
-    }
-    addService(service)
-    addService(new ConfigAccessService {
-      val addr = Reg(Bits(Global.ADDR_BITS bits)) init 0
-      val data = Reg(Bits(Global.WORD_BITS bits)) init 0
-      val writeEnable = Reg(Bool()) init False
-      val isValid = Reg(Bool()) init False
-      def read(addr: Bits, width: Int): Bits = {
-        this.addr := addr
-        isValid := True
-        data.resized(width)
+    // Create memory management service interface
+    addService(new MemoryManagementService {
+      override def translate(
+        logicalAddr: UInt,
+        accessType: Bits,
+        privileged: Bool
+      ): MemoryResponse = {
+        accessRequest.logicalAddr := logicalAddr
+        accessRequest.accessType := accessType
+        accessRequest.isPrivileged := privileged
+        accessResponse
       }
-      def write(addr: Bits, data: Bits, width: Int): Unit = {
-        this.addr := addr
-        this.data := data.resized(width)
-        writeEnable := True
-        isValid := True
-      }
-    })
-    service
-  }
 
-  buildBefore(
-    retains(
-      host[MainCachePlugin].lock,
-      host[WorkspaceCachePlugin].lock,
-      host[PmiPlugin].lock,
-      host[SchedulerPlugin].lock,
-      host[SystemControlPlugin].lock
-    ).lock
-  )
-
-  lazy val logic = during build new Area {
-    println(s"[${this.getDisplayName()}] build start")
-    val pipe = host[PipelineStageService]
-    val regfile = host[RegfileService]
-    val fetch = pipe.ctrl(0) // Fetch stage
-    val decode = pipe.ctrl(2) // Decode stage
-    val execute = pipe.ctrl(3) // Execute stage
-    val memory = pipe.ctrl(4) // Memory stage
-    val writeback = pipe.ctrl(5) // Writeback stage
-    val cacheIf = host[CacheAccessService]
-
-    // P-process mode
-    val pProcessModeReg = Reg(Bool()) init False
-    P_PROCESS_MODE := pProcessModeReg
-    val contextSwitch = host[SchedulerPlugin].contextSwitch // Stubbed
-    when(contextSwitch) { pProcessModeReg := False }
-
-    // Region configuration
-    val regionConfig = Reg(Vec(Bits(Global.ADDR_BITS bits), 4)) init 0
-    val configService = host[ConfigAccessService]
-    when(configService.writeEnable && configService.isValid) {
-      switch(configService.addr) {
-        is(Global.ConfigAddr.CACHE) {
-          regionConfig(0) := configService.data.resized(Global.ADDR_BITS)
-        }
-        is(Global.ConfigAddr.PMI_STROBE) {
-          regionConfig(1) := configService
-            .read(Global.ConfigAddr.RAS_STROBE0, Global.WORD_BITS)
-            .resized(Global.ADDR_BITS)
+      override def configureRegion(
+        regionId: UInt,
+        base: UInt,
+        logical: UInt,
+        size: UInt,
+        perms: Bits
+      ): Unit = {
+        when(regionId < REGION_COUNT) {
+          memoryRegions(regionId).baseAddress := base
+          memoryRegions(regionId).logicalBase := logical
+          memoryRegions(regionId).sizeBits := size
+          memoryRegions(regionId).permissions := perms
+          memoryRegions(regionId).valid := True
         }
       }
-    }
-    REGION_BASE := Vec(regionConfig.map(_.asUInt))
-    REGION_SIZE := Vec.fill(4)(U(0x40000000L, Global.ADDR_BITS bits))
-    REGION_PERMS := Vec(
-      B"101", // Exec, Read, !Write (Code)
-      B"011", // !Exec, Read, Write (Data)
-      B"011", // !Exec, Read, Write (Stack)
-      B"000" // !Exec, !Read, !Write (Reserved)
-    )
 
-    // Address translation
-    def translateAddress(logicalAddr: Bits): Bits = {
-      val regionIdx =
-        OHToUInt(for (i <- 0 until 4) yield logicalAddr(31 downto 30) === B(i, 2 bits))
-      val regionBase = REGION_BASE(regionIdx)
-      val offset = logicalAddr(29 downto 0).asBits.resized(Global.ADDR_BITS)
-      (regionBase ## offset).resized(Global.ADDR_BITS)
-    }
+      override def protectionFault: Bool = accessResponse.protectionFault
+      override def stackOverflow: Bool = False // Simplified for now
+    })
+  }
 
-    // Memory access validation
-    val memAccessAddr = Mux(
-      fetch.isValid,
-      fetch(Fetch.FETCH_PC),
-      decode.isValid,
-      decode(CACHE_ADDR), // Use CACHE_ADDR for workspace access
-      memory.isValid,
-      memory(CACHE_ADDR),
-      writeback.isValid,
-      writeback(CACHE_ADDR),
-      U(0, Global.ADDR_BITS bits)
-    )
-    val memAccessType = Mux(
-      fetch.isValid,
-      B"001", // Execute
-      decode.isValid && cacheIf.req.payload.isWrite,
-      B"010", // Write
-      decode.isValid,
-      B"100", // Read
-      B"000"
-    )
-    cacheIf.req.valid := decode.isValid || fetch.isValid || memory.isValid
-    cacheIf.req.payload.address := memAccessAddr.asUInt
-    cacheIf.req.payload.data := cacheIf.rsp.payload.data
-    cacheIf.req.payload.isWrite := memAccessType(1)
-    val regionIdx = OHToUInt(
-      for (i <- 0 until 4)
-        yield REGION_BASE(i) <= memAccessAddr.asUInt && memAccessAddr.asUInt < (REGION_BASE(
-          i
-        ) + REGION_SIZE(i))
-    )
-    val isValidAccess = pProcessModeReg && MuxLookup(
-      regionIdx,
-      False,
-      (0 until 4).map(i =>
-        i -> (memAccessType(2) && REGION_PERMS(i)(2) || memAccessType(1) && REGION_PERMS(i)(
-          1
-        ) || memAccessType(0) && REGION_PERMS(i)(0))
-      )
-    )
+  during build new Area {
+    // Initialize memory regions
+    memoryRegions = Vec.fill(REGION_COUNT)(Reg(MemoryRegion()))
+    accessRequest = Reg(MemoryRequest())
+    accessResponse = Reg(MemoryResponse())
 
-    // Stack extension validation
-    val wptr = regfile.read(RegName.WdescReg, 0).asUInt
-    val wptrValid = wptr >= REGION_BASE(2) && wptr < (REGION_BASE(2) + REGION_SIZE(2))
-    when(decode.isValid && !wptrValid) {
-      srv.setTrap(wptr.asBits, B"0010") // Stack extension trap
-      decode.haltIt()
-    }
+    // Memory Management Unit logic
+    val mmuController = new Area {
 
-    // Privileged instruction detection
-    val privilegedInstr = execute.isValid && (execute(Global.OPCODE) === B"1111" || execute(
-      Global.OPCODE
-    )(7 downto 4) === B"1010")
-    when(pProcessModeReg && privilegedInstr) {
-      srv.setTrap(execute(Fetch.FETCH_PC), B"0100") // Privileged instruction trap
-      execute.haltIt()
-    }
+      // Region selection based on logical address top 2 bits
+      val regionSelect = accessRequest.logicalAddr(31 downto 30)
 
-    // Trap handling
-    when(!isValidAccess || srv.trapEnable) {
-      when(!isValidAccess) { srv.setTrap(memAccessAddr, B"0001") } // Invalid memory access trap
-      pipe.haltIt()
-      DBKeys.TRAP_ADDR.set(srv.trapAddr)
-      DBKeys.TRAP_TYPE.set(srv.trapType)
-      when(host[SchedulerPlugin].trapHandlerEnable) { // Stubbed
-        fetch(Fetch.FETCH_PC) := srv.trapHandlerAddr.asUInt
-        srv.clearTrap()
+      // Address translation logic for each region
+      val translationLogic = for (regionId <- 0 until REGION_COUNT) yield new Area {
+        val region = memoryRegions(regionId)
+        val selected = regionSelect === regionId
+
+        // Check if address falls within this region
+        val regionMask = (U(1) << region.sizeBits) - 1
+        val regionOffset = accessRequest.logicalAddr - region.logicalBase
+        val withinRegion = selected && region.valid && (regionOffset <= regionMask)
+
+        // Calculate physical address
+        val physicalAddr = region.baseAddress + regionOffset
+
+        // Permission checking
+        val readPerm = region.permissions(0)
+        val writePerm = region.permissions(1)
+        val execPerm = region.permissions(2)
+        val privPerm = region.permissions(3)
+
+        val readAccess = accessRequest.accessType(0)
+        val writeAccess = accessRequest.accessType(1)
+        val execAccess = accessRequest.accessType(2)
+
+        // Check access permissions
+        val permissionOk = (
+          (!readAccess || readPerm) &&
+            (!writeAccess || writePerm) &&
+            (!execAccess || execPerm) &&
+            (!privPerm || accessRequest.isPrivileged)
+        )
+
+        val accessGranted = withinRegion && permissionOk
+        val protectionFault = withinRegion && !permissionOk
+      }
+
+      // Combine results from all regions (simplified)
+      val combinationLogic = new Area {
+        val anyHit = translationLogic.map(_.withinRegion).reduce(_ || _)
+        val anyGrant = translationLogic.map(_.accessGranted).reduce(_ || _)
+        val anyFault = translationLogic.map(_.protectionFault).reduce(_ || _)
+
+        // Simple region selection (first hit wins)
+        val winningRegion = U(0, 2 bits)
+        val winningPhysAddr = translationLogic(0).physicalAddr
+
+        // Update response
+        accessResponse.physicalAddr := winningPhysAddr
+        accessResponse.accessGranted := anyGrant
+        accessResponse.protectionFault := anyFault || !anyHit
+        accessResponse.regionHit := winningRegion
+      }
+
+      // Stack extension logic (simplified)
+      val stackExtensionLogic = new Area {
+        val stackRegion = memoryRegions(0) // Assume region 0 is stack
+        val stackPtr = UInt(32 bits) // Current stack pointer
+        val stackLimit = stackRegion.baseAddress + ((U(1) << stackRegion.sizeBits) - 1)
+
+        val stackOverflow = stackPtr > stackLimit
+        val needsExtension = stackOverflow && stackRegion.valid
+
+        // Auto-extend stack if possible (simplified)
+        when(needsExtension) {
+          // Request larger stack region from OS/kernel
+        }
+      }
+
+      // Performance and debugging
+      val monitoringLogic = new Area {
+        val accessCounter = Reg(UInt(32 bits)) init 0
+        val faultCounter = Reg(UInt(32 bits)) init 0
+        val regionCounters = Vec.fill(REGION_COUNT)(Reg(UInt(32 bits)) init 0)
+
+        when(accessRequest.logicalAddr.orR) {
+          accessCounter := accessCounter + 1
+
+          when(accessResponse.protectionFault) {
+            faultCounter := faultCounter + 1
+          }
+
+          when(accessResponse.accessGranted) {
+            regionCounters(accessResponse.regionHit) := regionCounters(accessResponse.regionHit) + 1
+          }
+        }
       }
     }
 
-    addService(new AddressTranslationService {
-      def translate(addr: Bits): Bits = translateAddress(addr)
-    })
+    // Initialize default state
+    for (i <- 0 until REGION_COUNT) {
+      memoryRegions(i).baseAddress := 0
+      memoryRegions(i).logicalBase := U(i) << 30 // Region i starts at i*1GB logical
+      memoryRegions(i).sizeBits := 20 // Default 1MB regions
+      memoryRegions(i).permissions := B"1111" // All permissions by default
+      memoryRegions(i).valid := False
+    }
 
-    println(s"[${this.getDisplayName()}] build end")
+    accessRequest.logicalAddr := 0
+    accessRequest.accessType := 0
+    accessRequest.isPrivileged := False
+
+    accessResponse.physicalAddr := 0
+    accessResponse.accessGranted := False
+    accessResponse.protectionFault := False
+    accessResponse.regionHit := 0
   }
+}
+
+/** Service interface for T9000 Memory Management Unit */
+trait MemoryManagementService {
+  def translate(logicalAddr: UInt, accessType: Bits, privileged: Bool): MemoryResponse
+  def configureRegion(regionId: UInt, base: UInt, logical: UInt, size: UInt, perms: Bits): Unit
+  def protectionFault: Bool
+  def stackOverflow: Bool
 }

@@ -11,14 +11,14 @@ case class CoreConfig(coreFrequency: IClockDomainFrequency)
 
 object CoreConfig {
   // Provide a default configuration
-  
+
   def default: CoreConfig = {
     // Default configuration values
     val config = CoreConfig(coreFrequency = FixedFrequency(250 MHz)) // Align with T9000 target
     // Return the default configuration
     config
   }
-  
+
 }
 
 /** Default board configuration with clock source for T9000 FPU. */
@@ -37,21 +37,20 @@ class TransputerBoard(boardCfg: CoreConfig) extends Component {
       resetKind = SYNC,
       resetActiveLevel = HIGH
     )
-    val coreClockDomain = ClockDomain.internal("core", frequency = FixedFrequency(boardCfg.coreFrequency), config = globalClockConfig)
+    val coreClockDomain =
+      ClockDomain.internal("core", frequency = boardCfg.coreFrequency, config = globalClockConfig)
 
     // Connect external board clock
     coreClockDomain.clock := io.boardClk
 
     // Synchronous reset with PLL lock check
-    coreClockDomain.reset := RegNext(io.reset || (!io.boardClkLocked), init = True, clock = coreClockDomain.clock)
+    coreClockDomain.reset := RegNext(io.reset || (!io.boardClkLocked), init = True)
   }
 
   // Application-specific clocking area
   val coreArea = new ClockingArea(clkCtrl.coreClockDomain) {
     // Instantiate T9000 core with default plugins
-    val t9000Core = new Transputer(Transputer.defaultPlugins())
-    t9000Core.io.reset := clkCtrl.coreClockDomain.reset
-    t9000Core.io.clock := clkCtrl.coreClockDomain.clock
+    val t9000Core = new Transputer(Transputer.defaultDatabase())
 
     // Placeholder for future I/O expansion
   }
@@ -59,7 +58,7 @@ class TransputerBoard(boardCfg: CoreConfig) extends Component {
 
 /** Verilog generation with export to multiple folders. */
 object TransputerBoardVerilog {
-  
+
   def main(args: Array[String]): Unit = {
     val db = Transputer.defaultDatabase()
     println("[Transputer] Create the Transputer for a Generic Board")
@@ -73,5 +72,5 @@ object TransputerBoardVerilog {
       new TransputerBoard(CoreConfig.default)
     }
     println(s"Verilog generated in gen/src/verilog: ${report.toplevelName}")
-    
+  }
 }

@@ -18,6 +18,9 @@ class TransputerPlugin(
   var ramWords: Int = Global.RamWords,
   var resetIptr: Long = Global.ResetIptr
 ) extends FiberPlugin {
+  override def getDisplayName(): String = "TransputerPlugin"
+  setName("transputer")
+  
   // Define pipeline constant keys
   val FETCH_WIDTH = Database.value[Int]()
   val FETCH_BYTES = Database.value[Int]()
@@ -26,25 +29,33 @@ class TransputerPlugin(
   val logic = during build new Area {
     // Ensure early execution (no locks in minimal build)
 
-    // Helper to get Database value or default
-    def getOrElse[T](key: Element[T], default: T)(implicit db: Database): T = {
-      if (db.storageExists(key)) db.storageGet(key) else default
+    // Helper to safely set Database value only if not already set
+    def setIfEmpty[T](key: Element[T], value: T)(implicit db: Database): Unit = {
+      try {
+        // Try to get existing value first
+        val existing = key.get
+        // If we get here, value exists, don't set it
+      } catch {
+        case _: Exception =>
+          // Value doesn't exist, safe to set
+          key.set(value)
+      }
     }
 
-    // Set Database keys, prioritizing pre-set values
+    // Set Database keys only if not already configured (avoid conflicts)
     implicit val db = Database.get
-    Global.WORD_BITS.set(getOrElse(Global.WORD_BITS, wordBits))
-    Global.ADDR_BITS.set(getOrElse(Global.ADDR_BITS, addrBits))
-    Global.PC_BITS.set(getOrElse(Global.PC_BITS, addrBits))
-    Global.INSTR_BITS.set(getOrElse(Global.INSTR_BITS, 8))
-    Global.IPTR_BITS.set(getOrElse(Global.IPTR_BITS, addrBits))
-    Global.OPCODE_BITS.set(getOrElse(Global.OPCODE_BITS, 8))
-    Global.ROM_WORDS.set(getOrElse(Global.ROM_WORDS, romWords))
-    Global.RAM_WORDS.set(getOrElse(Global.RAM_WORDS, ramWords))
-    Global.LINK_COUNT.set(getOrElse(Global.LINK_COUNT, linkCount))
-    Global.FPU_PRECISION.set(getOrElse(Global.FPU_PRECISION, fpuPrecision))
-    Global.SCHED_QUEUE_DEPTH.set(getOrElse(Global.SCHED_QUEUE_DEPTH, schedQueueDepth))
-    Global.RESET_IPTR.set(getOrElse(Global.RESET_IPTR, resetIptr))
+    setIfEmpty(Global.WORD_BITS, wordBits)
+    setIfEmpty(Global.ADDR_BITS, addrBits)
+    setIfEmpty(Global.PC_BITS, addrBits)
+    setIfEmpty(Global.INSTR_BITS, 8) // Default to 8 bits, but allow override
+    setIfEmpty(Global.IPTR_BITS, addrBits)
+    setIfEmpty(Global.OPCODE_BITS, 8)
+    setIfEmpty(Global.ROM_WORDS, romWords)
+    setIfEmpty(Global.RAM_WORDS, ramWords)
+    setIfEmpty(Global.LINK_COUNT, linkCount)
+    setIfEmpty(Global.FPU_PRECISION, fpuPrecision)
+    setIfEmpty(Global.SCHED_QUEUE_DEPTH, schedQueueDepth)
+    setIfEmpty(Global.RESET_IPTR, resetIptr)
 
     // Set pipeline constants
     FETCH_WIDTH.set(8)

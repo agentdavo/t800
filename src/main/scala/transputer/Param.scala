@@ -21,17 +21,18 @@ case class Param(
   def plugins(hartId: Int = 0): Seq[FiberPlugin] =
     pluginsArea(hartId).plugins.collect { case p: FiberPlugin => p }.toSeq
 
-  /** Creates an area to manage plugin instances. */
+  /** Creates an area to manage plugin instances. Ideal T9000-inspired pipeline: systemBus ->
+    * FetchPlugin -> GrouperPlugin -> PrimaryInstrPlugin -> SecondaryInstrPlugin
+    */
   def pluginsArea(hartId: Int = 0) = new Area {
     val plugins = ArrayBuffer[Hostable]()
+
+    // Minimal working plugin set
     plugins += new transputer.plugins.transputer.TransputerPlugin(
       wordBits = wordWidth,
       linkCount = linkCount
     )
-    plugins += new transputer.plugins.pipeline.PipelinePlugin
-    plugins += new transputer.plugins.registers.RegFilePlugin
-    plugins += new transputer.plugins.execute.DummySecondaryInstrPlugin
-    plugins += new transputer.plugins.fetch.FetchPlugin
-    plugins += new transputer.plugins.pipeline.PipelineBuilderPlugin
+    plugins += new transputer.plugins.regstack.RegStackPlugin
+    plugins += new transputer.plugins.bus.SystemBusPlugin
   }
 }

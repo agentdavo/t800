@@ -2,52 +2,30 @@ package transputer.plugins.cache
 
 import spinal.core._
 import spinal.lib._
-import spinal.lib.bus.bmb.Bmb
-import transputer.Global
 
-case class CacheReq() extends Bundle {
-  val address = UInt(Global.ADDR_BITS bits)
-  val data = Bits(Global.WORD_BITS bits)
-  val isWrite = Bool()
+/** Cache command structure for T9000 cache operations */
+case class CacheCmd() extends Bundle {
+  val address = UInt(32 bits)
+  val writeData = Bits(32 bits)
+  val write = Bool()
+  val byteEnable = Bits(4 bits)
 }
 
-case class CacheRsp() extends Bundle {
-  val data = Bits(Global.WORD_BITS bits)
-  val valid = Bool()
-}
-
-case class WorkspaceCacheAccessService() extends Bundle {
-  val addrA = Bits(Global.ADDR_BITS bits)
-  val addrB = Bits(Global.ADDR_BITS bits)
-  val writeAddr = Bits(Global.ADDR_BITS bits)
-  val writeData = Bits(Global.WORD_BITS bits)
-  val writeEnable = Bool()
-  val isHitA = Bool()
-  val isHitB = Bool()
-  val dataOutA = Bits(Global.WORD_BITS bits)
-  val dataOutB = Bits(Global.WORD_BITS bits)
-}
-
-case class MainCacheAccessService() extends Bundle {
-  val addr = Bits(Global.ADDR_BITS bits)
-  val dataOut = Bits(128 bits) // 128-bit cache line
-  val isHit = Bool()
-  val writeEnable = Bool()
-  val writeData = Bits(128 bits)
-}
-
-trait CacheAccessService {
-  def req: Flow[CacheReq]
-  def rsp: Flow[CacheRsp]
-}
-
+/** Service interface for T9000 Main Cache */
 trait MainCacheService {
-  def read(addr: UInt): Bits
-  def write(addr: UInt, data: Bits): Unit
+  def cpuLoadA: Flow[CacheCmd] // CPU Load A port
+  def cpuLoadB: Flow[CacheCmd] // CPU Load B port
+  def cpuStore: Flow[CacheCmd] // CPU Store port
+  def instrFetch: Flow[CacheCmd] // Instruction fetch port
+  def hit: Bool // Cache hit signal
+  def miss: Bool // Cache miss signal
 }
 
+/** Service interface for T9000 Workspace Cache */
 trait WorkspaceCacheService {
-  def read(addr: UInt): Bits
-  def write(addr: UInt, data: Bits): Unit
-  def bus: Bmb // BMB interface for workspace cache
+  def readA(addr: UInt): Bits // Port A read access
+  def readB(addr: UInt): Bits // Port B read access
+  def write(addr: UInt, data: Bits): Unit // Port C write access
+  def invalidate(): Unit // Invalidate entire cache
+  def writePending: Bool // Write operation pending
 }

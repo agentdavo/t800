@@ -75,8 +75,8 @@ object Global extends AreaObject {
 
   // Memory command definitions, aligned with T9000
   case class MemRead[T <: Data](
-    payloadType: HardType[T] = HardType(Bits(WORD_BITS bits)),
-    depth: Int = 1 << AddrBits
+    payloadType: HardType[T] = HardType(Bits(WordBits bits)),
+    depth: Int = 1 << AddrBitsValue
   ) extends Bundle
       with IMasterSlave {
     val cmd = Flow(UInt(log2Up(depth) bits))
@@ -274,11 +274,11 @@ object Global extends AreaObject {
 }
 
 // Minimal memory command bundles used across services
-case class MemWriteCmd(depth: Int = 1 << Global.AddrBits) extends Bundle {
+case class MemWriteCmd(depth: Int = 1 << Global.AddrBitsValue) extends Bundle {
   val address = UInt(log2Up(depth) bits)
-  val data = Bits(Global.WORD_BITS bits)
+  val data = Bits(Global.WordBits bits)
 }
 
-case class MemReadCmd(depth: Int = 1 << Global.AddrBits) extends Bundle {
+case class MemReadCmd(depth: Int = 1 << Global.AddrBitsValue) extends Bundle {
   val address = UInt(log2Up(depth) bits)
 }

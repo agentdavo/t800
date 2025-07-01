@@ -1,255 +1,329 @@
 package transputer.plugins.pmi
 
-import transputer.plugins._
-import transputer.plugins.cache.{MainCachePlugin, WorkspaceCachePlugin}
-
 import spinal.core._
-import spinal.core.fiber._
+import spinal.lib._
 import spinal.lib.misc.plugin._
-import spinal.lib.misc.pipeline._
-import spinal.lib.misc.database._
-import spinal.lib.com.spi.ddr.{SpiXdrMasterCtrl, BmbSpiXdrMasterCtrl}
-import spinal.lib.bus.bmb.{
-  Bmb,
-  BmbParameter,
-  BmbAccessParameter,
-  BmbDecoder,
-  BmbArbiter,
-  BmbDownSizerBridge
-}
-import spinal.lib.bus.misc.{AddressMapping, SizeMapping}
+import spinal.lib.bus.bmb._
+import transputer.Global._
+import transputer.plugins.pmi.PmiService
 
-// The PmiPlugin implements a 64-bit DDR external memory interface with four BmbSpiXdrMasterCtrl channels
-// Supporting 16 devices (ssWidth = 4), mapped to 1/4 address space via BmbDecoder.
-// Uses burst transactions for high-bandwidth 16-byte DDR refills and single-beat octal SPI for configuration
-// Integrated with the Memory stage, ensuring low-latency access and scalability
-
+/** T9000 Programmable Memory Interface Plugin Provides configurable external memory interface with
+  * DMA and burst support Based on T9000 hardware reference manual
+  */
 class PmiPlugin extends FiberPlugin {
-  val version = "PmiPlugin v2.0"
-  report(L"Initializing $version")
+  println(s"[${this.getDisplayName()}] setup start")
 
-  object DBKeys {
-    val PMI_ADDR = Database.blocking[Bits]()
-    val PMI_DATA = Database.blocking[Bits]()
-  }
+  // PMI Configuration constants
+  private val EXTERNAL_ADDR_WIDTH = 32
+  private val EXTERNAL_DATA_WIDTH = 32
+  private val MAX_BURST_LENGTH = 16
+  private val MAX_CACHE_LINE_SIZE = 128
+  private val DEFAULT_ACCESS_TIME = 4
+  private val DEFAULT_SETUP_TIME = 1
+  private val DEFAULT_HOLD_TIME = 1
+  private val DEFAULT_RECOVERY_TIME = 1
 
-  lazy val PMI_ADDR = Payload(Bits(32 bits))
-  lazy val PMI_DATA = Payload(Bits(64 bits))
+  // PMI Control and Status Registers
+  private val pmiControlReg = Reg(Bits(32 bits)) init 0
+  private val pmiStatusReg = Reg(Bits(32 bits)) init 0
+  private val pmiEnabled = Reg(Bool()) init False
+  private val pmiReady = Reg(Bool()) init True
 
-  lazy val srv = during setup new Area {
-    val service = PmiAccessService()
-    addService(service)
-  }
+  // Memory Timing Configuration Registers
+  private val accessTimeReg = Reg(UInt(8 bits)) init DEFAULT_ACCESS_TIME
+  private val setupTimeReg = Reg(UInt(8 bits)) init DEFAULT_SETUP_TIME
+  private val holdTimeReg = Reg(UInt(8 bits)) init DEFAULT_HOLD_TIME
+  private val recoveryTimeReg = Reg(UInt(8 bits)) init DEFAULT_RECOVERY_TIME
 
-  buildBefore(
-    retains(
-      host[MainCachePlugin].lock,
-      host[WorkspaceCachePlugin].lock
-    ).lock
+  // Burst and Cache Configuration
+  private val burstLengthReg = Reg(UInt(8 bits)) init 1
+  private val cacheLineSizeReg = Reg(UInt(8 bits)) init 32
+  private val burstEnabled = Reg(Bool()) init False
+  private val cacheEnabled = Reg(Bool()) init False
+
+  // DMA Support Registers
+  private val dmaRequestReg = Reg(Bool()) init False
+  private val dmaAcknowledgeReg = Reg(Bool()) init False
+  private val dmaTransferCountReg = Reg(UInt(16 bits)) init 0
+
+  // Error Status Registers
+  private val memoryErrorReg = Reg(Bool()) init False
+  private val timeoutErrorReg = Reg(Bool()) init False
+  private val parityErrorReg = Reg(Bool()) init False
+
+  // External Memory Interface Signals
+  private val externalAddressBus = Reg(Bits(EXTERNAL_ADDR_WIDTH bits)) init 0
+  private val externalDataBus = Reg(Bits(EXTERNAL_DATA_WIDTH bits)) init 0
+  private val externalControlSignals = Reg(Bits(8 bits)) init 0
+
+  // BMB Interface Configuration
+  private val bmbConfig = BmbParameter(
+    addressWidth = EXTERNAL_ADDR_WIDTH,
+    dataWidth = EXTERNAL_DATA_WIDTH,
+    sourceWidth = 4,
+    contextWidth = 4,
+    lengthWidth = 8
   )
 
-  lazy val logic = during build new Area {
-    val memory = host.find[StageCtrlPipeline].ctrl(3)
+  // BMB Master Interface to External Memory (created during build)
+  private var externalMemoryBmb: Bmb = null
 
-    // BMB bus parameters (64-bit data, 32-bit address, burst support)
-    val bmbParameter = BmbParameter(
-      access = BmbAccessParameter(
-        addressWidth = 32,
-        dataWidth = 64,
-        lengthWidth = 4, // Supports 16-byte bursts (two 64-bit beats)
-        sourceWidth = 0,
-        contextWidth = 0
-      ),
-      sourceCount = 1
-    )
+  val logic = during setup new Area {
 
-    // Channel BMB parameters (32-bit data, single-beat for SPI, burst for DDR)
-    val channelBmbParameter = BmbParameter(
-      access = BmbAccessParameter(
-        addressWidth = 32,
-        dataWidth = 32,
-        lengthWidth = 4,
-        sourceWidth = 0,
-        contextWidth = 0
-      ),
-      sourceCount = 1
-    )
+    // PMI State Machine
+    val pmiState = RegInit(U"3'b000") // 000=Disabled, 001=Idle, 010=Active, 011=Burst, 100=Error
 
-    // Channel address mappings (bits 31:30)
-    val channelMappings = Seq(
-      SizeMapping(0x00000000L, 0x40000000L, B(0, 2 bits)), // Channel 0
-      SizeMapping(0x40000000L, 0x40000000L, B(1, 2 bits)), // Channel 1
-      SizeMapping(0x80000000L, 0x40000000L, B(2, 2 bits)), // Channel 2
-      SizeMapping(0xc0000000L, 0x40000000L, B(3, 2 bits)) // Channel 3
-    )
+    // Access timing counters
+    val accessCounter = Reg(UInt(8 bits)) init 0
+    val setupCounter = Reg(UInt(8 bits)) init 0
+    val holdCounter = Reg(UInt(8 bits)) init 0
+    val recoveryCounter = Reg(UInt(8 bits)) init 0
 
-    // Decoder for channel routing
-    val decoder = BmbDecoder(
-      p = bmbParameter,
-      mappings = channelMappings,
-      capabilities = Seq.fill(4)(channelBmbParameter),
-      pendingMax = 63
-    )
+    // Current transaction tracking
+    val currentAddress = Reg(UInt(32 bits)) init 0
+    val currentData = Reg(Bits(32 bits)) init 0
+    val currentWrite = Reg(Bool()) init False
+    val transactionActive = Reg(Bool()) init False
 
-    // Arbiter for channel responses
-    val arbiter = BmbArbiter(
-      inputsParameter = Seq.fill(4)(channelBmbParameter),
-      outputParameter = bmbParameter,
-      lowerFirstPriority = false,
-      pendingInvMax = 8
-    )
+    // BMB Interface Logic
+    externalMemoryBmb.cmd.valid := False
+    externalMemoryBmb.cmd.opcode := Bmb.Cmd.Opcode.READ
+    externalMemoryBmb.cmd.address := currentAddress
+    externalMemoryBmb.cmd.length := (burstLengthReg - 1).resized
+    externalMemoryBmb.cmd.data := currentData
+    externalMemoryBmb.cmd.mask := B"4'hF"
+    externalMemoryBmb.cmd.source := 0
+    externalMemoryBmb.cmd.context := 0
 
-    // Four SpiXdrMasterCtrl channels
-    val channels = for (i <- 0 until 4) yield new Area {
-      val downSizer = BmbDownSizerBridge(
-        inputParameter = bmbParameter,
-        outputParameter =
-          BmbDownSizerBridge.outputParameterFrom(bmbParameter.access, 32).toBmbParameter()
-      )
-      val spiCtrl = BmbSpiXdrMasterCtrl(
-        p = SpiXdrMasterCtrl.MemoryMappingParameters(
-          ctrl = SpiXdrMasterCtrl
-            .Parameters(
-              dataWidth = 8,
-              timerWidth = 12,
-              spi = SpiXdrParameter(
-                dataWidth = 8,
-                ioRate = 2,
-                ssWidth = 4
-              )
-            )
-            .addFullDuplex(0, 1, true, 8) // DDR for bursts
-            .addHalfDuplex(1, 1, false, 8), // Octal SPI
-          cmdFifoDepth = 32,
-          rspFifoDepth = 32,
-          xip = null
-        ),
-        ctrlParameter = channelBmbParameter
-      )
-      decoder.io.outputs(i) >> downSizer.io.input
-      downSizer.io.output >> spiCtrl.io.ctrl
-      spiCtrl.io.ctrl >> arbiter.io.inputs(i)
+    externalMemoryBmb.rsp.ready := True
+
+    // Control Register Processing
+    when(pmiControlReg(0)) { // Enable PMI
+      pmiEnabled := True
+      pmiState := U"3'b001" // Idle state
+      pmiControlReg(0) := False
     }
 
-    // Connect arbiter to pipeline
-    decoder.io.input.cmd.valid := memory.isValid
-    decoder.io.input.cmd.opcode := srv.writeEnable ? 1 | 0
-    decoder.io.input.cmd.address := memory(PMI_ADDR)
-    decoder.io.input.cmd.length := 15 // 16 bytes for bursts
-    decoder.io.input.cmd.data := memory(PMI_DATA)
-    arbiter.io.output.rsp.ready := True
+    when(pmiControlReg(1)) { // Disable PMI
+      pmiEnabled := False
+      pmiState := U"3'b000" // Disabled state
+      pmiControlReg(1) := False
+    }
 
-    // External memory simulation
-    val externalMem = Vec(Vec(Mem(Bits(64 bits), 4096), 4), 4) // 256 KB per device
-    val strobeTimings = Vec(Reg(UInt(8 bits)) init (0), 4)
-    val pageModeEns = Vec(Reg(Bool()) init (False), 4)
-    val deviceSels = Vec(Reg(UInt(2 bits)) init (0), 4)
+    when(pmiControlReg(2)) { // Reset PMI
+      pmiEnabled := False
+      pmiState := U"3'b000"
+      memoryErrorReg := False
+      timeoutErrorReg := False
+      parityErrorReg := False
+      transactionActive := False
+      pmiControlReg(2) := False
+    }
 
-    // DDR access logic
-    def read(addr: Bits): Bits = {
-      srv.addr := addr
-      srv.isValid := False
-      val chanIdx = addr(31 downto 30).asUInt
-      channels(chanIdx).spiCtrl.io.ctrl.cmd.valid := True
-      channels(chanIdx).spiCtrl.io.ctrl.cmd.opcode := 0 // Read
-      channels(chanIdx).spiCtrl.io.ctrl.cmd.address := addr
-      channels(chanIdx).spiCtrl.io.ctrl.cmd.length := 15 // 16-byte burst
-      channels(chanIdx).spiCtrl.io.ctrl.cmd.data := 0
-      channels(chanIdx).spiCtrl.io.spi.ss := B(1 << deviceSels(chanIdx), 4 bits)
-
-      when(
-        channels(chanIdx).spiCtrl.io.ctrl.rsp.valid && channels(
-          chanIdx
-        ).spiCtrl.io.spi.sclk.write === B(1, 2 bits)
-      ) {
-        srv.dataOut := externalMem(chanIdx)(deviceSels(chanIdx)).readSync(addr(13 downto 3).asUInt)
-        srv.isValid := channels(chanIdx).spiCtrl.io.ctrl.rsp.last // Valid on last beat
+    // Memory Access State Machine
+    switch(pmiState) {
+      is(U"3'b000") { // Disabled
+        pmiReady := False
+        transactionActive := False
       }
-      memory.haltWhen(!srv.isValid)
-      srv.dataOut
-    }
 
-    def write(addr: Bits, data: Bits): Unit = {
-      srv.addr := addr
-      srv.dataIn := data
-      val chanIdx = addr(31 downto 30).asUInt
-      channels(chanIdx).spiCtrl.io.ctrl.cmd.valid := True
-      channels(chanIdx).spiCtrl.io.ctrl.cmd.opcode := 1 // Write
-      channels(chanIdx).spiCtrl.io.ctrl.cmd.address := addr
-      channels(chanIdx).spiCtrl.io.ctrl.cmd.length := 15 // 16-byte burst
-      channels(chanIdx).spiCtrl.io.ctrl.cmd.data := data(31 downto 0)
-      channels(chanIdx).spiCtrl.io.spi.ss := B(1 << deviceSels(chanIdx), 4 bits)
+      is(U"3'b001") { // Idle - ready for new transaction
+        pmiReady := True
+        transactionActive := False
 
-      when(
-        srv.writeEnable && channels(chanIdx).spiCtrl.io.ctrl.rsp.valid && channels(
-          chanIdx
-        ).spiCtrl.io.ctrl.rsp.last
-      ) {
-        externalMem(chanIdx)(deviceSels(chanIdx)).writeAsync(addr(13 downto 3).asUInt, data)
-        srv.isValid := True
+        // Check for new transaction requests
+        when(externalMemoryBmb.cmd.valid && pmiEnabled) {
+          currentAddress := externalMemoryBmb.cmd.address
+          currentData := externalMemoryBmb.cmd.data
+          currentWrite := externalMemoryBmb.cmd.opcode === Bmb.Cmd.Opcode.WRITE
+          transactionActive := True
+          setupCounter := setupTimeReg
+          pmiState := U"3'b010" // Active state
+        }
       }
-    }
 
-    // Octal SPI configuration logic (per channel)
-    val spiConfigs = for (i <- 0 until 4) yield new Area {
-      val configState = Reg(UInt(2 bits)) init (0)
-      val configData = Reg(Bits(8 bits)) init (0)
-      val bitCount = Reg(UInt(4 bits)) init (0)
+      is(U"3'b010") { // Active - processing transaction
+        pmiReady := False
 
-      when(channels(i).spiCtrl.io.spi.ss(deviceSels(i)) === False) {
-        switch(configState) {
-          is(0) { // Idle
-            channels(i).spiCtrl.io.ctrl.cmd.valid := True
-            channels(i).spiCtrl.io.ctrl.cmd.opcode := 1 // Write
-            channels(i).spiCtrl.io.ctrl.cmd.address := 0x0 // Command register
-            channels(i).spiCtrl.io.ctrl.cmd.length := 0 // Single-beat
-            channels(
-              i
-            ).spiCtrl.io.ctrl.cmd.data := (True ## False ## True ## U"8'h01" ## U"8'h00").asBits
-            when(channels(i).spiCtrl.io.ctrl.rsp.valid) {
-              configState := 1
-              bitCount := 0
-            }
+        // Setup time
+        when(setupCounter > 0) {
+          setupCounter := setupCounter - 1
+        }.otherwise {
+          // Begin memory access
+          accessCounter := accessTimeReg
+          externalAddressBus := currentAddress.asBits
+          when(currentWrite) {
+            externalDataBus := currentData
+            externalControlSignals := B"8'h05" // CS=1, WE=1, OE=0
+          }.otherwise {
+            externalControlSignals := B"8'h03" // CS=1, WE=0, OE=1
           }
-          is(1) { // Send config
-            channels(i).spiCtrl.io.ctrl.cmd.address := 0x58 // Data register
-            channels(i).spiCtrl.io.ctrl.cmd.length := 0 // Single-beat
-            channels(i).spiCtrl.io.ctrl.cmd.data := configData.asBits(32 bits)
-            when(channels(i).spiCtrl.io.ctrl.rsp.valid) {
-              bitCount := bitCount + 1
-              when(bitCount === 7) {
-                configState := 2
-                when(configData === B"00000001") {
-                  strobeTimings(i) := channels(i).spiCtrl.io.ctrl.rsp.data(7 downto 0).asUInt
-                } elsewhen (configData === B"00000010") {
-                  pageModeEns(i) := channels(i).spiCtrl.io.ctrl.rsp.data(0)
-                }
-              }
+
+          // Check for burst mode
+          when(burstEnabled && burstLengthReg > 1) {
+            pmiState := U"3'b011" // Burst state
+          }.otherwise {
+            // Wait for access time
+            when(accessCounter === 0) {
+              holdCounter := holdTimeReg
+              pmiState := U"3'b001" // Return to idle after hold time
+            }.otherwise {
+              accessCounter := accessCounter - 1
             }
-          }
-          is(2) { // Complete
-            configState := 0
           }
         }
       }
-    }
 
-    // Pipeline integration
-    val pmiLogic = new Area {
-      when(memory.isValid) {
-        memory.insert(PMI_ADDR) := srv.addr
-        memory.insert(PMI_DATA) := srv.dataOut
-        DBKeys.PMI_ADDR.set(srv.addr)
-        DBKeys.PMI_DATA.set(srv.dataOut)
+      is(U"3'b011") { // Burst mode
+        pmiReady := False
+
+        // Handle burst transfers
+        when(accessCounter > 0) {
+          accessCounter := accessCounter - 1
+        }.otherwise {
+          // Complete burst transfer
+          holdCounter := holdTimeReg
+          pmiState := U"3'b001" // Return to idle
+        }
+      }
+
+      is(U"3'b100") { // Error state
+        pmiReady := False
+        transactionActive := False
+        // Remain in error state until reset
       }
     }
 
-    // Debug logging
-    when(srv.isValid && debugEn) {
-      val chanIdx = srv.addr(31 downto 30).asUInt
-      report(
-        L"PMI addr=$PMI_ADDR data=$PMI_DATA pageMode=${pageModeEns(chanIdx)} device=${deviceSels(chanIdx)} channel=$chanIdx"
-      )
+    // Hold time handling
+    when(holdCounter > 0) {
+      holdCounter := holdCounter - 1
+      when(holdCounter === 1) {
+        externalControlSignals := 0 // Deassert all control signals
+        recoveryCounter := recoveryTimeReg
+      }
+    }
+
+    // Recovery time handling
+    when(recoveryCounter > 0) {
+      recoveryCounter := recoveryCounter - 1
+    }
+
+    // Update status register
+    pmiStatusReg := Cat(
+      B"16'h0000", // Reserved bits 31:16
+      dmaTransferCountReg, // bits 15:0 - DMA transfer count
+      B"4'h0", // Reserved bits 15:12
+      pmiState, // bits 11:9 - PMI state
+      parityErrorReg, // bit 8 - Parity error
+      timeoutErrorReg, // bit 7 - Timeout error
+      memoryErrorReg, // bit 6 - Memory error
+      cacheEnabled, // bit 5 - Cache enabled
+      burstEnabled, // bit 4 - Burst enabled
+      dmaAcknowledgeReg, // bit 3 - DMA acknowledge
+      dmaRequestReg, // bit 2 - DMA request
+      pmiReady, // bit 1 - Ready
+      pmiEnabled // bit 0 - Enabled
+    )
+
+    // DMA Logic (simplified)
+    when(dmaTransferCountReg > 0 && dmaRequestReg) {
+      dmaAcknowledgeReg := True
+      // Handle DMA transfer
+      when(transactionActive) {
+        dmaTransferCountReg := dmaTransferCountReg - 1
+        when(dmaTransferCountReg === 1) {
+          dmaRequestReg := False
+          dmaAcknowledgeReg := False
+        }
+      }
+    }.otherwise {
+      dmaAcknowledgeReg := False
+    }
+
+    // Timeout detection (simplified)
+    val timeoutCounter = Reg(UInt(16 bits)) init 0
+    when(transactionActive) {
+      timeoutCounter := timeoutCounter + 1
+      when(timeoutCounter > 1000) { // Configurable timeout
+        timeoutErrorReg := True
+        pmiState := U"3'b100" // Error state
+        timeoutCounter := 0
+      }
+    }.otherwise {
+      timeoutCounter := 0
     }
   }
+
+  // Note: registers are automatically visible in simulation
+
+  // Service Implementation
+  addService(new PmiService {
+    override def pmiControl: Bits = pmiControlReg
+    override def pmiStatus: Bits = pmiStatusReg
+    override def isEnabled: Bool = pmiEnabled
+    override def isReady: Bool = pmiReady
+
+    override def accessTime: UInt = accessTimeReg
+    override def setupTime: UInt = setupTimeReg
+    override def holdTime: UInt = holdTimeReg
+    override def recoveryTime: UInt = recoveryTimeReg
+
+    override def memoryBus: Bmb = externalMemoryBmb
+    override def addressBus: Bits = externalAddressBus
+    override def dataBus: Bits = externalDataBus
+    override def controlSignals: Bits = externalControlSignals
+
+    override def dmaRequest: Bool = dmaRequestReg
+    override def dmaAcknowledge: Bool = dmaAcknowledgeReg
+    override def dmaTransferCount: UInt = dmaTransferCountReg
+
+    override def burstLength: UInt = burstLengthReg
+    override def cacheLineSize: UInt = cacheLineSizeReg
+    override def supportsBurst: Bool = burstEnabled
+    override def supportsCache: Bool = cacheEnabled
+
+    override def memoryError: Bool = memoryErrorReg
+    override def timeoutError: Bool = timeoutErrorReg
+    override def parityError: Bool = parityErrorReg
+
+    override def configureTiming(access: UInt, setup: UInt, hold: UInt, recovery: UInt): Unit = {
+      accessTimeReg := access.resized
+      setupTimeReg := setup.resized
+      holdTimeReg := hold.resized
+      recoveryTimeReg := recovery.resized
+    }
+
+    override def enablePmi(): Unit = {
+      pmiControlReg(0) := True
+    }
+
+    override def disablePmi(): Unit = {
+      pmiControlReg(1) := True
+    }
+
+    override def resetPmi(): Unit = {
+      pmiControlReg(2) := True
+    }
+
+    override def setBurstMode(enabled: Bool, length: UInt): Unit = {
+      burstEnabled := enabled
+      burstLengthReg := length.resized
+    }
+
+    override def setCacheLineSize(size: UInt): Unit = {
+      cacheLineSizeReg := size.resized
+    }
+
+    override def clearErrors(): Unit = {
+      memoryErrorReg := False
+      timeoutErrorReg := False
+      parityErrorReg := False
+    }
+
+    override def updateRegisters(): Unit = {
+      // Registers update automatically in SpinalHDL
+    }
+  })
+
+  println(s"[${this.getDisplayName()}] setup end")
 }

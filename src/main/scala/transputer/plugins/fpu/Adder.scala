@@ -141,25 +141,49 @@ class FpuAdder extends Component {
       normExp := normExpPre.asUInt.resize(11)
     }
 
-    val signedMant = signRes ? (~normMant + 1).asSInt | normMant.asSInt
-    val mantFix = AFix(signedMant, 0 exp)
+    // Enhanced IEEE 754 rounding with guard, round, and sticky bits
+    val extendedMantissa = normMant.asBits
+    val targetBits = 52 // IEEE 754 double precision mantissa bits
 
-    val roundNearest = mantFix.roundHalfToEven(0).raw.asSInt
-    val roundZero = mantFix.floorToZero(0).raw.asSInt
-    val roundPos = mantFix.ceilToInf(0).raw.asSInt
-    val roundNeg = mantFix.floor(0).raw.asSInt
+    // Extract guard, round, and sticky bits from the extended mantissa
+    val guardBit =
+      if (extendedMantissa.getWidth > targetBits)
+        extendedMantissa(extendedMantissa.getWidth - targetBits - 1)
+      else False
+    val roundBit =
+      if (extendedMantissa.getWidth > targetBits + 1)
+        extendedMantissa(extendedMantissa.getWidth - targetBits - 2)
+      else False
+    val stickyBit = if (extendedMantissa.getWidth > targetBits + 2) {
+      extendedMantissa(extendedMantissa.getWidth - targetBits - 3 downto 0).orR
+    } else {
+      False
+    }
 
-    val roundedSInt = s1(ROUND).mux(
-      B"00" -> roundNearest,
-      B"01" -> roundZero,
-      B"10" -> roundPos,
-      B"11" -> roundNeg
+    val targetMantissa = extendedMantissa(
+      extendedMantissa.getWidth - 1 downto extendedMantissa.getWidth - targetBits
     )
 
-    val finalSign = roundedSInt.msb
-    val finalMant = Mux(finalSign, (~roundedSInt + 1).asUInt, roundedSInt.asUInt)
+    // Apply IEEE 754 rounding modes
+    val needsIncrement = s1(ROUND).mux(
+      0 -> (guardBit && (roundBit || stickyBit || targetMantissa(
+        0
+      ))), // Round to nearest, ties to even
+      1 -> False, // Round toward zero (truncate)
+      2 -> ((guardBit || roundBit || stickyBit) && !signRes), // Round toward +∞
+      3 -> ((guardBit || roundBit || stickyBit) && signRes) // Round toward -∞
+    )
 
-    s1(RESULT) := packIeee754(finalSign, normExp, finalMant(51 downto 0).asBits)
+    val roundedMantissa = targetMantissa.asUInt + needsIncrement.asUInt
+    val finalSign = signRes
+    val finalMant = roundedMantissa
+
+    // Handle mantissa overflow from rounding - check if we need an extra bit for overflow
+    val mantissaOverflow = if (finalMant.getWidth > targetBits) finalMant(targetBits) else False
+    val adjustedMantissa = Mux(mantissaOverflow, finalMant >> 1, finalMant).resize(52)
+    val adjustedExponent = Mux(mantissaOverflow, normExp + 1, normExp)
+
+    s1(RESULT) := packIeee754(finalSign, adjustedExponent, adjustedMantissa.asBits)
   }
 
   s1.down.driveTo(io.rsp) { (p, n) =>

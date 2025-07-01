@@ -5,6 +5,7 @@ import spinal.lib._
 import spinal.lib.misc.pipeline._
 import spinal.lib.misc.plugin.{Plugin, PluginHost, FiberPlugin}
 import spinal.core.fiber.{Retainer, _}
+import scala.util.Try
 import transputer.Opcode
 import transputer.Global
 import transputer.plugins.{
@@ -14,52 +15,97 @@ import transputer.plugins.{
   LinkBusArbiterService,
   ChannelDmaService
 }
-import transputer.plugins.schedule.SchedService
-import transputer.plugins.fpu.{FpuService, FpOp}
+import transputer.plugins.schedule.{SchedService, SchedCmd, ProcessState}
+import transputer.plugins.regstack.{RegStackService, RegName}
+import transputer.plugins.fpu.{FpuService, FpOp, FpCmd}
 import transputer.plugins.timers.TimerService
 import transputer.plugins.pipeline.PipelineStageService
+// import transputer.plugins.cache.CacheAccessService // Not yet implemented
+import transputer.plugins.mmu.{ConfigAccessService, TrapHandlerService}
+import transputer.plugins.vcp.{VcpService, MemWriteCmd, MemReadCmd}
 import scala.util.Try
 
 /** Implements basic ALU instructions and connects to the global pipeline. */
 class SecondaryInstrPlugin extends FiberPlugin {
   val version = "SecondaryInstrPlugin v0.1"
-  private var errReg: Bool = null
-  private var haltErr: Bool = null
-  private var hiFPtr, hiBPtr, loFPtr, loBPtr: UInt = null
-  private var move2dLen, move2dStride, move2dAddr: UInt = null
-  private var saveLPhase, saveHPhase: Bool = null
-  private val retain = Retainer()
 
   during setup new Area {
     report(L"Initializing $version")
     println(s"[${SecondaryInstrPlugin.this.getDisplayName()}] setup start")
-    errReg = Reg(Bool()) init (False)
-    haltErr = Reg(Bool()) init (False)
-    hiFPtr = Reg(UInt(Global.WORD_BITS bits)) init (0)
-    hiBPtr = Reg(UInt(Global.WORD_BITS bits)) init (0)
-    loFPtr = Reg(UInt(Global.WORD_BITS bits)) init (0)
-    loBPtr = Reg(UInt(Global.WORD_BITS bits)) init (0)
-    move2dLen = Reg(UInt(Global.WORD_BITS bits)) init (0)
-    move2dStride = Reg(UInt(Global.WORD_BITS bits)) init (0)
-    move2dAddr = Reg(UInt(Global.WORD_BITS bits)) init (0)
-    saveLPhase = Reg(Bool()) init (False)
-    saveHPhase = Reg(Bool()) init (False)
-    retain()
     println(s"[${SecondaryInstrPlugin.this.getDisplayName()}] setup end")
   }
 
   during build new Area {
     println(s"[${SecondaryInstrPlugin.this.getDisplayName()}] build start")
-    retain.await()
+
+    // Create registers in build phase where component context is available
+    val errReg = Reg(Bool()) init (False)
+    val haltErr = Reg(Bool()) init (False)
+    val hiFPtr = Reg(UInt(Global.WORD_BITS bits)) init (0)
+    val hiBPtr = Reg(UInt(Global.WORD_BITS bits)) init (0)
+    val loFPtr = Reg(UInt(Global.WORD_BITS bits)) init (0)
+    val loBPtr = Reg(UInt(Global.WORD_BITS bits)) init (0)
+    val move2dLen = Reg(UInt(Global.WORD_BITS bits)) init (0)
+    val move2dStride = Reg(UInt(Global.WORD_BITS bits)) init (0)
+    val move2dAddr = Reg(UInt(Global.WORD_BITS bits)) init (0)
+    val saveLPhase = Reg(Bool()) init (False)
+    val saveHPhase = Reg(Bool()) init (False)
     implicit val h: PluginHost = host
-    val stack = Plugin[StackService]
+    val regStack = Plugin[RegStackService]
     val pipe = Plugin[PipelineStageService]
-    val mem = Plugin[LinkBusService]
-    val arb = Plugin[LinkBusArbiterService]
-    val timer = Plugin[TimerService]
-    val fpu = Plugin[FpuService]
+    val memOpt = Try(Plugin[LinkBusService]).toOption
+    val arbOpt = Try(Plugin[LinkBusArbiterService]).toOption
+    val timerOpt = Try(Plugin[TimerService]).toOption
+    val fpuOpt = Try(Plugin[FpuService]).toOption
+    val schedOpt = Try(Plugin[SchedService]).toOption
+
+    // Create stub services when not available for basic compilation
+    val mem = memOpt.getOrElse(new LinkBusService {
+      def rdCmd = Flow(transputer.MemReadCmd()).setIdle()
+      def rdRsp = Flow(Bits(32 bits)).setIdle()
+      def wrCmd = Flow(transputer.MemWriteCmd()).setIdle()
+    })
+    val arb = arbOpt.getOrElse(new LinkBusArbiterService {
+      def exeRd = Flow(transputer.MemReadCmd()).setIdle()
+      def exeWr = Flow(transputer.MemWriteCmd()).setIdle()
+      def chanRd = Flow(transputer.MemReadCmd()).setIdle()
+      def chanWr = Flow(transputer.MemWriteCmd()).setIdle()
+    })
+    val timer = timerOpt.getOrElse(new TimerService {
+      def clockReg0: UInt = U(0, 32 bits)
+      def clockReg1: UInt = U(0, 32 bits)
+      def clockReg0Enable: Bool = False
+      def clockReg1Enable: Bool = False
+      def setClockReg0(value: UInt): Unit = {}
+      def setClockReg1(value: UInt): Unit = {}
+      def enableClockReg0(): Unit = {}
+      def disableClockReg0(): Unit = {}
+      def enableClockReg1(): Unit = {}
+      def disableClockReg1(): Unit = {}
+      def clockReg0After(time: UInt): Bool = False
+      def clockReg1After(time: UInt): Bool = False
+      def updateRegisters(): Unit = {}
+    })
+    val fpu = fpuOpt.getOrElse(new FpuService {
+      def pipe = Flow(FpCmd()).setIdle()
+      def rsp = Flow(UInt(64 bits)).setIdle()
+      def FPA: Bits = B(0, 64 bits)
+      def FPB: Bits = B(0, 64 bits)
+      def FPC: Bits = B(0, 64 bits)
+      def FPStatus: Bits = B(0, 32 bits)
+      def roundingMode: Bits = B(0, 2 bits)
+      def errorFlags: Bits = B(0, 5 bits)
+      def isBusy: Bool = False
+      def setRoundingMode(mode: Bits): Unit = {}
+      def updateRegisters(): Unit = {}
+    })
     val linksOpt = Try(Plugin[ChannelService]).toOption
     val dmaOpt = Try(Plugin[ChannelDmaService]).toOption
+    // val cacheOpt = Try(Plugin[CacheAccessService]).toOption
+    val cacheOpt = None
+    val configOpt = Try(Plugin[ConfigAccessService]).toOption
+    val trapOpt = Try(Plugin[TrapHandlerService]).toOption
+    val vcpOpt = Try(Plugin[VcpService]).toOption
     val dummy = new ChannelService {
       override def txReady(link: UInt): Bool = False
       override def push(link: UInt, data: Bits): Bool = False
@@ -70,18 +116,92 @@ class SecondaryInstrPlugin extends FiberPlugin {
     val links = linksOpt.getOrElse(dummy)
     val dummyDma = new ChannelDmaService { def cmd = Stream(ChannelTxCmd()).setIdle() }
     val dma = dmaOpt.getOrElse(dummyDma)
-    val sched = Plugin[SchedService]
+    // val dummyCache = new CacheAccessService {
+    //   def req = Stream(MemWriteCmd()).setIdle()
+    //   def rsp = Flow(Bits(32 bits)).setIdle()
+    // }
+    // val cache = cacheOpt.getOrElse(dummyCache)
+    val dummyConfig = new ConfigAccessService {
+      val addr = Bits(16 bits).assignDontCare()
+      val data = Bits(32 bits).assignDontCare()
+      val writeEnable = Bool().assignDontCare()
+      val isValid = Bool().assignDontCare()
+      val significantBits = Bits(5 bits).assignDontCare()
+      def read(addr: Bits, width: Int): Bits = B(0, 32 bits)
+      def write(addr: Bits, data: Bits, width: Int): Unit = {}
+    }
+    val config = configOpt.getOrElse(dummyConfig)
+    val dummyTrap = new TrapHandlerService {
+      override val trapAddr = Bits(32 bits).assignDontCare()
+      override val trapType = Bits(4 bits).assignDontCare()
+      override val trapEnable = Bool().assignDontCare()
+      override val trapHandlerAddr = Bits(32 bits).assignDontCare()
+      override def setTrap(addr: Bits, typ: Bits): Unit = {}
+      override def clearTrap(): Unit = {}
+    }
+    val trap = trapOpt.getOrElse(dummyTrap)
+    val dummyVcp = new VcpService {
+      def txReady(link: UInt): Bool = False
+      def push(link: UInt, data: Bits): Bool = False
+      def rxValid(link: UInt): Bool = False
+      def rxPayload(link: UInt): Bits = B(0, 32 bits)
+      def rxAck(link: UInt): Unit = {}
+      def scheduleInput(channel: Int): Unit = {}
+      def scheduleOutput(channel: Int): Unit = {}
+      def getChannelState(channel: Int): Bits = B(0, 8 bits)
+      def setVcpCommand(cmd: Bits): Unit = {}
+      def getVcpStatus(): Bits = B(0, 32 bits)
+      def sendPacket(channel: Int, data: Bits, isEnd: Bool): Unit = {}
+      def receiveAck(channel: Int): Bool = False
+      def enqueueMessage(channel: Int, data: Bits): Unit = {}
+      override def updateChannelHeader(channel: Int, header: Bits): Unit = {}
+      override def vcpStatus: Bits = B(0, 32 bits)
+      override def channelStates: Vec[Bits] = Vec.fill(8)(B(0, 8 bits))
+      override def linkReady: Vec[Bool] = Vec.fill(4)(False)
+      override def linkError: Vec[Bool] = Vec.fill(4)(False)
+      override def vlcbBaseAddr: Vec[UInt] = Vec.fill(8)(U(0, 32 bits))
+      override def updateRegisters(): Unit = {}
+    }
+    val vcp = vcpOpt.getOrElse(dummyVcp)
+    val sched = schedOpt.getOrElse(new SchedService {
+      def newProc = Flow(SchedCmd()).setIdle()
+      def currentProc: UInt = U(0, 32 bits)
+      def nextProc: UInt = U(0, 32 bits)
+      def hiFront: UInt = U(0, 32 bits)
+      def hiBack: UInt = U(0, 32 bits)
+      def loFront: UInt = U(0, 32 bits)
+      def loBack: UInt = U(0, 32 bits)
+      def hasReady: Bool = False
+      def hasHighPriority: Bool = False
+      def hasLowPriority: Bool = False
+      def isAnalyzing: Bool = False
+      def enqueue(ptr: UInt, high: Bool): Unit = {}
+      def terminateCurrent(): Unit = {}
+      def yieldCurrent(): Unit = {}
+      def saveHighQueue(): Unit = {}
+      def saveLowQueue(): Unit = {}
+      def restoreHighQueue(front: UInt, back: UInt): Unit = {}
+      def restoreLowQueue(front: UInt, back: UInt): Unit = {}
+      def getProcessState(ptr: UInt): ProcessState.C = {
+        val state = ProcessState()
+        state := ProcessState.READY
+        state
+      }
+      def setProcessState(ptr: UInt, state: ProcessState.C): Unit = {}
+      def processCount(): UInt = U(0, 16 bits)
+      def updateRegisters(): Unit = {}
+    })
 
     val inst = pipe.execute(Global.OPCODE)
     val nibble = inst(3 downto 0).asUInt
-    val accumulated = stack.O | nibble.resized
+    val accumulated = Reg(UInt(32 bits)) init 0 // Oreg for operand accumulation
     val primary = Opcode.PrimaryOpcode()
     primary.assignFromBits(inst(7 downto 4))
 
     arb.exeRd.valid := False
-    arb.exeRd.payload.addr := U(0)
+    arb.exeRd.payload.address := U(0)
     arb.exeWr.valid := False
-    arb.exeWr.payload.addr := U(0)
+    arb.exeWr.payload.address := U(0)
     arb.exeWr.payload.data := B(0, Global.WORD_BITS bits)
     sched.newProc.valid := False
     sched.newProc.payload.ptr := U(0)
@@ -92,178 +212,187 @@ class SecondaryInstrPlugin extends FiberPlugin {
       is(Opcode.PrimaryOpcode.OPR) {
         val operand = accumulated.asSInt
         val secondary = Opcode.SecondaryOpcode()
-        secondary.assignFromBits(accumulated(7 downto 0).asBits)
+        secondary.assignFromBits(accumulated(8 downto 0).asBits) // 9 bits for T9000 opcodes
         switch(secondary) {
           is(Opcode.SecondaryOpcode.REV) {
-            val tmp = stack.A
-            stack.A := stack.B
-            stack.B := tmp
+            regStack.rev()
           }
           is(Opcode.SecondaryOpcode.ADD) {
-            val sum = stack.A + stack.B
-            stack.A := sum
-            stack.B := stack.C
+            val sum = regStack.readReg(RegName.Areg) + regStack.readReg(RegName.Breg)
+            regStack.writeReg(RegName.Areg, sum)
+            regStack.stackPop()
           }
           is(Opcode.SecondaryOpcode.SUB) {
-            val diff = stack.B - stack.A
-            stack.A := diff
-            stack.B := stack.C
+            val diff = regStack.readReg(RegName.Breg) - regStack.readReg(RegName.Areg)
+            regStack.writeReg(RegName.Areg, diff)
+            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
           }
           is(Opcode.SecondaryOpcode.LADD) {
-            val res = stack.B + stack.A + (stack.C & 1)
-            stack.A := res.resized
+            val res = regStack.readReg(RegName.Breg) + regStack
+              .readReg(RegName.Areg) + (regStack.readReg(RegName.Creg) & 1)
+            regStack.writeReg(RegName.Areg, res.resized)
           }
           is(Opcode.SecondaryOpcode.LSUB) {
-            val res = stack.B - stack.A - (stack.C & 1)
-            stack.A := res.resized
+            val res = regStack.readReg(RegName.Breg) - regStack
+              .readReg(RegName.Areg) - (regStack.readReg(RegName.Creg) & 1)
+            regStack.writeReg(RegName.Areg, res.resized)
           }
           is(Opcode.SecondaryOpcode.LSUM) {
             val wide = UInt(33 bits)
-            wide := stack.B.resize(33) + stack.A.resize(33) + stack.C(0).asUInt
-            stack.A := wide(31 downto 0)
+            wide := regStack.readReg(RegName.Breg).resize(33) + regStack
+              .readReg(RegName.Areg)
+              .resize(33) + regStack.readReg(RegName.Creg)(0).asUInt
+            regStack.writeReg(RegName.Areg, wide(31 downto 0))
             val carry = wide >= U(0xffffffffL, 33 bits)
-            stack.B := carry.asUInt.resized
+            regStack.writeReg(RegName.Breg, carry.asUInt.resized)
           }
           is(Opcode.SecondaryOpcode.LDIFF) {
             val res = UInt(33 bits)
-            res := (stack.B.resize(33) - stack.A.resize(33) - stack.C(0).asUInt.resize(33))
-            stack.A := res(31 downto 0)
-            stack.B := res(32).asUInt.resize(32)
+            res := (regStack.readReg(RegName.Breg).resize(33) - regStack
+              .readReg(RegName.Areg)
+              .resize(33) - regStack.readReg(RegName.Creg)(0).asUInt.resize(33))
+            regStack.writeReg(RegName.Areg, res(31 downto 0))
+            regStack.writeReg(RegName.Breg, res(32).asUInt.resize(32))
           }
           is(Opcode.SecondaryOpcode.LMUL) {
-            val product = (stack.B * stack.A).resize(64) + stack.C.resize(64)
-            stack.A := product(31 downto 0)
-            stack.B := product(63 downto 32)
+            val product = (regStack.readReg(RegName.Breg) * regStack.readReg(RegName.Areg))
+              .resize(64) + regStack.readReg(RegName.Creg).resize(64)
+            regStack.writeReg(RegName.Areg, product(31 downto 0))
+            regStack.writeReg(RegName.Breg, product(63 downto 32))
           }
           is(Opcode.SecondaryOpcode.LDIV) {
-            when(stack.C >= stack.A) {
+            when(regStack.readReg(RegName.Creg) >= regStack.readReg(RegName.Areg)) {
               errReg := True
             } otherwise {
-              val dividend = (stack.C ## stack.B).asUInt.resize(64)
-              val quotient = dividend / stack.A
-              val rem = dividend % stack.A
-              stack.A := quotient(31 downto 0)
-              stack.B := rem(31 downto 0)
+              val dividend =
+                (regStack.readReg(RegName.Creg) ## regStack.readReg(RegName.Breg)).asUInt.resize(64)
+              val quotient = dividend / regStack.readReg(RegName.Areg)
+              val rem = dividend % regStack.readReg(RegName.Areg)
+              regStack.writeReg(RegName.Areg, quotient(31 downto 0))
+              regStack.writeReg(RegName.Breg, rem(31 downto 0))
             }
           }
           is(Opcode.SecondaryOpcode.AND) {
-            val res = stack.A & stack.B
-            stack.A := res
-            stack.B := stack.C
+            val res = regStack.readReg(RegName.Areg) & regStack.readReg(RegName.Breg)
+            regStack.writeReg(RegName.Areg, res)
+            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
           }
           is(Opcode.SecondaryOpcode.XOR) {
-            val res = stack.A ^ stack.B
-            stack.A := res
-            stack.B := stack.C
+            val res = regStack.readReg(RegName.Areg) ^ regStack.readReg(RegName.Breg)
+            regStack.writeReg(RegName.Areg, res)
+            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
           }
           is(Opcode.SecondaryOpcode.SHL) {
-            val res = stack.B |<< stack.A
-            stack.A := res
-            stack.B := stack.C
+            val res = regStack.readReg(RegName.Breg) |<< regStack.readReg(RegName.Areg)
+            regStack.writeReg(RegName.Areg, res)
+            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
           }
           is(Opcode.SecondaryOpcode.SHR) {
-            val res = (stack.B.asSInt >> stack.A).asUInt
-            stack.A := res
-            stack.B := stack.C
+            val res =
+              (regStack.readReg(RegName.Breg).asSInt >> regStack.readReg(RegName.Areg)).asUInt
+            regStack.writeReg(RegName.Areg, res)
+            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
           }
           is(Opcode.SecondaryOpcode.LSHR) {
-            when(stack.A < 64) {
-              val wide = (stack.C ## stack.B).asUInt.resize(64)
-              val shifted = wide >> stack.A
-              stack.A := shifted(31 downto 0)
-              stack.B := shifted(63 downto 32)
+            when(regStack.readReg(RegName.Areg) < 64) {
+              val wide =
+                (regStack.readReg(RegName.Creg) ## regStack.readReg(RegName.Breg)).asUInt.resize(64)
+              val shifted = wide >> regStack.readReg(RegName.Areg)
+              regStack.writeReg(RegName.Areg, shifted(31 downto 0))
+              regStack.writeReg(RegName.Breg, shifted(63 downto 32))
             } otherwise {
-              stack.A := 0
-              stack.B := 0
+              regStack.writeReg(RegName.Areg, 0)
+              regStack.writeReg(RegName.Breg, 0)
             }
           }
           is(Opcode.SecondaryOpcode.LSHL) {
-            when(stack.A < 64) {
-              val wide = (stack.C ## stack.B).asUInt.resize(64)
-              val shifted = wide |<< stack.A
-              stack.A := shifted(31 downto 0)
-              stack.B := shifted(63 downto 32)
+            when(regStack.readReg(RegName.Areg) < 64) {
+              val wide =
+                (regStack.readReg(RegName.Creg) ## regStack.readReg(RegName.Breg)).asUInt.resize(64)
+              val shifted = wide |<< regStack.readReg(RegName.Areg)
+              regStack.writeReg(RegName.Areg, shifted(31 downto 0))
+              regStack.writeReg(RegName.Breg, shifted(63 downto 32))
             } otherwise {
-              stack.A := 0
-              stack.B := 0
+              regStack.writeReg(RegName.Areg, 0)
+              regStack.writeReg(RegName.Breg, 0)
             }
           }
           is(Opcode.SecondaryOpcode.IN) {
-            val idx = stack.B(1 downto 0)
+            val idx = regStack.readReg(RegName.Breg)(1 downto 0)
             val avail = links.rxValid(idx)
             pipe.execute.haltWhen(!avail)
             when(pipe.execute.down.isFiring) {
-              stack.A := links.rxPayload(idx).asUInt
+              regStack.writeReg(RegName.Areg, links.rxPayload(idx).asUInt)
               links.rxAck(idx)
             }
           }
           is(Opcode.SecondaryOpcode.OUT) {
-            val idx = stack.B(1 downto 0)
-            val ready = links.push(idx, stack.A.asBits)
+            val idx = regStack.readReg(RegName.Breg)(1 downto 0)
+            val ready = links.push(idx, regStack.readReg(RegName.Areg).asBits)
             pipe.execute.haltWhen(!ready)
             when(pipe.execute.down.isFiring) {
-              stack.A := stack.B
-              stack.B := stack.C
+              regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Breg))
+              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
             }
           }
           is(Opcode.SecondaryOpcode.RET) {
-            stack.IPtr := stack.read(S(0))
-            stack.WPtr := stack.WPtr + 4
+            regStack.writeReg(RegName.IptrReg, regStack.read(S(0)))
+            regStack.writeReg(RegName.WdescReg, regStack.readReg(RegName.WdescReg) + 4)
           }
           is(Opcode.SecondaryOpcode.STARTP) {
             sched.newProc.valid := True
-            sched.newProc.payload.ptr := stack.A
+            sched.newProc.payload.ptr := regStack.readReg(RegName.Areg)
             sched.newProc.payload.high := False
-            stack.A := stack.B
-            stack.B := stack.C
+            regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Breg))
+            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
           }
           is(Opcode.SecondaryOpcode.RUNP) {
-            sched.enqueue(stack.A, False)
-            stack.A := stack.B
-            stack.B := stack.C
+            sched.enqueue(regStack.readReg(RegName.Areg), False)
+            regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Breg))
+            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
           }
           is(Opcode.SecondaryOpcode.TESTERR) {
             val tmp = errReg
             errReg := False
-            stack.C := stack.B
-            stack.B := stack.A
-            stack.A := tmp.asUInt.resized
+            regStack.writeReg(RegName.Creg, regStack.readReg(RegName.Breg))
+            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Areg))
+            regStack.writeReg(RegName.Areg, tmp.asUInt.resized)
           }
           is(Opcode.SecondaryOpcode.ALT) {
             // ALT setup not yet implemented
           }
           is(Opcode.SecondaryOpcode.ALTWT) {
-            val waitDone = timer.hi >= stack.A
-            when(!waitDone) { sched.enqueue(stack.WPtr, False) }
+            val waitDone = timer.hi >= regStack.readReg(RegName.Areg)
+            when(!waitDone) { sched.enqueue(regStack.readReg(RegName.WdescReg), False) }
             pipe.execute.haltWhen(!waitDone)
           }
           is(Opcode.SecondaryOpcode.ALTEND) {
             // ALTEND placeholder
           }
           is(Opcode.SecondaryOpcode.STLB) {
-            loBPtr := stack.A
-            stack.A := stack.B
-            stack.B := stack.C
+            loBPtr := regStack.readReg(RegName.Areg)
+            regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Breg))
+            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
           }
           is(Opcode.SecondaryOpcode.STHB) {
-            hiBPtr := stack.A
-            stack.A := stack.B
-            stack.B := stack.C
+            hiBPtr := regStack.readReg(RegName.Areg)
+            regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Breg))
+            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
           }
           is(Opcode.SecondaryOpcode.STLF) {
-            loFPtr := stack.A
-            stack.A := stack.B
-            stack.B := stack.C
+            loFPtr := regStack.readReg(RegName.Areg)
+            regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Breg))
+            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
           }
           is(Opcode.SecondaryOpcode.STHF) {
-            hiFPtr := stack.A
-            stack.A := stack.B
-            stack.B := stack.C
+            hiFPtr := regStack.readReg(RegName.Areg)
+            regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Breg))
+            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
           }
           is(Opcode.SecondaryOpcode.SAVEL) {
             val addr = Mux(saveLPhase, loBPtr, loFPtr)
             arb.exeWr.valid := True
-            arb.exeWr.payload.addr := addr.resized
+            arb.exeWr.payload.address := addr.resized
             arb.exeWr.payload.data := Mux(saveLPhase, sched.loBack, sched.loFront).asBits
             pipe.execute.haltWhen(False)
             when(pipe.execute.down.isFiring) {
@@ -271,15 +400,15 @@ class SecondaryInstrPlugin extends FiberPlugin {
                 saveLPhase := True
               } otherwise {
                 saveLPhase := False
-                stack.A := stack.B
-                stack.B := stack.C
+                regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Breg))
+                regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
               }
             }
           }
           is(Opcode.SecondaryOpcode.SAVEH) {
             val addr = Mux(saveHPhase, hiBPtr, hiFPtr)
             arb.exeWr.valid := True
-            arb.exeWr.payload.addr := addr.resized
+            arb.exeWr.payload.address := addr.resized
             arb.exeWr.payload.data := Mux(saveHPhase, sched.hiBack, sched.hiFront).asBits
             pipe.execute.haltWhen(False)
             when(pipe.execute.down.isFiring) {
@@ -287,19 +416,19 @@ class SecondaryInstrPlugin extends FiberPlugin {
                 saveHPhase := True
               } otherwise {
                 saveHPhase := False
-                stack.A := stack.B
-                stack.B := stack.C
+                regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Breg))
+                regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
               }
             }
           }
           is(Opcode.SecondaryOpcode.STOPP) {
-            sched.enqueue(stack.WPtr, False)
+            sched.enqueue(regStack.readReg(RegName.WdescReg), False)
             pipe.execute.haltWhen(True)
           }
           is(Opcode.SecondaryOpcode.ENDP) {
-            val parent = stack.read(S(0))
-            val cnt = stack.read(S(-1)) - 1
-            stack.write(S(-1), cnt)
+            val parent = regStack.read(S(0))
+            val cnt = regStack.read(S(-1)) - 1
+            regStack.write(S(-1), cnt)
             when(cnt === 0) {
               sched.terminateCurrent()
             } otherwise {
@@ -307,19 +436,19 @@ class SecondaryInstrPlugin extends FiberPlugin {
             }
           }
           is(Opcode.SecondaryOpcode.MINT) {
-            stack.C := stack.B
-            stack.B := stack.A
-            stack.A := U(0x80000000L)
+            regStack.writeReg(RegName.Creg, regStack.readReg(RegName.Breg))
+            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Areg))
+            regStack.writeReg(RegName.Areg, U(0x80000000L))
           }
           is(Opcode.SecondaryOpcode.STTIMER) {
-            timer.set(stack.A)
-            stack.A := stack.B
-            stack.B := stack.C
+            timer.set(regStack.readReg(RegName.Areg))
+            regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Breg))
+            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
           }
           is(Opcode.SecondaryOpcode.LDTIMER) {
-            stack.C := stack.B
-            stack.B := stack.A
-            stack.A := timer.hi
+            regStack.writeReg(RegName.Creg, regStack.readReg(RegName.Breg))
+            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Areg))
+            regStack.writeReg(RegName.Areg, timer.hi)
           }
           is(Opcode.SecondaryOpcode.TIMERDISABLEH) {
             timer.disableHi()
@@ -334,10 +463,10 @@ class SecondaryInstrPlugin extends FiberPlugin {
             timer.enableLo()
           }
           is(Opcode.SecondaryOpcode.LEND) {
-            val cnt = stack.A - 1
-            stack.A := cnt
+            val cnt = regStack.readReg(RegName.Areg) - 1
+            regStack.writeReg(RegName.Areg, cnt)
             when(cnt =/= 0) {
-              sched.enqueue(stack.WPtr, False)
+              sched.enqueue(regStack.readReg(RegName.WdescReg), False)
               pipe.execute.haltWhen(True)
             }
           }
@@ -348,158 +477,813 @@ class SecondaryInstrPlugin extends FiberPlugin {
             haltErr := True
           }
           is(Opcode.SecondaryOpcode.TESTHALTERR) {
-            stack.C := stack.B
-            stack.B := stack.A
-            stack.A := haltErr.asUInt.resized
+            regStack.writeReg(RegName.Creg, regStack.readReg(RegName.Breg))
+            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Areg))
+            regStack.writeReg(RegName.Areg, haltErr.asUInt.resized)
           }
           is(Opcode.SecondaryOpcode.DUP) {
-            stack.C := stack.B
-            stack.B := stack.A
+            regStack.writeReg(RegName.Creg, regStack.readReg(RegName.Breg))
+            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Areg))
           }
           is(Opcode.SecondaryOpcode.MOVE2DINIT) {
-            move2dLen := stack.A
-            move2dStride := stack.B
-            move2dAddr := stack.C
-            stack.A := stack.B
-            stack.B := stack.C
+            move2dLen := regStack.readReg(RegName.Areg)
+            move2dStride := regStack.readReg(RegName.Breg)
+            move2dAddr := regStack.readReg(RegName.Creg)
+            regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Breg))
+            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
           }
           is(Opcode.SecondaryOpcode.MOVE2DALL) {
             dma.cmd.valid := True
-            dma.cmd.payload.link := stack.B(1 downto 0)
+            dma.cmd.payload.link := regStack.readReg(RegName.Breg)(1 downto 0)
             dma.cmd.payload.addr := move2dAddr
             dma.cmd.payload.length := move2dLen
             dma.cmd.payload.stride := move2dStride
-            dma.cmd.payload.rows := stack.A
+            dma.cmd.payload.rows := regStack.readReg(RegName.Areg)
             dma.cmd.payload.twoD := True
             pipe.execute.haltWhen(!dma.cmd.ready)
             when(pipe.execute.down.isFiring) {
-              move2dAddr := move2dAddr + move2dStride * stack.A
-              stack.A := stack.B
-              stack.B := stack.C
+              move2dAddr := move2dAddr + move2dStride * regStack.readReg(RegName.Areg)
+              regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Breg))
+              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
             }
           }
           is(Opcode.SecondaryOpcode.MOVE2DNONZERO) {
             dma.cmd.valid := True
-            dma.cmd.payload.link := stack.B(1 downto 0)
+            dma.cmd.payload.link := regStack.readReg(RegName.Breg)(1 downto 0)
             dma.cmd.payload.addr := move2dAddr
             dma.cmd.payload.length := move2dLen
             dma.cmd.payload.stride := move2dStride
-            dma.cmd.payload.rows := stack.A
+            dma.cmd.payload.rows := regStack.readReg(RegName.Areg)
             dma.cmd.payload.twoD := True
             pipe.execute.haltWhen(!dma.cmd.ready)
             when(pipe.execute.down.isFiring) {
-              move2dAddr := move2dAddr + move2dStride * stack.A
-              stack.A := stack.B
-              stack.B := stack.C
+              move2dAddr := move2dAddr + move2dStride * regStack.readReg(RegName.Areg)
+              regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Breg))
+              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
             }
           }
           is(Opcode.SecondaryOpcode.MOVE2DZERO) {
             dma.cmd.valid := True
-            dma.cmd.payload.link := stack.B(1 downto 0)
+            dma.cmd.payload.link := regStack.readReg(RegName.Breg)(1 downto 0)
             dma.cmd.payload.addr := move2dAddr
             dma.cmd.payload.length := move2dLen
             dma.cmd.payload.stride := move2dStride
-            dma.cmd.payload.rows := stack.A
+            dma.cmd.payload.rows := regStack.readReg(RegName.Areg)
             dma.cmd.payload.twoD := True
             pipe.execute.haltWhen(!dma.cmd.ready)
             when(pipe.execute.down.isFiring) {
-              move2dAddr := move2dAddr + move2dStride * stack.A
-              stack.A := stack.B
-              stack.B := stack.C
+              move2dAddr := move2dAddr + move2dStride * regStack.readReg(RegName.Areg)
+              regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Breg))
+              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
             }
           }
           is(Opcode.SecondaryOpcode.POP) {
-            val t = stack.A
-            stack.A := stack.B
-            stack.B := stack.C
-            stack.C := t
+            val t = regStack.readReg(RegName.Areg)
+            regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Breg))
+            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            regStack.writeReg(RegName.Creg, t)
           }
           is(Opcode.SecondaryOpcode.LB) {
-            val addr = stack.A
+            val addr = regStack.readReg(RegName.Areg)
             arb.exeRd.valid := True
-            arb.exeRd.payload.addr := (addr >> 2).resized
+            arb.exeRd.payload.address := (addr >> 2).resized
             pipe.execute.haltWhen(!mem.rdRsp.valid)
             when(pipe.execute.down.isFiring) {
               val shift = addr(1 downto 0) * 8
               val byte = (mem.rdRsp.payload >> shift).resize(8)
-              stack.A := byte.asUInt.resize(Global.WORD_BITS)
+              regStack.writeReg(RegName.Areg, byte.asUInt.resize(Global.WORD_BITS))
             }
           }
           is(Opcode.SecondaryOpcode.OUTBYTE) {
-            val idx = stack.B(1 downto 0)
-            val ready = links.push(idx, stack.A.asBits)
+            val idx = regStack.readReg(RegName.Breg)(1 downto 0)
+            val ready = links.push(idx, regStack.readReg(RegName.Areg).asBits)
             pipe.execute.haltWhen(!ready)
             when(pipe.execute.down.isFiring) {
-              stack.A := stack.B
-              stack.B := stack.C
+              regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Breg))
+              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
             }
           }
           is(Opcode.SecondaryOpcode.OUTWORD) {
-            val idx = stack.B(1 downto 0)
-            val ready = links.push(idx, stack.A.asBits)
+            val idx = regStack.readReg(RegName.Breg)(1 downto 0)
+            val ready = links.push(idx, regStack.readReg(RegName.Areg).asBits)
             pipe.execute.haltWhen(!ready)
             when(pipe.execute.down.isFiring) {
-              stack.A := stack.B
-              stack.B := stack.C
+              regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Breg))
+              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
             }
           }
           is(Opcode.SecondaryOpcode.MOVE) {
-            val dma = Plugin[ChannelDmaService]
             dma.cmd.valid := True
-            dma.cmd.payload.link := stack.B(1 downto 0)
-            dma.cmd.payload.addr := stack.C
-            dma.cmd.payload.length := stack.A
+            dma.cmd.payload.link := regStack.readReg(RegName.Breg)(1 downto 0)
+            dma.cmd.payload.addr := regStack.readReg(RegName.Creg)
+            dma.cmd.payload.length := regStack.readReg(RegName.Areg)
             dma.cmd.payload.stride := 0
             dma.cmd.payload.rows := 0
             dma.cmd.payload.twoD := False
             pipe.execute.haltWhen(!dma.cmd.ready)
             when(pipe.execute.down.isFiring) {
-              stack.A := stack.B
-              stack.B := stack.C
+              regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Breg))
+              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
             }
           }
           is(Opcode.SecondaryOpcode.LDPI) {
-            stack.A := stack.A + stack.IPtr
+            regStack.writeReg(
+              RegName.Areg,
+              regStack.readReg(RegName.Areg) + regStack.readReg(RegName.IptrReg)
+            )
           }
           is(Opcode.SecondaryOpcode.FPADD) {
-            fpu.send(FpOp.ADD, stack.A, stack.B)
+            fpu.send(
+              FpOp.Arithmetic.FPADD,
+              regStack.readReg(RegName.Areg),
+              regStack.readReg(RegName.Breg)
+            )
             pipe.execute.haltWhen(!fpu.resultValid)
             when(pipe.execute.down.isFiring) {
-              stack.A := fpu.result
-              stack.B := stack.C
+              regStack.writeReg(RegName.Areg, fpu.result)
+              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
             }
           }
           is(Opcode.SecondaryOpcode.FPSUB) {
-            fpu.send(FpOp.SUB, stack.A, stack.B)
+            fpu.send(
+              FpOp.Arithmetic.FPSUB,
+              regStack.readReg(RegName.Areg),
+              regStack.readReg(RegName.Breg)
+            )
             pipe.execute.haltWhen(!fpu.resultValid)
             when(pipe.execute.down.isFiring) {
-              stack.A := fpu.result
-              stack.B := stack.C
+              regStack.writeReg(RegName.Areg, fpu.result)
+              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
             }
           }
           is(Opcode.SecondaryOpcode.FPMUL) {
-            fpu.send(FpOp.MUL, stack.A, stack.B)
+            fpu.send(
+              FpOp.Arithmetic.FPMUL,
+              regStack.readReg(RegName.Areg),
+              regStack.readReg(RegName.Breg)
+            )
             pipe.execute.haltWhen(!fpu.resultValid)
             when(pipe.execute.down.isFiring) {
-              stack.A := fpu.result
-              stack.B := stack.C
+              regStack.writeReg(RegName.Areg, fpu.result)
+              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
             }
           }
           is(Opcode.SecondaryOpcode.FPDIV) {
-            fpu.send(FpOp.DIV, stack.A, stack.B)
+            fpu.send(
+              FpOp.Arithmetic.FPDIV,
+              regStack.readReg(RegName.Areg),
+              regStack.readReg(RegName.Breg)
+            )
             pipe.execute.haltWhen(!fpu.resultValid)
             when(pipe.execute.down.isFiring) {
-              stack.A := fpu.result
-              stack.B := stack.C
+              regStack.writeReg(RegName.Areg, fpu.result)
+              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
             }
           }
+
+          // ========================================
+          // ENHANCED T9000 FLOATING-POINT INSTRUCTIONS
+          // ========================================
+
+          is(Opcode.SecondaryOpcode.FPABS) {
+            fpu.send(FpOp.Arithmetic.FPABS, regStack.readReg(RegName.Areg), U(0))
+            pipe.execute.haltWhen(!fpu.resultValid)
+            when(pipe.execute.down.isFiring) {
+              regStack.writeReg(RegName.Areg, fpu.result)
+              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            }
+          }
+          is(Opcode.SecondaryOpcode.FPINT) {
+            fpu.send(FpOp.Conversion.FPINT, regStack.readReg(RegName.Areg), U(0))
+            pipe.execute.haltWhen(!fpu.resultValid)
+            when(pipe.execute.down.isFiring) {
+              regStack.writeReg(RegName.Areg, fpu.result)
+              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            }
+          }
+          is(Opcode.SecondaryOpcode.FPMULBY2) {
+            fpu.send(FpOp.Arithmetic.FPMULBY2, regStack.readReg(RegName.Areg), U(0))
+            pipe.execute.haltWhen(!fpu.resultValid)
+            when(pipe.execute.down.isFiring) {
+              regStack.writeReg(RegName.Areg, fpu.result)
+              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            }
+          }
+          is(Opcode.SecondaryOpcode.FPDIVBY2) {
+            fpu.send(FpOp.Arithmetic.FPDIVBY2, regStack.readReg(RegName.Areg), U(0))
+            pipe.execute.haltWhen(!fpu.resultValid)
+            when(pipe.execute.down.isFiring) {
+              regStack.writeReg(RegName.Areg, fpu.result)
+              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            }
+          }
+          is(Opcode.SecondaryOpcode.FPREM) {
+            fpu.send(
+              FpOp.Additional.FPREM,
+              regStack.readReg(RegName.Areg),
+              regStack.readReg(RegName.Breg)
+            )
+            pipe.execute.haltWhen(!fpu.resultValid)
+            when(pipe.execute.down.isFiring) {
+              regStack.writeReg(RegName.Areg, fpu.result)
+              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            }
+          }
+          is(Opcode.SecondaryOpcode.FPSQRT) {
+            fpu.send(FpOp.Additional.FPSQRT, regStack.readReg(RegName.Areg), U(0))
+            pipe.execute.haltWhen(!fpu.resultValid)
+            when(pipe.execute.down.isFiring) {
+              regStack.writeReg(RegName.Areg, fpu.result)
+              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            }
+          }
+          is(Opcode.SecondaryOpcode.FPRN) {
+            fpu.setRoundingMode(B"00") // Round to nearest
+          }
+          is(Opcode.SecondaryOpcode.FPRP) {
+            fpu.setRoundingMode(B"10") // Round toward +infinity
+          }
+          is(Opcode.SecondaryOpcode.FPRM) {
+            fpu.setRoundingMode(B"11") // Round toward -infinity
+          }
+          is(Opcode.SecondaryOpcode.FPRZ) {
+            fpu.setRoundingMode(B"01") // Round toward zero
+          }
+          is(Opcode.SecondaryOpcode.FPR32TOR64) {
+            fpu.send(FpOp.Conversion.FPR32TOR64, regStack.readReg(RegName.Areg), U(0))
+            pipe.execute.haltWhen(!fpu.resultValid)
+            when(pipe.execute.down.isFiring) {
+              regStack.writeReg(RegName.Areg, fpu.result)
+              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            }
+          }
+          is(Opcode.SecondaryOpcode.FPR64TOR32) {
+            fpu.send(FpOp.Conversion.FPR64TOR32, regStack.readReg(RegName.Areg), U(0))
+            pipe.execute.haltWhen(!fpu.resultValid)
+            when(pipe.execute.down.isFiring) {
+              regStack.writeReg(RegName.Areg, fpu.result)
+              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            }
+          }
+          is(Opcode.SecondaryOpcode.FPEXPDEC32) {
+            fpu.send(FpOp.Arithmetic.FPEXPDEC32, regStack.readReg(RegName.Areg), U(0))
+            pipe.execute.haltWhen(!fpu.resultValid)
+            when(pipe.execute.down.isFiring) {
+              regStack.writeReg(RegName.Areg, fpu.result)
+              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            }
+          }
+          is(Opcode.SecondaryOpcode.FPEXPINC32) {
+            fpu.send(FpOp.Arithmetic.FPEXPINC32, regStack.readReg(RegName.Areg), U(0))
+            pipe.execute.haltWhen(!fpu.resultValid)
+            when(pipe.execute.down.isFiring) {
+              regStack.writeReg(RegName.Areg, fpu.result)
+              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            }
+          }
+          is(Opcode.SecondaryOpcode.FPCHKI32) {
+            fpu.send(FpOp.Comparison.FPCHKI32, regStack.readReg(RegName.Areg), U(0))
+            pipe.execute.haltWhen(!fpu.resultValid)
+            when(pipe.execute.down.isFiring) {
+              regStack.writeReg(RegName.Areg, fpu.result)
+              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            }
+          }
+          is(Opcode.SecondaryOpcode.FPCHKI64) {
+            fpu.send(FpOp.Comparison.FPCHKI64, regStack.readReg(RegName.Areg), U(0))
+            pipe.execute.haltWhen(!fpu.resultValid)
+            when(pipe.execute.down.isFiring) {
+              regStack.writeReg(RegName.Areg, fpu.result)
+              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            }
+          }
+          is(Opcode.SecondaryOpcode.FPGT) {
+            fpu.send(
+              FpOp.Comparison.FPGT,
+              regStack.readReg(RegName.Areg),
+              regStack.readReg(RegName.Breg)
+            )
+            pipe.execute.haltWhen(!fpu.resultValid)
+            when(pipe.execute.down.isFiring) {
+              regStack.writeReg(RegName.Areg, fpu.result)
+              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            }
+          }
+          is(Opcode.SecondaryOpcode.FPEQ) {
+            fpu.send(
+              FpOp.Comparison.FPEQ,
+              regStack.readReg(RegName.Areg),
+              regStack.readReg(RegName.Breg)
+            )
+            pipe.execute.haltWhen(!fpu.resultValid)
+            when(pipe.execute.down.isFiring) {
+              regStack.writeReg(RegName.Areg, fpu.result)
+              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            }
+          }
+          is(Opcode.SecondaryOpcode.FPGE) {
+            fpu.send(
+              FpOp.Additional.FPGE,
+              regStack.readReg(RegName.Areg),
+              regStack.readReg(RegName.Breg)
+            )
+            pipe.execute.haltWhen(!fpu.resultValid)
+            when(pipe.execute.down.isFiring) {
+              regStack.writeReg(RegName.Areg, fpu.result)
+              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            }
+          }
+          is(Opcode.SecondaryOpcode.FPNAN) {
+            fpu.send(FpOp.Comparison.FPNAN, regStack.readReg(RegName.Areg), U(0))
+            pipe.execute.haltWhen(!fpu.resultValid)
+            when(pipe.execute.down.isFiring) {
+              regStack.writeReg(RegName.Areg, fpu.result)
+              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            }
+          }
+          is(Opcode.SecondaryOpcode.FPORDERED) {
+            fpu.send(
+              FpOp.Comparison.FPORDERED,
+              regStack.readReg(RegName.Areg),
+              regStack.readReg(RegName.Breg)
+            )
+            pipe.execute.haltWhen(!fpu.resultValid)
+            when(pipe.execute.down.isFiring) {
+              regStack.writeReg(RegName.Areg, fpu.result)
+              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            }
+          }
+          is(Opcode.SecondaryOpcode.FPNOTFINITE) {
+            fpu.send(FpOp.Comparison.FPNOTFINITE, regStack.readReg(RegName.Areg), U(0))
+            pipe.execute.haltWhen(!fpu.resultValid)
+            when(pipe.execute.down.isFiring) {
+              regStack.writeReg(RegName.Areg, fpu.result)
+              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            }
+          }
+          is(Opcode.SecondaryOpcode.FPI32TOR32) {
+            fpu.send(FpOp.Conversion.FPI32TOR32, regStack.readReg(RegName.Areg), U(0))
+            pipe.execute.haltWhen(!fpu.resultValid)
+            when(pipe.execute.down.isFiring) {
+              regStack.writeReg(RegName.Areg, fpu.result)
+              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            }
+          }
+          is(Opcode.SecondaryOpcode.FPI32TOR64) {
+            fpu.send(FpOp.Conversion.FPI32TOR64, regStack.readReg(RegName.Areg), U(0))
+            pipe.execute.haltWhen(!fpu.resultValid)
+            when(pipe.execute.down.isFiring) {
+              regStack.writeReg(RegName.Areg, fpu.result)
+              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            }
+          }
+          is(Opcode.SecondaryOpcode.FPRTOI32) {
+            fpu.send(FpOp.Conversion.FPRTOI32, regStack.readReg(RegName.Areg), U(0))
+            pipe.execute.haltWhen(!fpu.resultValid)
+            when(pipe.execute.down.isFiring) {
+              regStack.writeReg(RegName.Areg, fpu.result)
+              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            }
+          }
+          is(Opcode.SecondaryOpcode.FPDUP) {
+            regStack.writeReg(RegName.Creg, regStack.readReg(RegName.Breg))
+            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Areg))
+          }
+          is(Opcode.SecondaryOpcode.FPREV) {
+            val tmp = regStack.readReg(RegName.Areg)
+            regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Breg))
+            regStack.writeReg(RegName.Breg, tmp)
+          }
+
+          // ========================================
+          // MEMORY AND BYTE OPERATIONS
+          // ========================================
+
+          is(Opcode.SecondaryOpcode.SB) {
+            val addr = regStack.readReg(RegName.Breg)
+            val byte = regStack.readReg(RegName.Areg)(7 downto 0)
+            arb.exeWr.valid := True
+            arb.exeWr.payload.address := (addr >> 2).resized
+            arb.exeWr.payload.data := (byte ## byte ## byte ## byte).asBits
+            pipe.execute.haltWhen(!arb.exeWr.fire)
+            when(pipe.execute.down.isFiring) {
+              regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Creg))
+            }
+          }
+          is(Opcode.SecondaryOpcode.BSUB) {
+            val result = regStack.readReg(RegName.Breg) + regStack.readReg(RegName.Areg)
+            regStack.writeReg(RegName.Areg, result)
+            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+          }
+          is(Opcode.SecondaryOpcode.WSUB) {
+            val result = regStack.readReg(RegName.Breg) + (regStack.readReg(RegName.Areg) << 2)
+            regStack.writeReg(RegName.Areg, result)
+            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+          }
+          is(Opcode.SecondaryOpcode.WSUBDB) {
+            val result = regStack.readReg(RegName.Breg) + (regStack.readReg(RegName.Areg) << 3)
+            regStack.writeReg(RegName.Areg, result)
+            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+          }
+          is(Opcode.SecondaryOpcode.XWORD) {
+            val extended = regStack.readReg(RegName.Areg)(15 downto 0).asSInt.resize(32).asUInt
+            regStack.writeReg(RegName.Areg, extended)
+          }
+          is(Opcode.SecondaryOpcode.XBWORD) {
+            val extended = regStack.readReg(RegName.Areg)(7 downto 0).asSInt.resize(32).asUInt
+            regStack.writeReg(RegName.Areg, extended)
+          }
+          is(Opcode.SecondaryOpcode.LBX) {
+            val addr = regStack.readReg(RegName.Areg)
+            arb.exeRd.valid := True
+            arb.exeRd.payload.address := (addr >> 2).resized
+            pipe.execute.haltWhen(!mem.rdRsp.valid)
+            when(pipe.execute.down.isFiring) {
+              val shift = addr(1 downto 0) * 8
+              val byte = (mem.rdRsp.payload >> shift).resize(8)
+              regStack.writeReg(RegName.Areg, byte.asSInt.resize(32).asUInt)
+            }
+          }
+          is(Opcode.SecondaryOpcode.CB) {
+            val value = regStack.readReg(RegName.Areg)(7 downto 0).asSInt
+            when(value < S(-128) || value > S(127)) {
+              errReg := True
+            }
+          }
+          is(Opcode.SecondaryOpcode.CBU) {
+            val value = regStack.readReg(RegName.Areg)
+            when(value > U(255)) {
+              errReg := True
+            }
+          }
+          is(Opcode.SecondaryOpcode.SS) {
+            val addr = regStack.readReg(RegName.Breg)
+            val halfword = regStack.readReg(RegName.Areg)(15 downto 0)
+            arb.exeWr.valid := True
+            arb.exeWr.payload.address := (addr >> 2).resized
+            arb.exeWr.payload.data := (halfword ## halfword).asBits
+            pipe.execute.haltWhen(!arb.exeWr.fire)
+            when(pipe.execute.down.isFiring) {
+              regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Creg))
+            }
+          }
+          is(Opcode.SecondaryOpcode.LSX) {
+            val addr = regStack.readReg(RegName.Areg)
+            arb.exeRd.valid := True
+            arb.exeRd.payload.address := (addr >> 2).resized
+            pipe.execute.haltWhen(!mem.rdRsp.valid)
+            when(pipe.execute.down.isFiring) {
+              val shift = (addr(1).asUInt << 4)
+              val halfword = (mem.rdRsp.payload >> shift).resize(16)
+              regStack.writeReg(RegName.Areg, halfword.asSInt.resize(32).asUInt)
+            }
+          }
+          is(Opcode.SecondaryOpcode.CS) {
+            val value = regStack.readReg(RegName.Areg)(15 downto 0).asSInt
+            when(value < S(-32768) || value > S(32767)) {
+              errReg := True
+            }
+          }
+          is(Opcode.SecondaryOpcode.CSU) {
+            val value = regStack.readReg(RegName.Areg)
+            when(value > U(65535)) {
+              errReg := True
+            }
+          }
+          is(Opcode.SecondaryOpcode.XSWORD) {
+            val extended = regStack.readReg(RegName.Areg)(15 downto 0).asSInt.resize(32).asUInt
+            regStack.writeReg(RegName.Areg, extended)
+          }
+
+          // ========================================
+          // BIT MANIPULATION AND CRC OPERATIONS
+          // ========================================
+
+          is(Opcode.SecondaryOpcode.CRCWORD) {
+            val data = regStack.readReg(RegName.Areg)
+            val poly = regStack.readReg(RegName.Breg)
+            var crc = UInt(32 bits)
+            crc := regStack.readReg(RegName.Creg)
+            for (i <- 0 until 32) {
+              when(crc(31) ^ data(i)) {
+                crc := (crc |<< 1) ^ poly
+              } otherwise {
+                crc := crc |<< 1
+              }
+            }
+            regStack.writeReg(RegName.Areg, crc)
+            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+          }
+          is(Opcode.SecondaryOpcode.CRCBYTE) {
+            val data = regStack.readReg(RegName.Areg)(7 downto 0)
+            val poly = regStack.readReg(RegName.Breg)
+            var crc = UInt(32 bits)
+            crc := regStack.readReg(RegName.Creg)
+            for (i <- 0 until 8) {
+              when(crc(31) ^ data(i)) {
+                crc := (crc |<< 1) ^ poly
+              } otherwise {
+                crc := crc |<< 1
+              }
+            }
+            regStack.writeReg(RegName.Areg, crc)
+            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+          }
+          is(Opcode.SecondaryOpcode.BITCNT) {
+            val value = regStack.readReg(RegName.Areg)
+            val popcount = CountOne(value.asBits)
+            regStack.writeReg(RegName.Areg, popcount.resized)
+          }
+          is(Opcode.SecondaryOpcode.BITREVWORD) {
+            val value = regStack.readReg(RegName.Areg)
+            val reversed = Reverse(value.asBits)
+            regStack.writeReg(RegName.Areg, reversed.asUInt)
+          }
+          is(Opcode.SecondaryOpcode.BITREVNBITS) {
+            val value = regStack.readReg(RegName.Areg)
+            val nbits = regStack.readReg(RegName.Breg)(4 downto 0) // Max 32 bits
+            val mask = (U(1) << nbits) - 1
+            val maskedValue = value & mask
+            val reversed = Reverse(maskedValue.asBits.resize(32))
+            val result = reversed.asUInt >> (32 - nbits)
+            regStack.writeReg(RegName.Areg, result)
+            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+          }
+
+          // ========================================
+          // COUNTING AND SIZING OPERATIONS
+          // ========================================
+
+          is(Opcode.SecondaryOpcode.BCNT) {
+            val byteCount = regStack.readReg(RegName.Areg)
+            regStack.writeReg(RegName.Areg, byteCount)
+          }
+          is(Opcode.SecondaryOpcode.WCNT) {
+            val wordCount = regStack.readReg(RegName.Areg)
+            regStack.writeReg(RegName.Areg, wordCount << 2) // Convert words to bytes
+          }
+          is(Opcode.SecondaryOpcode.CCNT) {
+            val count = regStack.readReg(RegName.Areg)
+            when(count === 0) {
+              errReg := True
+            }
+            regStack.writeReg(RegName.Areg, count - 1)
+          }
+          is(Opcode.SecondaryOpcode.CSNGL) {
+            val value = regStack.readReg(RegName.Areg)
+            when(value > U(0x7fffffff) && value < U((1L << 31), 32 bits)) {
+              errReg := True
+            }
+          }
+          is(Opcode.SecondaryOpcode.CWORD) {
+            val value = regStack.readReg(RegName.Areg)
+            when(value(1 downto 0) =/= 0) {
+              errReg := True // Not word aligned
+            }
+          }
+          is(Opcode.SecondaryOpcode.LDCNT) {
+            val count = regStack.readReg(RegName.Areg)
+            regStack.writeReg(RegName.Creg, regStack.readReg(RegName.Breg))
+            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Areg))
+            regStack.writeReg(RegName.Areg, count)
+          }
+          is(Opcode.SecondaryOpcode.SSUB) {
+            val result = regStack.readReg(RegName.Breg) + (regStack.readReg(RegName.Areg) << 1)
+            regStack.writeReg(RegName.Areg, result)
+            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+          }
+
+          // ========================================
+          // PROCESS CONTROL AND CHANNEL OPERATIONS
+          // ========================================
+
+          is(Opcode.SecondaryOpcode.RESETCH) {
+            val channel = regStack.readReg(RegName.Areg)
+            links.rxAck(channel(1 downto 0))
+            regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Breg))
+            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+          }
+          is(Opcode.SecondaryOpcode.CSUB) {
+            val result = regStack.readReg(RegName.Breg) + regStack.readReg(RegName.Areg)
+            when(result < regStack.readReg(RegName.Breg)) {
+              errReg := True // Check subscript overflow
+            }
+            regStack.writeReg(RegName.Areg, result)
+            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+          }
+          is(Opcode.SecondaryOpcode.GAJW) {
+            val newWPtr = regStack.readReg(RegName.Areg)
+            regStack.writeReg(RegName.WdescReg, newWPtr)
+            regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Breg))
+            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+          }
+          is(Opcode.SecondaryOpcode.DIST) {
+            timer.disableHi()
+            regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Breg))
+            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+          }
+          is(Opcode.SecondaryOpcode.DISC) {
+            val channel = regStack.readReg(RegName.Areg)
+            // Disable channel - implementation depends on VCP
+            vcp.setVcpCommand(B"00000001")
+            regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Breg))
+            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+          }
+          is(Opcode.SecondaryOpcode.DISS) {
+            // Disable skip - ALT operation
+            regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Breg))
+            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+          }
+          is(Opcode.SecondaryOpcode.ENBT) {
+            timer.enableHi()
+            regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Breg))
+            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+          }
+          is(Opcode.SecondaryOpcode.ENBC) {
+            val channel = regStack.readReg(RegName.Areg)
+            // Enable channel - implementation depends on VCP
+            vcp.setVcpCommand(B"00000010")
+            regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Breg))
+            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+          }
+          is(Opcode.SecondaryOpcode.ENBS) {
+            // Enable skip - ALT operation
+            regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Breg))
+            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+          }
+          is(Opcode.SecondaryOpcode.INSPHDR) {
+            val header = regStack.readReg(RegName.Areg)
+            val channel = regStack.readReg(RegName.Breg)(2 downto 0).algoInt
+            vcp.updateChannelHeader(channel, header.asBits)
+            regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Creg))
+          }
+          is(Opcode.SecondaryOpcode.READBFR) {
+            val channel = regStack.readReg(RegName.Areg)(2 downto 0).algoInt
+            val state = vcp.getChannelState(channel)
+            regStack.writeReg(RegName.Creg, regStack.readReg(RegName.Breg))
+            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Areg))
+            regStack.writeReg(RegName.Areg, state.asUInt)
+          }
+          is(Opcode.SecondaryOpcode.CHANTYPE) {
+            val channel = regStack.readReg(RegName.Areg)
+            val channelType = U(1) // Default hard channel type
+            regStack.writeReg(RegName.Areg, channelType)
+          }
+
+          // ========================================
+          // ERROR HANDLING AND STATUS OPERATIONS
+          // ========================================
+
+          is(Opcode.SecondaryOpcode.TESTPRANAL) {
+            val analyzing = sched.isAnalyzing
+            regStack.writeReg(RegName.Creg, regStack.readReg(RegName.Breg))
+            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Areg))
+            regStack.writeReg(RegName.Areg, analyzing.asUInt.resized)
+          }
+          is(Opcode.SecondaryOpcode.STOPERR) {
+            errReg := True
+            when(haltErr) {
+              pipe.execute.haltWhen(True)
+            }
+          }
+          is(Opcode.SecondaryOpcode.LDFLAGS) {
+            val flags = errReg.asUInt.resized
+            regStack.writeReg(RegName.Creg, regStack.readReg(RegName.Breg))
+            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Areg))
+            regStack.writeReg(RegName.Areg, flags)
+          }
+          is(Opcode.SecondaryOpcode.STFLAGS) {
+            errReg := regStack.readReg(RegName.Areg)(0)
+            regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Breg))
+            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+          }
+
+          // ========================================
+          // CONFIGURATION REGISTER OPERATIONS
+          // ========================================
+
+          is(Opcode.SecondaryOpcode.LDCONF) {
+            val addr = regStack.readReg(RegName.Areg)(15 downto 0).asBits
+            val data = config.read(addr, 32)
+            regStack.writeReg(RegName.Areg, data.asUInt)
+          }
+          is(Opcode.SecondaryOpcode.STCONF) {
+            val addr = regStack.readReg(RegName.Breg)(15 downto 0).asBits
+            val data = regStack.readReg(RegName.Areg).asBits
+            config.write(addr, data, 32)
+            regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Creg))
+          }
+          is(Opcode.SecondaryOpcode.LDTH) {
+            val trapHandler = trap.trapHandlerAddr
+            regStack.writeReg(RegName.Creg, regStack.readReg(RegName.Breg))
+            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Areg))
+            regStack.writeReg(RegName.Areg, trapHandler.asUInt)
+          }
+          is(Opcode.SecondaryOpcode.LDCHSTATUS) {
+            val channel = regStack.readReg(RegName.Areg)(2 downto 0).algoInt
+            val status = vcp.getChannelState(channel)
+            regStack.writeReg(RegName.Areg, status.asUInt)
+          }
+
+          // ========================================
+          // INTERRUPT CONTROL
+          // ========================================
+
+          is(Opcode.SecondaryOpcode.INTDIS) {
+            // Disable interrupts
+            pipe.execute.haltWhen(False) // Placeholder
+          }
+          is(Opcode.SecondaryOpcode.INTENB) {
+            // Enable interrupts
+            pipe.execute.haltWhen(False) // Placeholder
+          }
+
+          // ========================================
+          // RANGE AND BOUND CHECKING
+          // ========================================
+
+          is(Opcode.SecondaryOpcode.CIR) {
+            val value = regStack.readReg(RegName.Areg).asSInt
+            val lower = regStack.readReg(RegName.Breg).asSInt
+            val upper = regStack.readReg(RegName.Creg).asSInt
+            when(value < lower || value > upper) {
+              errReg := True
+            }
+            regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Breg))
+            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+          }
+          is(Opcode.SecondaryOpcode.CIRU) {
+            val value = regStack.readReg(RegName.Areg)
+            val lower = regStack.readReg(RegName.Breg)
+            val upper = regStack.readReg(RegName.Creg)
+            when(value < lower || value > upper) {
+              errReg := True
+            }
+            regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Breg))
+            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+          }
+
+          // ========================================
+          // DEVICE OPERATIONS
+          // ========================================
+
+          is(Opcode.SecondaryOpcode.DEVLB) {
+            val deviceAddr = regStack.readReg(RegName.Breg)
+            val offset = regStack.readReg(RegName.Areg)
+            // Device load byte - implementation specific
+            regStack.writeReg(RegName.Areg, U(0)) // Placeholder
+          }
+          is(Opcode.SecondaryOpcode.DEVSB) {
+            val deviceAddr = regStack.readReg(RegName.Breg)
+            val offset = regStack.readReg(RegName.Areg)
+            val data = regStack.readReg(RegName.Creg)(7 downto 0)
+            // Device store byte - implementation specific
+            regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Creg))
+          }
+          is(Opcode.SecondaryOpcode.DEVLS) {
+            val deviceAddr = regStack.readReg(RegName.Breg)
+            val offset = regStack.readReg(RegName.Areg)
+            // Device load sixteen - implementation specific
+            regStack.writeReg(RegName.Areg, U(0)) // Placeholder
+          }
+          is(Opcode.SecondaryOpcode.DEVSS) {
+            val deviceAddr = regStack.readReg(RegName.Breg)
+            val offset = regStack.readReg(RegName.Areg)
+            val data = regStack.readReg(RegName.Creg)(15 downto 0)
+            // Device store sixteen - implementation specific
+            regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Creg))
+          }
+          is(Opcode.SecondaryOpcode.DEVLW) {
+            val deviceAddr = regStack.readReg(RegName.Breg)
+            val offset = regStack.readReg(RegName.Areg)
+            // Device load word - implementation specific
+            regStack.writeReg(RegName.Areg, U(0)) // Placeholder
+          }
+          is(Opcode.SecondaryOpcode.DEVSW) {
+            val deviceAddr = regStack.readReg(RegName.Breg)
+            val offset = regStack.readReg(RegName.Areg)
+            val data = regStack.readReg(RegName.Creg)
+            // Device store word - implementation specific
+            regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Creg))
+          }
+
+          // ========================================
+          // MEMORY OPERATIONS
+          // ========================================
+
+          is(Opcode.SecondaryOpcode.LDMEMSTARTVAL) {
+            val memStartVal = U(Global.MemStart, 32 bits)
+            regStack.writeReg(RegName.Creg, regStack.readReg(RegName.Breg))
+            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Areg))
+            regStack.writeReg(RegName.Areg, memStartVal)
+          }
         }
-        when(secondary.asBits === Opcode.SecondaryOpcode.TIN) {
-          val waitDone = timer.hi >= stack.A
-          when(!waitDone) { sched.enqueue(stack.WPtr, False) }
+        when(secondary === Opcode.SecondaryOpcode.TIN) {
+          val waitDone = timer.hi >= regStack.readReg(RegName.Areg)
+          when(!waitDone) { sched.enqueue(regStack.readReg(RegName.WdescReg), False) }
           pipe.execute.haltWhen(!waitDone)
         }
-        stack.O := 0
+        accumulated := 0 // Reset operand accumulator
       }
     }
     println(s"[${SecondaryInstrPlugin.this.getDisplayName()}] build end")
