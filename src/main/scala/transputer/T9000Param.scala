@@ -77,12 +77,14 @@ case class T9000Param(
     // ========================================
 
     // Base transputer core with T9000 configuration
-    plugins += new transputer.plugins.transputer.TransputerPlugin()
+    plugins += new transputer.plugins.core.transputer.TransputerPlugin()
 
     // Pipeline infrastructure
-    plugins += new transputer.plugins.pipeline.PipelinePlugin()
-    plugins += new transputer.plugins.regstack.RegStackPlugin()
-    
+    plugins += new transputer.plugins.core.pipeline.T9000PipelinePlugin()  // Use T9000 5-stage pipeline
+    plugins += new transputer.plugins.core.pipeline.StageAssignmentPlugin() // Stage assignment logic
+    plugins += new transputer.plugins.core.pipeline.LaneArbitrationPlugin() // Lane arbitration for parallel execution
+    plugins += new transputer.plugins.core.regstack.RegStackPlugin()
+
     // System bus arbitration - temporarily disabled to diagnose BMB issues
     // plugins += new transputer.plugins.bus.SystemBusPlugin()
 
@@ -90,25 +92,24 @@ case class T9000Param(
     // T9000 INSTRUCTION PIPELINE
     // ========================================
 
-    // Instruction fetch and decode pipeline (re-enabling after retainer fixes)
-    plugins += new transputer.plugins.fetch.FetchPlugin() // Re-enabled - testing
-    // plugins += new transputer.plugins.grouper.InstrGrouperPlugin()  // Disabled - API updates needed
-    plugins += new transputer.plugins.grouper.T9000GrouperPlugin() // T9000 hardware grouper - heart of performance
-    plugins += new transputer.plugins.decode.PrimaryInstrPlugin() // Re-enabled - fixed retainer issues
-    plugins += new transputer.plugins.execute.SecondaryInstrPlugin() // Re-enabled - fixed retainer issues
+    // Instruction fetch and decode pipeline
+    plugins += new transputer.plugins.core.fetch.FetchPlugin()
+    plugins += new transputer.plugins.core.grouper.InstrGrouperPlugin()
 
     // ========================================
-    // T9000 EXECUTION UNITS
+    // T9000 INSTRUCTION TABLE PLUGINS
     // ========================================
 
-    // Three-register evaluation stack is now part of RegStackPlugin above
+    // Core instruction set implementations (Tables 6.9-6.37)
+    plugins += new transputer.plugins.arithmetic.ArithmeticPlugin() // Table 6.9: Basic arithmetic & logical
+    plugins += new transputer.plugins.longarith.LongArithPlugin() // Table 6.10: 64-bit arithmetic  
+    plugins += new transputer.plugins.controlflow.ControlFlowPlugin() // Table 6.11: Jump and call
+    plugins += new transputer.plugins.indexing.IndexingPlugin() // Table 6.13: Array indexing & memory
+    plugins += new transputer.plugins.general.GeneralPlugin() // Table 6.17: General stack operations
 
-    // ALU operations moved to proper Execute stage (stage 4)
-    plugins += new transputer.plugins.alu.AluPlugin() // Execute stage ALU operations
-
-    // IEEE 754 compliant floating-point unit
+    // IEEE 754 compliant floating-point unit (Tables 6.32-6.37)
     if (enableFpu) {
-      plugins += new transputer.plugins.fpu.FpuPlugin() // Re-enabled - fixed retainer issues
+      plugins += new transputer.plugins.fpu.FpuPlugin()
     }
 
     // ========================================
@@ -116,17 +117,17 @@ case class T9000Param(
     // ========================================
 
     // Hierarchical cache system per T9000 specification
-    plugins += new transputer.plugins.cache.MainCachePlugin() // Re-enabled
-    plugins += new transputer.plugins.cache.WorkspaceCachePlugin() // Re-enabled
+    plugins += new transputer.plugins.core.cache.MainCachePlugin() // Re-enabled
+    plugins += new transputer.plugins.core.cache.WorkspaceCachePlugin() // Re-enabled
 
     // Memory management unit with 4-region protection per T9000 spec (temporarily disabled)
     // if (enableMmu) {
-    //   plugins += new transputer.plugins.mmu.MemoryManagementPlugin()  // Disabled - testing basic functionality
+    //   plugins += new transputer.plugins.legacy.mmu.MemoryManagementPlugin()  // Disabled - testing basic functionality
     // }
 
     // Programmable memory interface (temporarily disabled)
     // if (enablePmi) {
-    //   plugins += new transputer.plugins.pmi.PmiPlugin()  // Disabled - testing basic functionality
+    //   plugins += new transputer.plugins.legacy.pmi.PmiPlugin()  // Disabled - testing basic functionality
     // }
 
     // ========================================
@@ -135,39 +136,21 @@ case class T9000Param(
 
     // Virtual channel processor for transputer-to-transputer communication (temporarily disabled)
     // if (enableVcp) {
-    //   plugins += new transputer.plugins.vcp.VcpPlugin()  // Disabled - testing basic functionality
+    //   plugins += new transputer.plugins.legacy.vcp.VcpPlugin()  // Disabled - testing basic functionality
     // }
 
     // ========================================
-    // T9000 PROTECTION & ERROR HANDLING
-    // ========================================
-
-    // Memory protection for P-processes with logical-to-physical translation
-    if (enableMmu) {
-      plugins += new transputer.plugins.protection.MemoryProtectionPlugin()
-    }
-
-    // L-process and P-process management with trap handling
-    plugins += new transputer.plugins.protection.ProcessManagementPlugin()
-
-    // Event channels for interrupt handling and synchronization
-    plugins += new transputer.plugins.protection.EventChannelPlugin()
-
-    // Privileged instruction checking and system calls
-    plugins += new transputer.plugins.protection.PrivilegePlugin()
-
-    // ========================================
-    // T9000 PROCESS MANAGEMENT 
+    // T9000 SYSTEM SERVICES  
     // ========================================
 
     // Process scheduler with multi-state management
     if (enableScheduler) {
-      plugins += new transputer.plugins.schedule.SchedulerPlugin() // Re-enabled - fixed retainer issues
+      plugins += new transputer.plugins.schedule.SchedulerPlugin()
     }
 
     // Dual timer system (microsecond + 64μs macro timer)
     if (enableTimers) {
-      plugins += new transputer.plugins.timers.TimerPlugin() // Re-enabled - fixed retainer issues
+      plugins += new transputer.plugins.timers.TimerPlugin()
     }
 
     // ========================================
@@ -197,7 +180,7 @@ case class T9000Param(
     // ========================================
 
     // Constructs the final pipeline from all plugins
-    plugins += new transputer.plugins.pipeline.PipelineBuilderPlugin() // Re-enabled to build pipeline
+    plugins += new transputer.plugins.core.pipeline.PipelineBuilderPlugin() // Re-enabled to build pipeline
   }
 
   /** Validates the configuration parameters for consistency. Returns a list of validation warnings

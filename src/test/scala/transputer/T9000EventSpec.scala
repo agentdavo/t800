@@ -45,8 +45,8 @@ class T9000EventSpec extends AnyFunSuite {
 
     // Event plugin needs basic transputer infrastructure
     val testPlugins = Seq(
-      new transputer.plugins.transputer.TransputerPlugin(),
-      new transputer.plugins.regstack.RegStackPlugin(),
+      new transputer.plugins.core.transputer.TransputerPlugin(),
+      new transputer.plugins.core.regstack.RegStackPlugin(),
       new transputer.plugins.event.EventPlugin()
     )
     val core = Database(db).on(Transputer(testPlugins))

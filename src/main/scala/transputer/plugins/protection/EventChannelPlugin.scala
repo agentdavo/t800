@@ -10,11 +10,11 @@ import transputer.plugins.protection.ProtectionTypes._
 /** T9000 Event Channel Plugin implementing 4 configurable Event channels.
   *
   * Features:
-  * - 4 Event channels for external control and synchronization  
-  * - Configurable as input (interrupt) or output (handshake)
-  * - Fast interrupt response with automatic process descheduling
-  * - Integration with process scheduler for event waiting
-  * - Traditional "interrupt as communication" model
+  *   - 4 Event channels for external control and synchronization
+  *   - Configurable as input (interrupt) or output (handshake)
+  *   - Fast interrupt response with automatic process descheduling
+  *   - Integration with process scheduler for event waiting
+  *   - Traditional "interrupt as communication" model
   */
 class EventChannelPlugin extends FiberPlugin {
   override def getDisplayName(): String = "EventChannelPlugin"
@@ -28,14 +28,14 @@ class EventChannelPlugin extends FiberPlugin {
   case class EventChannelConfig() extends Bundle {
     val direction = EventDirection()
     val enabled = Bool()
-    val processId = UInt(16 bits)    // Process waiting on this event
-    val autoAck = Bool()             // Automatic acknowledgment
+    val processId = UInt(16 bits) // Process waiting on this event
+    val autoAck = Bool() // Automatic acknowledgment
   }
 
   case class EventChannelState() extends Bundle {
-    val pending = Bool()             // Event pending
-    val acknowledged = Bool()        // Event acknowledged  
-    val lastValue = Bool()           // Last event pin value
+    val pending = Bool() // Event pending
+    val acknowledged = Bool() // Event acknowledged
+    val lastValue = Bool() // Last event pin value
   }
 
   // Service interface for other plugins
@@ -49,9 +49,13 @@ class EventChannelPlugin extends FiberPlugin {
 
   during setup new Area {
     println(s"[${getDisplayName()}] setup start")
-    
+
     addService(new EventChannelService {
-      override def configureChannel(channelId: UInt, direction: EventDirection.C, processId: UInt): Unit = {
+      override def configureChannel(
+        channelId: UInt,
+        direction: EventDirection.C,
+        processId: UInt
+      ): Unit = {
         // Will be implemented in build phase
       }
       override def waitOnEvent(channelId: UInt, processId: UInt): Unit = {
@@ -71,7 +75,7 @@ class EventChannelPlugin extends FiberPlugin {
 
   // Hardware will be created in build phase
   var eventConfigs: Vec[EventChannelConfig] = null
-  var eventStates: Vec[EventChannelState] = null  
+  var eventStates: Vec[EventChannelState] = null
   var eventPending: Vec[Bool] = null
   var interruptRequest: Bool = null
 
@@ -89,11 +93,11 @@ class EventChannelPlugin extends FiberPlugin {
       eventConfigs(i).enabled init False
       eventConfigs(i).processId init 0
       eventConfigs(i).autoAck init True
-      
+
       eventStates(i).pending init False
       eventStates(i).acknowledged init False
       eventStates(i).lastValue init False
-      
+
       eventPending(i) := eventStates(i).pending && !eventStates(i).acknowledged
     }
 
@@ -102,16 +106,21 @@ class EventChannelPlugin extends FiberPlugin {
 
     println(s"[${EventChannelPlugin.this.getDisplayName()}] Event channel hardware configured")
     println(s"[${EventChannelPlugin.this.getDisplayName()}] - 4 configurable Event channels")
-    println(s"[${EventChannelPlugin.this.getDisplayName()}] - Input (interrupt) and output (handshake) modes")  
+    println(
+      s"[${EventChannelPlugin.this.getDisplayName()}] - Input (interrupt) and output (handshake) modes"
+    )
     println(s"[${EventChannelPlugin.this.getDisplayName()}] - Process-based event waiting")
     println(s"[${EventChannelPlugin.this.getDisplayName()}] build end")
   }
 
   /** Configure an Event channel for input or output operation.
     *
-    * @param channelId Channel index (0-3)
-    * @param direction INPUT for interrupt, OUTPUT for handshake
-    * @param processId Process that will handle this event
+    * @param channelId
+    *   Channel index (0-3)
+    * @param direction
+    *   INPUT for interrupt, OUTPUT for handshake
+    * @param processId
+    *   Process that will handle this event
     */
   def configureEventChannel(channelId: UInt, direction: EventDirection.C, processId: UInt): Unit = {
     when(channelId < 4) {
@@ -119,7 +128,7 @@ class EventChannelPlugin extends FiberPlugin {
       config.direction := direction
       config.processId := processId
       config.enabled := True
-      
+
       // Reset state when reconfiguring
       val state = eventStates(channelId)
       state.pending := False
@@ -129,14 +138,14 @@ class EventChannelPlugin extends FiberPlugin {
 
   /** Process waits for event on specified channel.
     *
-    * This implements the T9000 "interrupt as communication" model where
-    * a process simply waits for input from an event channel.
+    * This implements the T9000 "interrupt as communication" model where a process simply waits for
+    * input from an event channel.
     */
   def waitForEvent(channelId: UInt, processId: UInt): Unit = {
     when(channelId < 4) {
       val config = eventConfigs(channelId)
       config.processId := processId
-      
+
       // Process will be descheduled until event occurs
       // Integration with scheduler happens via service interface
     }
@@ -144,19 +153,19 @@ class EventChannelPlugin extends FiberPlugin {
 
   /** Send event on output channel.
     *
-    * For output channels, this drives the external pin and waits
-    * for handshake acknowledgment from external device.
+    * For output channels, this drives the external pin and waits for handshake acknowledgment from
+    * external device.
     */
   def sendEventOutput(channelId: UInt, value: Bool): Unit = {
     when(channelId < 4) {
       val config = eventConfigs(channelId)
       val state = eventStates(channelId)
-      
+
       when(config.direction === EventDirection.OUTPUT && config.enabled) {
         // Set output value and mark as pending
         state.pending := True
         state.acknowledged := False
-        
+
         // External handshake will clear pending when acknowledged
       }
     }
@@ -164,28 +173,28 @@ class EventChannelPlugin extends FiberPlugin {
 
   /** Handle external event input.
     *
-    * Called when external Event pin transitions to signal an interrupt.
-    * Automatically schedules the waiting process for execution.
+    * Called when external Event pin transitions to signal an interrupt. Automatically schedules the
+    * waiting process for execution.
     */
   def handleEventInput(channelId: UInt, pinValue: Bool): Unit = {
     when(channelId < 4) {
       val config = eventConfigs(channelId)
       val state = eventStates(channelId)
-      
+
       when(config.direction === EventDirection.INPUT && config.enabled) {
         // Detect rising edge on event pin
         val risingEdge = pinValue && !state.lastValue
         state.lastValue := pinValue
-        
+
         when(risingEdge) {
           // Mark event as pending
           state.pending := True
-          
+
           // Auto-acknowledge if configured
           when(config.autoAck) {
             state.acknowledged := True
           }
-          
+
           // Signal to scheduler that process should be woken up
           // This will be connected via service interface
         }
@@ -201,7 +210,7 @@ class EventChannelPlugin extends FiberPlugin {
     when(channelId < 4) {
       val state = eventStates(channelId)
       state.acknowledged := True
-      
+
       // Clear pending when acknowledged
       when(state.acknowledged) {
         state.pending := False
@@ -214,11 +223,11 @@ class EventChannelPlugin extends FiberPlugin {
   def isEventPending(channelId: UInt): Bool = {
     val pending = Bool()
     pending := False
-    
+
     when(channelId < 4) {
       pending := eventPending(channelId)
     }
-    
+
     pending
   }
 
@@ -234,11 +243,11 @@ class EventChannelPlugin extends FiberPlugin {
     config.enabled := False
     config.processId := 0
     config.autoAck := True
-    
+
     when(channelId < 4) {
       config := eventConfigs(channelId)
     }
-    
+
     config
   }
 
@@ -248,24 +257,24 @@ class EventChannelPlugin extends FiberPlugin {
     */
   def createEventIO(): Bundle = new Bundle {
     val events = Vec(TriState(Bool()), 4)
-    
+
     // Connect internal logic to I/O pins
     for (i <- 0 until 4) {
       val config = eventConfigs(i)
       val state = eventStates(i)
-      
+
       when(config.direction === EventDirection.INPUT) {
         // Input mode: read external pin
         events(i).writeEnable := False
         events(i).write := False
-        
+
         // Handle input events
         handleEventInput(i, events(i).read)
       } otherwise {
-        // Output mode: drive external pin  
+        // Output mode: drive external pin
         events(i).writeEnable := config.enabled
         events(i).write := state.pending
-        
+
         // Handle output acknowledgment
         when(events(i).read && state.pending) {
           acknowledgeEvent(i)
@@ -276,13 +285,13 @@ class EventChannelPlugin extends FiberPlugin {
 
   /** Integration with process scheduler.
     *
-    * Provides interface for scheduler to check which processes
-    * are waiting on events and which events are ready.
+    * Provides interface for scheduler to check which processes are waiting on events and which
+    * events are ready.
     */
   def getWaitingProcesses(): Bundle = new Bundle {
     val waiting = Vec(Bool(), 4)
     val processIds = Vec(UInt(16 bits), 4)
-    
+
     for (i <- 0 until 4) {
       val config = eventConfigs(i)
       waiting(i) := config.enabled && !eventPending(i)
@@ -295,7 +304,7 @@ class EventChannelPlugin extends FiberPlugin {
   def getReadyEvents(): Bundle = new Bundle {
     val ready = Vec(Bool(), 4)
     val processIds = Vec(UInt(16 bits), 4)
-    
+
     for (i <- 0 until 4) {
       val config = eventConfigs(i)
       ready(i) := config.enabled && eventPending(i)

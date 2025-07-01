@@ -4,7 +4,7 @@ import spinal.core._
 import spinal.core.sim._
 import spinal.lib.misc.database.Database
 import org.scalatest.funsuite.AnyFunSuite
-import transputer.plugins.regstack.RegStackService
+import transputer.plugins.core.regstack.RegStackService
 
 /** Tests for T9000 proper plugin pipeline architecture.
   *
@@ -28,15 +28,15 @@ class T9000PipelineSpec extends AnyFunSuite {
 
     // Create proper T9000 plugin pipeline (minimal working set)
     val pipelinePlugins = Seq(
-      new transputer.plugins.transputer.TransputerPlugin(),
-      new transputer.plugins.pipeline.PipelinePlugin(),
-      new transputer.plugins.regstack.RegStackPlugin(),
-      new transputer.plugins.fetch.FetchPlugin(),
+      new transputer.plugins.core.transputer.TransputerPlugin(),
+      new transputer.plugins.core.pipeline.PipelinePlugin(),
+      new transputer.plugins.core.regstack.RegStackPlugin(),
+      new transputer.plugins.core.fetch.FetchPlugin(),
       // For now, skip complex plugins that have dependencies
-      // new transputer.plugins.grouper.InstrGrouperPlugin(),
+      // new transputer.plugins.core.grouper.InstrGrouperPlugin(),
       // new transputer.plugins.decode.PrimaryInstrPlugin(),
       // new transputer.plugins.execute.SecondaryInstrPlugin(),
-      new transputer.plugins.pipeline.PipelineBuilderPlugin()
+      new transputer.plugins.core.pipeline.PipelineBuilderPlugin()
     )
 
     val core = Database(db).on(Transputer(pipelinePlugins))

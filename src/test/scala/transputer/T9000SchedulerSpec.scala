@@ -46,7 +46,7 @@ class T9000SchedulerSpec extends AnyFunSuite {
 
     // Create test system with Scheduler plugin
     val testPlugins = Seq(
-      new transputer.plugins.transputer.TransputerPlugin(),
+      new transputer.plugins.core.transputer.TransputerPlugin(),
       new transputer.plugins.schedule.SchedulerPlugin()
     )
     val core = Database(db).on(Transputer(testPlugins))

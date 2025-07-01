@@ -16,10 +16,10 @@ class T9000Empty extends Component {
     enableMmu = false,
     enablePmi = false
   )
-  
+
   // Create system bus
   val systemBus = master(Bmb(T9000Transputer.systemBusParam(param)))
-  
+
   // Idle the bus
   systemBus.cmd.valid := False
   systemBus.cmd.opcode := 0
@@ -31,12 +31,12 @@ class T9000Empty extends Component {
   systemBus.cmd.source := 0
   systemBus.cmd.context := 0
   systemBus.rsp.ready := True
-  
+
   // Minimal I/O
   val io = new Bundle {
-    val test = out Bool()
+    val test = out Bool ()
   }
-  
+
   io.test := True
 }
 

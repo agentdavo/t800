@@ -28,11 +28,11 @@ case class Param(
     val plugins = ArrayBuffer[Hostable]()
 
     // Minimal working plugin set
-    plugins += new transputer.plugins.transputer.TransputerPlugin(
+    plugins += new transputer.plugins.core.transputer.TransputerPlugin(
       wordBits = wordWidth,
       linkCount = linkCount
     )
-    plugins += new transputer.plugins.regstack.RegStackPlugin
+    plugins += new transputer.plugins.core.regstack.RegStackPlugin
     plugins += new transputer.plugins.bus.SystemBusPlugin
   }
 }

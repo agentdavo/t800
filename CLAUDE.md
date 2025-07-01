@@ -225,13 +225,56 @@ WdescReg           # Workspace descriptor
 - **ALU Stage Placement**: Currently in decode, needs to move to execute stage (stage 4)
 - **Critical Path Optimization**: Manual register placement causes timing issues
 
-### Milestone Status
-- **M-1 (Basic ALU)**: 🔄 **Redesigning for proper pipeline stages**
-- **M-2 (Literals)**: ⏳ Framework ready, needs pipeline integration
-- **M-3 (Memory)**: ⏳ Cache system operational, needs pipeline timing  
-- **M-4 (Processes)**: ⏳ Scheduler infrastructure complete
-- **M-5 (Timers)**: ⏳ Timer plugins ready
-- **M-6 (FPU)**: ⏳ Pipeline structure complete, needs multi-lane integration
+## T9000 Development Roadmap
+
+### Phase 1: Core Infrastructure ✅
+- **Pipeline Framework**: 5-stage pipeline with proper stage assignment
+- **Register/Stack System**: 35+ registers + 3-register evaluation stack
+- **Cache Hierarchy**: 16KB main cache + 32-word workspace cache
+- **Hardware Grouper**: T9000 instruction grouper for parallel execution
+- **Protection System**: Memory protection, process management, privilege checking
+
+### Phase 2: Instruction Table Implementation 🔄
+
+**Priority 1 (Core Instructions) - Current Focus:**
+- ✅ `ArithmeticPlugin` (Table 6.9) - Basic ALU operations
+- ✅ `GeneralPlugin` (Table 6.17) - Stack operations (rev, dup)
+- ✅ `FpuPlugin` (Tables 6.32-37) - Floating-point operations
+- 🔄 `ControlFlowPlugin` (Table 6.11) - Jump/call instructions
+- 🔄 `IndexingPlugin` (Table 6.13) - Memory indexing (LDL, STL, etc.)
+
+**Priority 2 (Extended Operations):**
+- ⏳ `LongArithPlugin` (Table 6.10) - 64-bit arithmetic
+- ⏳ `RangeCheckPlugin` (Table 6.14) - Bounds checking
+- ⏳ `TimerPlugin` (Table 6.18) - Timer operations
+- ⏳ `SchedulePlugin` (Tables 6.25-26) - Process scheduling
+
+**Priority 3 (System Features):**
+- ⏳ `IOPlugin` (Tables 6.19-20) - Input/output operations
+- ⏳ `ChannelPlugin` (Table 6.21) - Channel communication
+- ⏳ `AlternativePlugin` (Table 6.24) - ALT constructs
+- ⏳ `InterruptPlugin` (Table 6.27) - Interrupt handling
+
+**Priority 4 (Advanced Features):**
+- ⏳ `BlockMovePlugin` (Table 6.12) - Block operations
+- ⏳ `BitOpsPlugin` (Table 6.16) - CRC and bit manipulation
+- ⏳ `ResourcePlugin` (Table 6.22) - Resource management
+- ⏳ `SemaphorePlugin` (Table 6.23) - Synchronization
+- ⏳ `SystemPlugin` (Tables 6.29-30) - System configuration
+
+### Phase 3: Integration & Optimization ⏳
+- **Multi-cycle Operations**: CtrlLane API for complex instructions
+- **Performance Tuning**: Pipeline optimization, hazard resolution
+- **T9000 Compliance**: Full instruction set verification
+- **FPGA Implementation**: Synthesis and timing closure
+
+### Legacy Milestones Status
+- **M-1 (Basic ALU)**: ✅ **Complete - ArithmeticPlugin implemented**
+- **M-2 (Literals)**: 🔄 **Migrating to instruction table approach**
+- **M-3 (Memory)**: 🔄 **Integrating with IndexingPlugin**
+- **M-4 (Processes)**: ✅ **SchedulePlugin framework complete**
+- **M-5 (Timers)**: ✅ **TimerPlugin operational**
+- **M-6 (FPU)**: ✅ **FpuPlugin implemented, fixing combinatorial loops**
 
 ## Key Architecture Files
 
@@ -243,39 +286,337 @@ WdescReg           # Workspace descriptor
 - **`Transputer.scala`** - Base transputer component (legacy T800 compatibility)
 - **`Generate.scala`** - Original generator (T800-focused)
 
-### Plugin Structure
+### Plugin Structure - Instruction Table Based Architecture
+
+The T9000 implementation follows a modular approach where each T9000 instruction table (6.9-6.37) maps to dedicated plugins:
+
 ```
 src/main/scala/transputer/plugins/
-├── transputer/          # Core TransputerPlugin
-├── pipeline/            # Pipeline infrastructure  
-├── registers/           # Register file (35+ registers)
-├── fetch/              # Instruction fetch
-├── grouper/            # Instruction grouping
-├── decode/             # Primary instruction decode (needs restoration)
-├── execute/            # Secondary instruction execution (needs restoration)
-├── stack/              # Three-register stack management
-├── fpu/                # IEEE 754 floating-point unit
-├── cache/              # Main + workspace caches
+├── arithmetic/         # Table 6.9: Basic arithmetic & logical
+│   ├── Service.scala   # ArithmeticService interface definition
+│   └── ArithmeticPlugin.scala # Plugin implementation
+├── longarith/          # Table 6.10: Long arithmetic (64-bit)
+│   ├── Service.scala   # LongArithService interface
+│   └── LongArithPlugin.scala # 64-bit arithmetic operations
+├── controlflow/        # Table 6.11: Jump and call instructions
+│   ├── Service.scala   # ControlFlowService interface
+│   └── ControlFlowPlugin.scala # ret, call, jump operations
+├── blockmove/          # Table 6.12: Block move operations
+│   ├── Service.scala   # BlockMoveService interface
+│   └── BlockMovePlugin.scala # move, move2d operations
+├── indexing/           # Table 6.13: Array indexing operations
+│   ├── Service.scala   # IndexingService interface
+│   └── IndexingPlugin.scala # ldl, stl, bsub, wsub operations
+├── rangecheck/         # Table 6.14: Range checking & conversion
+│   ├── Service.scala   # RangeCheckService interface
+│   └── RangeCheckPlugin.scala # Range validation operations
+├── device/             # Table 6.15: Device access instructions
+│   ├── Service.scala   # DeviceService interface
+│   └── DevicePlugin.scala # Device I/O operations
+├── bitops/             # Table 6.16: CRC and bit manipulation
+│   ├── Service.scala   # BitOpsService interface
+│   └── BitOpsPlugin.scala # CRC and bit operations
+├── general/            # Table 6.17: General stack operations
+│   ├── Service.scala   # GeneralService interface
+│   └── GeneralPlugin.scala # rev, dup, pop, nop operations
+├── timers/             # Table 6.18: Timer handling
+│   ├── Service.scala   # TimerService interface
+│   └── TimerPlugin.scala # Timer operations
+├── io/                 # Tables 6.19-6.20: Input/output operations
+│   ├── Service.scala   # IOService interface
+│   └── IOPlugin.scala  # I/O operations
+├── channels/           # Table 6.21: Channel & virtual link
+│   ├── Service.scala   # ChannelService interface
+│   └── ChannelPlugin.scala # Channel communication
+├── resources/          # Table 6.22: Resource channels
+│   ├── Service.scala   # ResourceService interface
+│   └── ResourcePlugin.scala # Resource management
+├── semaphore/          # Table 6.23: Semaphore operations
+│   ├── Service.scala   # SemaphoreService interface
+│   └── SemaphorePlugin.scala # Semaphore operations
+├── alternative/        # Table 6.24: Alternative (ALT) constructs
+│   ├── Service.scala   # AlternativeService interface
+│   └── AlternativePlugin.scala # ALT constructs
+├── schedule/           # Tables 6.25-6.26: Process scheduling
+│   ├── Service.scala   # ScheduleService interface
+│   └── SchedulePlugin.scala # Process scheduling
+├── interrupts/         # Table 6.27: Interrupt handling
+│   ├── Service.scala   # InterruptService interface
+│   └── InterruptPlugin.scala # Interrupt handling
+├── protection/         # Table 6.28: Trap handlers & protection
+│   ├── Service.scala   # ProtectionService interface
+│   └── ProtectionPlugin.scala # Memory protection & traps
+├── system/             # Tables 6.29-6.30: System configuration
+│   ├── Service.scala   # SystemService interface
+│   └── SystemPlugin.scala # System configuration
+├── cache/              # Table 6.31: Cache management
+│   ├── CacheService.scala # Cache management interface
+│   ├── MainCachePlugin.scala # Main cache (existing)
+│   └── WorkspaceCachePlugin.scala # Workspace cache (existing)
+├── fpu/                # Tables 6.32-6.37: Floating-point
+│   ├── Service.scala   # FpuService interface (existing)
+│   ├── FpuPlugin.scala # FPU plugin (existing)
+│   ├── Adder.scala     # FP adder implementation (existing)
+│   ├── Opcodes.scala   # FP opcodes (existing)
+│   └── Utils.scala     # FP utilities (existing)
+├── analysis/           # Performance analysis and optimization
+│   ├── Service.scala   # AnalysisService interface
+│   └── AnalysisPlugin.scala # Performance monitoring
+├── event/              # Event handling and dispatch
+│   ├── Service.scala   # EventService interface
+│   └── EventPlugin.scala # Event dispatch system
+├── fetch/              # Instruction fetch and grouping
+│   ├── Service.scala   # FetchService interface (existing)
+│   ├── FetchPlugin.scala # Instruction fetch (existing)
+│   └── DummyInstrFetchPlugin.scala # Dummy fetch (existing)
+├── grouper/            # T9000 hardware instruction grouper
+│   ├── Service.scala   # GrouperService interface (existing)
+│   ├── InstrGrouperPlugin.scala # Grouper implementation (existing)
+│   └── DummyGrouperPlugin.scala # Dummy grouper (existing)
 ├── mmu/                # Memory management unit
-├── schedule/           # Process scheduler
-├── timers/             # Dual timer system  
-├── vcp/                # Virtual channel processor
-└── pmi/                # Programmable memory interface
+│   ├── Service.scala   # MMU service interface (existing)
+│   └── MemoryManagementPlugin.scala # MMU implementation (existing)
+├── pipeline/           # Pipeline infrastructure
+│   ├── Service.scala   # PipelineStageService interface (existing)
+│   ├── PipelinePlugin.scala # Pipeline stages (existing)
+│   └── PipelineBuilderPlugin.scala # Pipeline builder (existing)
+├── pmi/                # Programmable memory interface
+│   ├── PmiService.scala # PMI service interface (existing)
+│   └── PmiPlugin.scala # PMI implementation (existing)
+├── registers/          # Register file and stack management
+│   ├── Service.scala   # RegFileService interface (existing)
+│   └── RegFilePlugin.scala # Register file implementation (existing)
+├── regstack/           # Three-register evaluation stack
+│   ├── Service.scala   # RegStackService interface (existing)
+│   └── RegStackPlugin.scala # Stack implementation (existing)
+├── stack/              # Stack operations and management
+│   ├── Service.scala   # StackService interface (existing)
+│   └── StackPlugin.scala # Stack operations (existing)
+├── timers/             # Timer system (legacy location)
+│   ├── Service.scala   # TimerService interface (existing)
+│   └── TimerPlugin.scala # Timer implementation (existing)
+├── transputer/         # Core transputer functionality
+│   └── TransputerPlugin.scala # Main transputer plugin (existing)
+└── vcp/                # Virtual channel processor
+    ├── Service.scala   # VcpService interface (existing)
+    └── VcpPlugin.scala # VCP implementation (existing)
 ```
+
+### Instruction Table Plugin Mapping
+
+Each plugin implements a specific subset of T9000 instructions:
+
+| Plugin | Table | Instructions | Status | Priority |
+|--------|-------|-------------|---------|----------|
+| `ArithmeticPlugin` | 6.9 | and, or, xor, add, sub, mul, div, etc. | ✅ Implemented | High |
+| `LongArithPlugin` | 6.10 | ladd, lsub, lmul, ldiv, lshl, lshr | 🔄 Planned | High |
+| `ControlFlowPlugin` | 6.11 | ret, ldpi, gajw, gcall, lend | 🔄 Planned | High |
+| `BlockMovePlugin` | 6.12 | move, move2dinit, move2dall | 🔄 Planned | Medium |
+| `IndexingPlugin` | 6.13 | bsub, wsub, lb, sb, ls, ss | 🔄 Planned | High |
+| `RangeCheckPlugin` | 6.14 | cir, cb, cs, cword, xsword | 🔄 Planned | Medium |
+| `DevicePlugin` | 6.15 | devlb, devls, devlw, devsb, devss | 🔄 Planned | Low |
+| `BitOpsPlugin` | 6.16 | crcword, crcbyte, bitcnt, bitrev | 🔄 Planned | Low |
+| `GeneralPlugin` | 6.17 | rev, dup, pop, nop, mint | ✅ Partial | High |
+| `TimerPlugin` | 6.18 | ldtimer, sttimer, tin, talt | ✅ Implemented | High |
+| `IOPlugin` | 6.19-20 | in, out, outword, vin, vout | 🔄 Planned | Medium |
+| `ChannelPlugin` | 6.21 | chantype, initvlcb, setchmode | 🔄 Planned | Medium |
+| `ResourcePlugin` | 6.22 | grant, enbg, disg, mkrc | 🔄 Planned | Low |
+| `SemaphorePlugin` | 6.23 | wait, signal | 🔄 Planned | Low |
+| `AlternativePlugin` | 6.24 | alt, altwt, enbc, disc | 🔄 Planned | Medium |
+| `SchedulePlugin` | 6.25-26 | startp, endp, runp, stopp | ✅ Implemented | High |
+| `InterruptPlugin` | 6.27 | intdis, intenb, ldshadow | 🔄 Planned | Medium |
+| `ProtectionPlugin` | 6.28 | ldth, selth, goprot, restart | ✅ Implemented | High |
+| `SystemPlugin` | 6.29-30 | testpranal, ldconf, stconf | 🔄 Planned | Low |
+| `CachePlugin` | 6.31 | fdca, fdcl, ica, icl | ✅ Implemented | Medium |
+| `FpuPlugin` | 6.32-37 | fpadd, fpsub, fpmul, fpdiv, etc. | ✅ Implemented | High |
 
 ### Service Interfaces
 Each plugin directory contains `Service.scala` defining the contract:
-- **Input/Output**: Method signatures for plugin operations
-- **Signal Access**: Direct hardware signal exposure (performance-critical)
-- **State Management**: Complex operations with internal state handling
+- **Instruction Decode**: Opcode recognition and parameter extraction
+- **Execution Logic**: Hardware implementation of instruction behavior
+- **Pipeline Integration**: Stage assignment and data flow
+- **Error Handling**: Exception generation and trap conditions
 
 ## Development Patterns
 
-### Adding New Plugins
+### Instruction Table Plugin Development
+
+Each instruction table plugin follows a consistent pattern:
+
+1. **Plugin Structure**
+```scala
+package transputer.plugins.arithmetic  // Table 6.9
+
+class ArithmeticPlugin extends FiberPlugin {
+  override def getDisplayName(): String = "ArithmeticPlugin"
+  setName("arithmetic")
+  
+  // Instruction opcodes from Table 6.9
+  object ArithOp extends SpinalEnum {
+    val ADD, SUB, MUL, DIV, AND, OR, XOR, NOT,
+        SHL, SHR, GT, GTU, DIFF, SUM, PROD = newElement()
+  }
+  
+  during setup new Area {
+    addService(new ArithmeticService {
+      override def isArithOp(opcode: Bits): Bool = checkOpcodes(opcode)
+      override def executeOp(op: ArithOp.C, a: UInt, b: UInt): ArithResult = ???
+    })
+  }
+  
+  during build new Area {
+    // Hardware implementation
+    val pipe = host[PipelineStageService]
+    
+    // Implement in Execute stage (Stage 4)
+    val executeStage = new Area {
+      val opcode = pipe.memory(Global.OPCODE)
+      when(isArithmeticInstruction(opcode)) {
+        // Decode and execute arithmetic operations
+      }
+    }
+  }
+}
+```
+
+2. **Service Interface**
+```scala
+package transputer.plugins.arithmetic
+
+trait ArithmeticService {
+  def isArithOp(opcode: Bits): Bool
+  def executeOp(op: ArithOp.C, operandA: UInt, operandB: UInt): ArithResult
+  def getLatency(op: ArithOp.C): Int
+}
+
+case class ArithResult() extends Bundle {
+  val result = UInt(32 bits)
+  val overflow = Bool()
+  val carry = Bool() 
+  val zero = Bool()
+}
+```
+
+3. **Opcode Recognition**
+```scala
+// Each plugin recognizes its specific opcodes from the instruction table
+def isArithmeticInstruction(opcode: Bits): Bool = {
+  val primaryOp = opcode(7 downto 4)
+  val secondaryOp = opcode(3 downto 0)
+  val isOpr = primaryOp === Opcode.PrimaryOpcode.OPR.asBits.resize(4)
+  
+  // Table 6.9 opcodes: 24F6 (and), 24FB (or), 23F3 (xor), etc.
+  isOpr && List(
+    B"0110", // 24F6 - and  
+    B"1011", // 24FB - or
+    B"0011", // 23F3 - xor (different prefix)
+    // ... more opcodes from table
+  ).map(_ === secondaryOp).orR
+}
+```
+
+4. **Pipeline Integration**
+```scala
+// Instructions are assigned to appropriate pipeline stages:
+// - Stage 1 (Fetch): Simple loads (LDL)
+// - Stage 2 (Decode): Address calculations  
+// - Stage 3 (Execute): Memory operations (LDNL)
+// - Stage 4 (Memory): ALU/FPU operations
+// - Stage 5 (WriteBack): Stores and branches
+
+val stage4Logic = new Area {
+  import pipe.memory._
+  
+  when(isArithmeticInstruction(pipe.memory(Global.OPCODE))) {
+    val regStack = host[RegStackService]
+    val areg = regStack.readReg(RegName.Areg)
+    val breg = regStack.readReg(RegName.Breg)
+    
+    // Execute operation
+    val result = executeArithmetic(opcode, areg, breg)
+    
+    // Update stack
+    regStack.writeReg(RegName.Areg, result)
+    regStack.stackPop() // Remove B operand
+  }
+}
+```
+
+### Plugin Development Guidelines
+
+**Instruction Table Mapping:**
+- One plugin per instruction table (Tables 6.9-6.37)
+- Clear separation of concerns
+- Minimal inter-plugin dependencies
+
+**Pipeline Stage Assignment:**
+- Simple operations: Single cycle in appropriate stage
+- Complex operations: Multi-cycle with pipeline stalls
+- Memory operations: Use cache service interfaces
+
+**Error Handling:**
+- Generate appropriate exceptions (overflow, underflow, etc.)
+- Integrate with protection system for privileged instructions
+- Support trap generation for error conditions
+
+**Testing Strategy:**
+- Unit tests per plugin using SpinalSim
+- Instruction-level verification against T9000 specification
+- Integration tests with full pipeline
+
+## T9000 Architecture Reference
+
+### Complete Register Set (T9000_REGISTERS.md)
+
+The T9000 implements a comprehensive register set with state registers (saved during context switches) and non-state machine registers:
+
+**State Registers (L-process + Shadow for interrupts):**
+- `StatusReg/StatusReg.sh` - Process status flags and control bits
+- `WdescReg/WdescReg.sh` - Workspace descriptor (pointer + priority)
+- `IptrReg/IptrReg.sh` - Instruction pointer
+- `Areg/Areg.sh, Breg/Breg.sh, Creg/Creg.sh` - Integer evaluation stack
+- `ThReg/ThReg.sh` - Trap-handler pointer
+- `FPstatusReg/FPstatusReg.sh` - Floating-point status and rounding mode
+- `FPAreg/FPAreg.sh, FPBreg/FPBreg.sh, FPCreg/FPCreg.sh` - FP evaluation stack
+- `BMreg0-2/BMreg0-2.sh` - 2D block move control registers
+- `WlReg/WlReg.sh, WuReg/WuReg.sh` - Watchpoint bounds
+- `EptrReg/EptrReg.sh` - Error pointer (trapping instruction address)
+
+**P-process Additional State Registers:**
+- `RegionReg0-3/RegionReg0-3.sh` - Memory region descriptors
+- `PstateReg/PstateReg.sh` - P-state data structure pointer
+- `WdescStubReg/WdescStubReg.sh` - Supervisor L-process descriptor
+
+**Non-State Machine Registers:**
+- `FptrReg0/1, BptrReg0/1` - High/low priority scheduling queue pointers
+- `ClockReg0/1` - System timers (1µs/64µs)
+- `TptrReg0/1, TnextReg0/1` - Timer list management
+
+### Process Control and Protection (T9000_PROCESS_CONTROL_TRAPS.md)
+
+**Concurrent Process Management:**
+- Hardware scheduler with dual-priority queues
+- Process workspace data structure (negative offsets from Wptr)
+- Automatic timeslicing for low-priority processes (256µs quantum)
+- N-valued semaphores with blocked process queues
+
+**Memory Protection System:**
+- L-process (trusted) vs P-process (protected) execution modes
+- Four memory regions with permissions and address translation
+- Logical-to-physical address translation per memory access
+- AccessViolation and PrivInstruction trap generation
+
+**Unified Trap Mechanism:**
+- Trap-Handler Data Structure (THDS) for L-processes
+- Atomic state saving and trap handler invocation
+- Priority-based trap cause encoding (error > breakpoint > syscall > watchpoint > single-step > timeslice)
+- Hardware-managed shadow register switching during interrupts
+
+### Adding New Instruction Table Plugins
 
 1. **Create Plugin Structure**
 ```scala
-package transputer.plugins.myfeature
+package transputer.plugins.controlflow  // Example: Table 6.11
 
 class MyFeaturePlugin extends FiberPlugin {
   during setup new Area {
@@ -509,3 +850,28 @@ ext/SpinalHDL/lib/src/main/scala/spinal/lib/
 ```
 
 These files contain the essential SpinalHDL APIs that the T9000 pipeline redesign leverages for automatic register management, multi-lane execution, and high-frequency operation.
+
+## Documentation References
+
+### Core Architecture Documentation
+- **`doc/SpinalHDL_api.md`** - Pipeline DSL and plugin API reference
+- **`doc/SpinalHDL_bmb.md`** - BMB bus system guide
+- **`doc/Transputer_core.md`** - CPU architecture overview
+- **`AGENTS.md`** - Development workflow and milestone planning
+
+### T9000-Specific Documentation
+- **`doc/T9000_PIPELINE_REDESIGN.md`** - Overall architecture transition plan
+- **`doc/T9000_5STAGE_PIPELINE.md`** - Detailed 5-stage implementation
+- **`doc/T9000_SPINALHDL_PIPELINE.md`** - SpinalHDL Pipeline API usage patterns
+- **`doc/T9000_TIMING_ANALYSIS.md`** - High-frequency design considerations
+- **`doc/T9000_INTERRUPT_MODEL.md`** - Unified interrupt/event/timer model
+- **`doc/T9000_PIPELINE_OPTIMIZATION.md`** - Pipeline optimization implementation
+- **`doc/T9000_SECONDARY_IINSTRUCTIONS.md`** - Complete T9000 instruction set tables (Tables 6.9-6.37)
+
+### SpinalHDL Advanced Types
+- **`doc/SPINALHDL_AFIX.md`** - AFix fixed-point arithmetic for FPU implementation
+- **`doc/SPINALHDL_IMPLEMENTATION_SUMMARY.md`** - Implementation overview and status
+
+### Historical References
+- **`doc/text/`** - Extracted T9000 manual sections
+- **`doc/pdf/`** - Original T9000 documentation PDFs

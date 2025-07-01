@@ -2,7 +2,7 @@ package transputer
 
 import spinal.core._
 import spinal.lib._
-import transputer.plugins.transputer.TransputerPlugin
+import transputer.plugins.core.transputer.TransputerPlugin
 
 /** Configuration for the Transputer board core. */
 case class CoreConfig(coreFrequency: IClockDomainFrequency)

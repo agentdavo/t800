@@ -8,14 +8,14 @@ import spinal.lib.misc.database.Database
 /** Simple T9000 system with on-chip RAM for testing. */
 class T9000WithRam(param: T9000Param = T9000Param()) extends Component {
   val db = T9000Transputer.configureDatabase(param)
-  
+
   // I/O
   val io = new Bundle {
-    val interrupts = in Bits(8 bits)
-    val cpuClk = in Bool()
-    val reset = in Bool()
+    val interrupts = in Bits (8 bits)
+    val cpuClk = in Bool ()
+    val reset = in Bool ()
   }
-  
+
   // Create the T9000 core with the database context
   val t9000 = new Area {
     val core = Database(db).on {
@@ -26,32 +26,32 @@ class T9000WithRam(param: T9000Param = T9000Param()) extends Component {
       cpu
     }
   }
-  
+
   // Create simple on-chip RAM
   val ram = new Area {
-    val size = 256 * 1024  // 256KB
-    val mem = Mem(Bits(128 bits), size / 16)  // 128-bit wide memory
-    
+    val size = 256 * 1024 // 256KB
+    val mem = Mem(Bits(128 bits), size / 16) // 128-bit wide memory
+
     // BMB slave interface
     val bus = slave(Bmb(t9000.core.systemBus.p))
-    
+
     // Connect to T9000's system bus
     bus << t9000.core.systemBus
-    
+
     // Handle BMB protocol
     bus.cmd.ready := True
-    
-    val wordAddress = bus.cmd.address >> 4  // 128-bit word address
+
+    val wordAddress = bus.cmd.address >> 4 // 128-bit word address
     val isWrite = bus.cmd.opcode === Bmb.Cmd.Opcode.WRITE
-    
+
     when(bus.cmd.fire && isWrite) {
       mem.write(wordAddress, bus.cmd.data)
     }
-    
+
     // Read response (1 cycle latency)
     val rspValid = RegNext(bus.cmd.fire && !isWrite) init False
     val rspAddress = RegNext(wordAddress)
-    
+
     bus.rsp.valid := rspValid
     bus.rsp.payload.data := mem.readSync(rspAddress)
     bus.rsp.payload.last := True
@@ -66,7 +66,7 @@ object T9000WithRamVerilog {
     val spinalConfig = SpinalConfig(
       targetDirectory = "./generated"
     )
-    
+
     println("Generating T9000 with on-chip RAM...")
     val report = spinalConfig.generateVerilog(new T9000WithRam(param))
     println(s"Verilog generated: ${report.toplevelName}")

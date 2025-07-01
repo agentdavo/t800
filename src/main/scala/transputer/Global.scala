@@ -72,6 +72,21 @@ object Global extends AreaObject {
   def OPCODE: Payload[Bits] = Payload(Bits(8 bits))
   def MEM_ADDR: Payload[UInt] = Payload(UInt(AddrBitsValue bits))
   def MEM_DATA: Payload[Bits] = Payload(Bits(WordBits bits))
+  
+  // T9000 pipeline payloads
+  def OPERAND: Payload[Bits] = Payload(Bits(WordBits bits))
+  def GROUPED_INSTR: Payload[Bits] = Payload(Bits(64 bits))  // Up to 2 instructions
+  def AREG_VALUE: Payload[UInt] = Payload(UInt(WordBits bits))
+  def BREG_VALUE: Payload[UInt] = Payload(UInt(WordBits bits))
+  def CREG_VALUE: Payload[UInt] = Payload(UInt(WordBits bits))
+  def MEM_WRITE: Payload[Bool] = Payload(Bool())
+  def ALU_RESULT: Payload[UInt] = Payload(UInt(WordBits bits))
+  def FPU_RESULT: Payload[Bits] = Payload(Bits(64 bits))  // Double precision
+  def STACK_OP: Payload[Bits] = Payload(Bits(3 bits))  // Stack operation type
+  def BRANCH_TARGET: Payload[UInt] = Payload(UInt(AddrBitsValue bits))
+  def BRANCH_TAKEN: Payload[Bool] = Payload(Bool())
+  def TRAP_CAUSE: Payload[Bits] = Payload(Bits(8 bits))
+  def TRAP_ENABLE: Payload[Bool] = Payload(Bool())
 
   // Memory command definitions, aligned with T9000
   case class MemRead[T <: Data](

@@ -5,15 +5,22 @@ import spinal.lib._
 import spinal.lib.misc.pipeline._
 import spinal.lib.misc.plugin._
 import spinal.core.fiber.Retainer
-import spinal.lib.bus.bmb.{Bmb, BmbParameter, BmbAccessParameter, BmbDownSizerBridge, BmbUpSizerBridge, BmbUnburstify}
+import spinal.lib.bus.bmb.{
+  Bmb,
+  BmbParameter,
+  BmbAccessParameter,
+  BmbDownSizerBridge,
+  BmbUpSizerBridge,
+  BmbUnburstify
+}
 import transputer.Global
 import transputer.{Opcode, Transputer}
-import transputer.plugins.regstack.{RegStackService, RegName}
-import transputer.plugins.fetch.InstrFetchService
-import transputer.plugins.grouper.GroupedInstrService
+import transputer.plugins.core.regstack.{RegStackService, RegName}
+import transputer.plugins.core.fetch.InstrFetchService
+import transputer.plugins.core.grouper.GroupedInstrService
 import transputer.plugins.SystemBusService
 import transputer.plugins.bus.BusMasterService
-import transputer.plugins.pipeline.{PipelineService, PipelineStageService}
+import transputer.plugins.core.pipeline.{PipelineService, PipelineStageService}
 
 /** Implements primary instruction decoding and execution, receiving opcodes from FetchPlugin or
   * GrouperPlugin, and accessing 128-bit system bus via BMB.
@@ -37,19 +44,19 @@ class PrimaryInstrPlugin extends FiberPlugin with PipelineService {
 
     // Define 32-bit BMB parameters for memory access
     import spinal.lib.bus.bmb.BmbSourceParameter
-    
+
     // Create memory bus parameters for 32-bit instruction access
     val memParam = BmbParameter(
       addressWidth = Global.ADDR_BITS,
-      dataWidth = 32,       // 32-bit data for instructions
-      sourceWidth = 1,      // Single source for decode stage  
-      contextWidth = 0,     // Base context width (will be extended by upsizer)
-      lengthWidth = 2       // Support up to 4-byte transfers
+      dataWidth = 32, // 32-bit data for instructions
+      sourceWidth = 1, // Single source for decode stage
+      contextWidth = 0, // Base context width (will be extended by upsizer)
+      lengthWidth = 2 // Support up to 4-byte transfers
     )
 
     // Create dedicated decode bus and upsize to system bus
     val memBmb = Bmb(memParam)
-    
+
     // Default assignments to prevent undriven signals
     memBmb.cmd.valid := False
     memBmb.cmd.opcode := 0
@@ -70,7 +77,7 @@ class PrimaryInstrPlugin extends FiberPlugin with PipelineService {
       outputParameter = memParam.copy(access = outputParam)
     )
     memBmb >> upSizer.io.input
-    
+
     // Register with bus master service for arbitration
     val busMasterService = host.get[BusMasterService]
     if (busMasterService.isDefined) {

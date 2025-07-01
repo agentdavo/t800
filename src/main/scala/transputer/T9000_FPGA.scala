@@ -54,11 +54,11 @@ class T9000_FPGA extends Component {
 
     // Minimal plugin set for FPGA
     val fpgaPlugins = Seq(
-      new transputer.plugins.transputer.TransputerPlugin(),
-      new transputer.plugins.pipeline.PipelinePlugin(),
-      new transputer.plugins.regstack.RegStackPlugin(),
-      new transputer.plugins.fetch.FetchPlugin(),
-      new transputer.plugins.grouper.InstrGrouperPlugin(),
+      new transputer.plugins.core.transputer.TransputerPlugin(),
+      new transputer.plugins.core.pipeline.PipelinePlugin(),
+      new transputer.plugins.core.regstack.RegStackPlugin(),
+      new transputer.plugins.core.fetch.FetchPlugin(),
+      new transputer.plugins.core.grouper.InstrGrouperPlugin(),
       // stack functionality now in RegStackPlugin above
       new transputer.plugins.timers.TimerPlugin()
     )

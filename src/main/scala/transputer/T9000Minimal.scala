@@ -16,14 +16,14 @@ object T9000MinimalParam {
     enablePmi = false,
     customPlugins = Some(minimalPlugins())
   )
-  
+
   def minimalPlugins(): Seq[spinal.lib.misc.plugin.FiberPlugin] = {
     import transputer.plugins._
     Seq(
-      new transputer.TransputerPlugin(),
-      new pipeline.PipelinePlugin(),
-      new regstack.RegStackPlugin(),
-      new pipeline.PipelineBuilderPlugin()
+      new core.transputer.TransputerPlugin(),
+      new core.pipeline.PipelinePlugin(),
+      new core.regstack.RegStackPlugin(),
+      new core.pipeline.PipelineBuilderPlugin()
     )
   }
 }
@@ -32,46 +32,46 @@ object T9000MinimalParam {
 class T9000Minimal extends Component {
   val param = T9000MinimalParam()
   val db = T9000Transputer.configureDatabase(param)
-  
+
   // Create minimal T9000 with just core plugins
   val transputer = Database(db).on {
     val t = new T9000Transputer(param, db)
-    
+
     // Create simple on-chip memory and connect directly
     val mem = new Area {
-      val size = 4096  // 4KB for minimal testing
+      val size = 4096 // 4KB for minimal testing
       val ram = Mem(Bits(128 bits), size / 16)
-      
+
       // Handle system bus as slave
       t.systemBus.cmd.ready := True
-      
+
       val wordAddr = t.systemBus.cmd.address >> 4
       val isWrite = t.systemBus.cmd.opcode === Bmb.Cmd.Opcode.WRITE
-      
+
       when(t.systemBus.cmd.fire && isWrite) {
         ram.write(wordAddr, t.systemBus.cmd.data)
       }
-      
+
       // Read response
       val rspValid = RegNext(t.systemBus.cmd.fire && !isWrite) init False
       val rspAddr = RegNext(wordAddr)
-      
+
       t.systemBus.rsp.valid := rspValid
       t.systemBus.rsp.payload.data := ram.readSync(rspAddr)
       t.systemBus.rsp.payload.last := True
       t.systemBus.rsp.payload.source := 0
     }
-    
+
     t
   }
-  
+
   // Expose minimal I/O
   val io = new Bundle {
-    val interrupts = in Bits(8 bits)
-    val cpuClk = in Bool()
-    val reset = in Bool()
+    val interrupts = in Bits (8 bits)
+    val cpuClk = in Bool ()
+    val reset = in Bool ()
   }
-  
+
   transputer.io.interrupts := io.interrupts
   transputer.io.cpuClk := io.cpuClk
   transputer.io.reset := io.reset

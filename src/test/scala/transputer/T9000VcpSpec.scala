@@ -4,7 +4,7 @@ import spinal.core._
 import spinal.core.sim._
 import spinal.lib.misc.database.Database
 import org.scalatest.funsuite.AnyFunSuite
-import transputer.plugins.vcp.{VcpService, VcpPlugin}
+import transputer.plugins.legacy.vcp.{VcpService, VcpPlugin}
 
 /** Comprehensive tests for T9000 Virtual Channel Processor (VCP).
   *
@@ -36,9 +36,9 @@ class T9000VcpSpec extends AnyFunSuite {
 
     // VCP needs basic transputer infrastructure
     val testPlugins = Seq(
-      new transputer.plugins.transputer.TransputerPlugin(),
-      new transputer.plugins.regstack.RegStackPlugin(),
-      new transputer.plugins.vcp.VcpPlugin()
+      new transputer.plugins.core.transputer.TransputerPlugin(),
+      new transputer.plugins.core.regstack.RegStackPlugin(),
+      new transputer.plugins.legacy.vcp.VcpPlugin()
     )
     val core = Database(db).on(Transputer(testPlugins))
     val vcpService = core.host[VcpService]

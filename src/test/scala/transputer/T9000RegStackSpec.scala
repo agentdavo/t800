@@ -4,7 +4,7 @@ import spinal.core._
 import spinal.core.sim._
 import spinal.lib.misc.database.Database
 import org.scalatest.funsuite.AnyFunSuite
-import transputer.plugins.regstack.RegStackService
+import transputer.plugins.core.regstack.RegStackService
 
 /** Tests for T9000 unified register/stack plugin.
   *
@@ -31,8 +31,8 @@ class T9000RegStackSpec extends AnyFunSuite {
 
     // Create a minimal test system with unified plugins
     val testPlugins = Seq(
-      new transputer.plugins.transputer.TransputerPlugin(),
-      new transputer.plugins.regstack.RegStackPlugin()
+      new transputer.plugins.core.transputer.TransputerPlugin(),
+      new transputer.plugins.core.regstack.RegStackPlugin()
     )
 
     val core = Database(db).on(Transputer(testPlugins))

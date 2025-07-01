@@ -4,7 +4,7 @@ import spinal.core._
 import spinal.lib._
 import spinal.lib.bus.bmb._
 import spinal.lib.misc.database.Database
-import transputer.plugins.fetch.InstrFetchService
+import transputer.plugins.core.fetch.InstrFetchService
 
 /** Simple design that maps a small boot ROM at 0x80000000 to the system bus. */
 class BootRomDesign(

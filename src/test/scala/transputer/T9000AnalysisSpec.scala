@@ -49,8 +49,8 @@ class T9000AnalysisSpec extends AnyFunSuite {
 
     // Analysis plugin needs basic transputer infrastructure
     val testPlugins = Seq(
-      new transputer.plugins.transputer.TransputerPlugin(),
-      new transputer.plugins.regstack.RegStackPlugin(),
+      new transputer.plugins.core.transputer.TransputerPlugin(),
+      new transputer.plugins.core.regstack.RegStackPlugin(),
       new transputer.plugins.analysis.AnalysisPlugin()
     )
     val core = Database(db).on(Transputer(testPlugins))

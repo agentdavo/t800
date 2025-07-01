@@ -17,12 +17,14 @@ import spinal.lib.bus.bmb.{
 import transputer.Global
 import transputer.{Transputer, Opcode}
 import transputer.plugins.SystemBusService
-import transputer.plugins.regstack.RegStackService
-import transputer.plugins.regstack.RegName
-import transputer.plugins.pipeline.{PipelineService, PipelineStageService}
+import transputer.plugins.core.regstack.RegStackService
+import transputer.plugins.core.regstack.RegName
+import transputer.plugins.core.pipeline.{PipelineService, PipelineStageService}
 import transputer.plugins.fpu.Utils._
 
 class FpuPlugin extends FiberPlugin with PipelineService {
+  override def getDisplayName(): String = "FpuPlugin"
+  setName("fpu")
   val version = "FpuPlugin v0.3"
   val fpPipe = new StageCtrlPipeline
 
@@ -92,14 +94,14 @@ class FpuPlugin extends FiberPlugin with PipelineService {
     // Execution units - create stub implementations for now
     // These would normally be Areas with IO bundles, but we'll simplify for compilation
     val adder = new FpuAdder
-    
+
     // Stub multiplier signals
     val multiplierResult = Bits(64 bits)
     val multiplierResultAfix = AFix(UQ(56, 0))
     multiplierResult := B(0, 64 bits)
     multiplierResultAfix := AFix(U(0, 56 bits), 0 exp)
-    
-    // Stub divRoot signals  
+
+    // Stub divRoot signals
     val divRootResult = Bits(64 bits)
     val divRootResultAfix = AFix(UQ(56, 0))
     val divRootCycles = UInt(10 bits)
@@ -108,11 +110,11 @@ class FpuPlugin extends FiberPlugin with PipelineService {
     divRootResultAfix := AFix(U(0, 56 bits), 0 exp)
     divRootCycles := 10
     divRootT805State := B(0, 64 bits)
-    
+
     // Stub rangeReducer signals
     val rangeReducerResult = Bits(64 bits)
     rangeReducerResult := B(0, 64 bits)
-    
+
     // Stub VCU signals
     val vcuIsSpecial = Bool()
     val vcuSpecialResult = Bits(64 bits)
@@ -203,10 +205,10 @@ class FpuPlugin extends FiberPlugin with PipelineService {
     s0(RESULT_AFIX) := AFix(U(0, 56 bits), 0 exp)
     s0(MAX_CYCLES) := 0
     s0(T805_STATE) := B(0, 64 bits)
-    s0(CYCLE_CNT) := 0
+    // CYCLE_CNT is handled in the cycle counter logic below
 
     when(s0.isValid) {
-      
+
       // VCU logic would evaluate special values here
       // For now just use stub signals
       val op1Parsed = parseIeee754(fa)
@@ -293,7 +295,8 @@ class FpuPlugin extends FiberPlugin with PipelineService {
             // regfile.write(RegName.Areg, intVal.asBits.resize(64), 0, shadow = false) // TODO: adapt to RegStackService
           }
           is(Opcode.SecondaryOpcode.FPI32TOR32.asBits.resize(8)) {
-            s0(RESULT) := int32ToReal32(regStack.readReg(RegName.Areg).asSInt).resize(64) // Simplified
+            s0(RESULT) := int32ToReal32(regStack.readReg(RegName.Areg).asSInt)
+              .resize(64) // Simplified
           }
           // Other conversions
 
@@ -461,12 +464,14 @@ class FpuPlugin extends FiberPlugin with PipelineService {
       }
     }
 
-    // Cycle counter
+    // Cycle counter - ensure CYCLE_CNT always has a valid assignment
     when(s0.up.isFiring) {
       s0(MAX_CYCLES) := opCycles
       s0(CYCLE_CNT) := opCycles
     } elsewhen (s0.isValid && s0(CYCLE_CNT) =/= 0) {
       s0(CYCLE_CNT) := s0(CYCLE_CNT) - 1
+    } otherwise {
+      s0(CYCLE_CNT) := 0 // Default to 0 when not active
     }
 
     // Service implementation

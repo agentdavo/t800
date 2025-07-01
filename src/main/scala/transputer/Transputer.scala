@@ -5,10 +5,10 @@ import spinal.lib._
 import spinal.lib.misc.database.Database
 import spinal.lib.misc.plugin.{PluginHost, FiberPlugin, Hostable}
 import spinal.lib.bus.bmb.{Bmb, BmbParameter}
-import transputer.plugins.transputer.TransputerPlugin
-import transputer.plugins.pipeline.{PipelinePlugin, PipelineBuilderPlugin}
-import transputer.plugins.regstack.RegStackPlugin
-import transputer.plugins.fetch.FetchPlugin
+import transputer.plugins.core.transputer.TransputerPlugin
+import transputer.plugins.core.pipeline.{PipelinePlugin, PipelineBuilderPlugin}
+import transputer.plugins.core.regstack.RegStackPlugin
+import transputer.plugins.core.fetch.FetchPlugin
 // import transputer.plugins.execute.DummySecondaryInstrPlugin
 import transputer.plugins.SystemBusService
 
@@ -40,7 +40,7 @@ object Transputer {
       new transputer.plugins.bus.SystemBusPlugin, // Bus arbitration
       // T9000-inspired instruction processing pipeline
       new FetchPlugin, // systemBus -> FetchPlugin
-      new transputer.plugins.grouper.InstrGrouperPlugin, // FetchPlugin -> GrouperPlugin
+      new transputer.plugins.core.grouper.InstrGrouperPlugin, // FetchPlugin -> GrouperPlugin
       // T9000 three-register stack is now part of RegStackPlugin above
       // new transputer.plugins.timers.TimerPlugin,                   // T9000 dual timer system
       // new transputer.plugins.schedule.SchedulerPlugin,             // T9000 process scheduler

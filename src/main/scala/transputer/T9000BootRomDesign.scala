@@ -5,7 +5,7 @@ import spinal.lib._
 import spinal.lib.bus.bmb._
 import spinal.lib.bus.misc._
 import spinal.lib.misc.database.Database
-import transputer.plugins.fetch.InstrFetchService
+import transputer.plugins.core.fetch.InstrFetchService
 
 /** T9000 Boot ROM design with proper transputer initialization sequence.
   *
@@ -29,11 +29,11 @@ class T9000BootRomDesign(
 
   // Create T9000 system with minimal plugins for boot
   val bootPlugins = Seq(
-    new transputer.plugins.transputer.TransputerPlugin(),
-    new transputer.plugins.pipeline.PipelinePlugin(),
-    new transputer.plugins.regstack.RegStackPlugin(),
-    new transputer.plugins.fetch.FetchPlugin(),
-    new transputer.plugins.grouper.InstrGrouperPlugin(),
+    new transputer.plugins.core.transputer.TransputerPlugin(),
+    new transputer.plugins.core.pipeline.PipelinePlugin(),
+    new transputer.plugins.core.regstack.RegStackPlugin(),
+    new transputer.plugins.core.fetch.FetchPlugin(),
+    new transputer.plugins.core.grouper.InstrGrouperPlugin(),
     // stack functionality now in RegStackPlugin above
     new transputer.plugins.timers.TimerPlugin()
   )

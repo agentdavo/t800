@@ -6,10 +6,10 @@ import spinal.lib.io.{TriState, TriStateArray}
 import spinal.lib.misc.database.Database
 import spinal.lib.misc.plugin.{PluginHost, FiberPlugin, Hostable}
 import spinal.lib.bus.bmb.{Bmb, BmbParameter}
-import transputer.plugins.transputer.TransputerPlugin
-import transputer.plugins.pipeline.{PipelinePlugin, PipelineBuilderPlugin}
-import transputer.plugins.regstack.RegStackPlugin
-import transputer.plugins.fetch.FetchPlugin
+import transputer.plugins.core.transputer.TransputerPlugin
+import transputer.plugins.core.pipeline.{PipelinePlugin, PipelineBuilderPlugin}
+import transputer.plugins.core.regstack.RegStackPlugin
+import transputer.plugins.core.fetch.FetchPlugin
 import transputer.plugins.SystemBusService
 
 /** Complete T9000 Transputer implementation with all enhanced plugins. This class represents a
@@ -71,18 +71,18 @@ object T9000Transputer {
   def unitPlugins(param: T9000Param): Seq[FiberPlugin] = {
     import transputer.plugins._
     Seq(
-      new transputer.TransputerPlugin(),
-      new regstack.RegStackPlugin(),
-      new pipeline.PipelinePlugin(),
-      new bus.SystemBusPlugin(),
-      new fetch.FetchPlugin(),
-      new grouper.InstrGrouperPlugin(),
+      new transputer.plugins.core.transputer.TransputerPlugin(),
+      new transputer.plugins.core.regstack.RegStackPlugin(),
+      new transputer.plugins.core.pipeline.PipelinePlugin(),
+      new transputer.plugins.bus.SystemBusPlugin(),
+      new transputer.plugins.core.fetch.FetchPlugin(),
+      new transputer.plugins.core.grouper.InstrGrouperPlugin(),
       // stack functionality now in RegStackPlugin(),
       // new timers.TimerPlugin(),
       // new schedule.SchedulerPlugin(),
       // new decode.PrimaryInstrPlugin(),
       // new execute.SecondaryInstrPlugin(),
-      new pipeline.PipelineBuilderPlugin()
+      new transputer.plugins.core.pipeline.PipelineBuilderPlugin()
     )
   }
 
@@ -150,9 +150,9 @@ class T9000Transputer(
   // Enhanced system bus for high-performance operations - internal bus for plugin communication
   val systemBus = Bmb(T9000Transputer.systemBusParam(param))
   host.addService(new SystemBusService { def bus: Bmb = systemBus })
-  
+
   // Default termination for internal system bus
-  systemBus.cmd.ready := True  
+  systemBus.cmd.ready := True
   systemBus.rsp.valid := False
   systemBus.rsp.opcode := 0
   systemBus.rsp.data := 0
@@ -218,7 +218,7 @@ class T9000Transputer(
 
   // Set component name for Verilog generation
   setDefinitionName("T9000Transputer")
-  
+
   // Default assignments for unconnected I/O to prevent NO DRIVER errors
   // DS Links - default to high impedance
   io.dsLinks.foreach { links =>
@@ -227,7 +227,7 @@ class T9000Transputer(
       link.writeEnable := 0
     }
   }
-  
+
   // External memory interface - idle
   io.externalMem.foreach { mem =>
     mem.cmd.valid := False
@@ -241,13 +241,13 @@ class T9000Transputer(
     mem.cmd.context := 0
     mem.rsp.ready := True
   }
-  
+
   // Debug interface - default read
   io.debug.foreach { dbg =>
     dbg.data.write := 0
     dbg.data.writeEnable := False
   }
-  
+
   // Profiling outputs - default to zero
   io.profiling.foreach { prof =>
     prof.instructionCount := 0

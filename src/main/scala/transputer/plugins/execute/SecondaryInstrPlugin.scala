@@ -16,13 +16,13 @@ import transputer.plugins.{
   ChannelDmaService
 }
 import transputer.plugins.schedule.{SchedService, SchedCmd, ProcessState}
-import transputer.plugins.regstack.{RegStackService, RegName}
+import transputer.plugins.core.regstack.{RegStackService, RegName}
 import transputer.plugins.fpu.{FpuService, FpOp, FpCmd}
 import transputer.plugins.timers.TimerService
-import transputer.plugins.pipeline.PipelineStageService
-// import transputer.plugins.cache.CacheAccessService // Not yet implemented
-import transputer.plugins.mmu.{ConfigAccessService, TrapHandlerService}
-import transputer.plugins.vcp.{VcpService, MemWriteCmd, MemReadCmd}
+import transputer.plugins.core.pipeline.PipelineStageService
+// import transputer.plugins.core.cache.CacheAccessService // Not yet implemented
+import transputer.plugins.legacy.mmu.{ConfigAccessService, TrapHandlerService}
+import transputer.plugins.legacy.vcp.{VcpService, MemWriteCmd, MemReadCmd}
 import scala.util.Try
 
 /** Implements basic ALU instructions and connects to the global pipeline. */
@@ -962,31 +962,37 @@ class SecondaryInstrPlugin extends FiberPlugin {
           is(Opcode.SecondaryOpcode.CRCWORD) {
             val data = regStack.readReg(RegName.Areg)
             val poly = regStack.readReg(RegName.Breg)
-            var crc = UInt(32 bits)
-            crc := regStack.readReg(RegName.Creg)
+            val crcIn = regStack.readReg(RegName.Creg)
+            val crcStages = Vec(UInt(32 bits), 33)
+            crcStages(0) := crcIn
+
             for (i <- 0 until 32) {
-              when(crc(31) ^ data(i)) {
-                crc := (crc |<< 1) ^ poly
+              when(crcStages(i)(31) ^ data(i)) {
+                crcStages(i + 1) := (crcStages(i) |<< 1) ^ poly
               } otherwise {
-                crc := crc |<< 1
+                crcStages(i + 1) := crcStages(i) |<< 1
               }
             }
-            regStack.writeReg(RegName.Areg, crc)
+
+            regStack.writeReg(RegName.Areg, crcStages(32))
             regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
           }
           is(Opcode.SecondaryOpcode.CRCBYTE) {
             val data = regStack.readReg(RegName.Areg)(7 downto 0)
             val poly = regStack.readReg(RegName.Breg)
-            var crc = UInt(32 bits)
-            crc := regStack.readReg(RegName.Creg)
+            val crcIn = regStack.readReg(RegName.Creg)
+            val crcStages = Vec(UInt(32 bits), 9)
+            crcStages(0) := crcIn
+
             for (i <- 0 until 8) {
-              when(crc(31) ^ data(i)) {
-                crc := (crc |<< 1) ^ poly
+              when(crcStages(i)(31) ^ data(i)) {
+                crcStages(i + 1) := (crcStages(i) |<< 1) ^ poly
               } otherwise {
-                crc := crc |<< 1
+                crcStages(i + 1) := crcStages(i) |<< 1
               }
             }
-            regStack.writeReg(RegName.Areg, crc)
+
+            regStack.writeReg(RegName.Areg, crcStages(8))
             regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
           }
           is(Opcode.SecondaryOpcode.BITCNT) {

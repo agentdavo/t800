@@ -4,16 +4,16 @@ import spinal.core._
 import spinal.core.sim._
 import spinal.lib.misc.database.Database
 import org.scalatest.funsuite.AnyFunSuite
-import transputer.plugins.regstack.RegStackPlugin
+import transputer.plugins.core.regstack.RegStackPlugin
 import transputer.plugins.timers.TimerPlugin
 import transputer.plugins.schedule.SchedulerPlugin
-import transputer.plugins.cache.{MainCachePlugin, WorkspaceCachePlugin}
-import transputer.plugins.grouper.InstrGrouperPlugin
-import transputer.plugins.vcp.VcpPlugin
-import transputer.plugins.pmi.PmiPlugin
+import transputer.plugins.core.cache.{MainCachePlugin, WorkspaceCachePlugin}
+import transputer.plugins.core.grouper.InstrGrouperPlugin
+import transputer.plugins.legacy.vcp.VcpPlugin
+import transputer.plugins.legacy.pmi.PmiPlugin
 import transputer.plugins.event.EventPlugin
 import transputer.plugins.analysis.AnalysisPlugin
-import transputer.plugins.transputer.TransputerPlugin
+import transputer.plugins.core.transputer.TransputerPlugin
 
 /** Comprehensive integration tests for the complete T9000 system.
   *
@@ -65,10 +65,10 @@ class T9000IntegrationSpec extends AnyFunSuite {
     val core = Database(db).on(Transputer(t9000Plugins))
 
     // Get services for testing
-    val regStackService = core.host[transputer.plugins.regstack.RegStackService]
+    val regStackService = core.host[transputer.plugins.core.regstack.RegStackService]
     val timerService = core.host[transputer.plugins.timers.TimerService]
     val schedService = core.host[transputer.plugins.schedule.SchedService]
-    val vcpService = core.host[transputer.plugins.vcp.VcpService]
+    val vcpService = core.host[transputer.plugins.legacy.vcp.VcpService]
     val eventService = core.host[transputer.plugins.event.EventService]
     val analysisService = core.host[transputer.plugins.analysis.AnalysisService]
 

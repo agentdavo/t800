@@ -232,43 +232,91 @@ We are currently redesigning the pipeline to match the authentic T9000 architect
 - Four 32-bit buses matching original T9000 crossbar
 - Proper timing closure for high-frequency operation
 
-📚 **Design Documentation:**
-- [`doc/T9000_PIPELINE_REDESIGN.md`](doc/T9000_PIPELINE_REDESIGN.md) - Overall architecture
-- [`doc/T9000_5STAGE_PIPELINE.md`](doc/T9000_5STAGE_PIPELINE.md) - 5-stage implementation
+## Documentation
+
+### T9000 Architecture & Specification
+- [`doc/T9000_SECONDARY_IINSTRUCTIONS.md`](doc/T9000_SECONDARY_IINSTRUCTIONS.md) - **Complete T9000 instruction set (Tables 6.9-6.37)**
+- [`doc/T9000_REGISTERS.md`](doc/T9000_REGISTERS.md) - **Complete T9000 register set, status bits, and shadow registers**
+- [`doc/T9000_PROCESS_CONTROL_TRAPS.md`](doc/T9000_PROCESS_CONTROL_TRAPS.md) - **Process scheduling, memory protection, and trap handling**
+- [`doc/T9000_PIPELINE_REDESIGN.md`](doc/T9000_PIPELINE_REDESIGN.md) - Overall architecture transition
+- [`doc/T9000_5STAGE_PIPELINE.md`](doc/T9000_5STAGE_PIPELINE.md) - 5-stage implementation details
 - [`doc/T9000_SPINALHDL_PIPELINE.md`](doc/T9000_SPINALHDL_PIPELINE.md) - SpinalHDL Pipeline API usage
-- [`doc/T9000_TIMING_ANALYSIS.md`](doc/T9000_TIMING_ANALYSIS.md) - High-frequency design considerations
+- [`doc/T9000_TIMING_ANALYSIS.md`](doc/T9000_TIMING_ANALYSIS.md) - High-frequency design
+- [`doc/T9000_INTERRUPT_MODEL.md`](doc/T9000_INTERRUPT_MODEL.md) - Unified interrupt/event/timer model
+- [`doc/T9000_PIPELINE_OPTIMIZATION.md`](doc/T9000_PIPELINE_OPTIMIZATION.md) - Pipeline optimization
 
-## Development Milestones
+### SpinalHDL References
+- [`doc/SpinalHDL_api.md`](doc/SpinalHDL_api.md) - Pipeline DSL and plugin API
+- [`doc/SpinalHDL_bmb.md`](doc/SpinalHDL_bmb.md) - BMB bus system guide
+- [`doc/SPINALHDL_AFIX.md`](doc/SPINALHDL_AFIX.md) - AFix fixed-point arithmetic
+- [`doc/SPINALHDL_IMPLEMENTATION_SUMMARY.md`](doc/SPINALHDL_IMPLEMENTATION_SUMMARY.md) - Implementation status
 
-### Milestone 1: Basic ALU Operations ✅
-- **Status**: Core infrastructure complete
-- **Features**: REV, ADD, SUB, AND, XOR operations
-- **Components**: Stack registers, basic pipeline, register file
+### Core Architecture
+- [`doc/Transputer_core.md`](doc/Transputer_core.md) - CPU architecture overview
+- [`CLAUDE.md`](CLAUDE.md) - Development guide for AI assistance
+- [`AGENTS.md`](AGENTS.md) - Development workflow and milestones
 
-### Milestone 2: Literal Operations ⏳  
-- **Status**: Framework ready
-- **Features**: LDC, ADC, literal accumulation
-- **Components**: Operand register, prefix handling
+## T9000 Instruction Table Implementation
 
-### Milestone 3: Memory Operations ⏳
-- **Status**: Cache system ready  
-- **Features**: LDL, STL, workspace access
-- **Components**: Memory hierarchy, address translation
+The T9000 implementation follows a systematic approach where each instruction table from the T9000 manual maps to a dedicated plugin.
 
-### Milestone 4: Process Operations ⏳
-- **Status**: Scheduler infrastructure complete
-- **Features**: STARTP, ENDP, process queues
-- **Components**: Hardware scheduler, timer integration
+### Core Instructions (Priority 1) 🏁
 
-### Milestone 5: Communication ⏳
-- **Status**: VCP framework ready
-- **Features**: Channel I/O, DS-Links
-- **Components**: Virtual channel processor, link interfaces
+| Plugin | Table | Instructions | Status | Features |
+|--------|-------|-------------|---------|----------|
+| **ArithmeticPlugin** | 6.9 | `add`, `sub`, `mul`, `div`, `and`, `or`, `xor` | ✅ Complete | Basic ALU operations |
+| **GeneralPlugin** | 6.17 | `rev`, `dup`, `pop`, `nop`, `mint` | ✅ Partial | Stack manipulation |
+| **FpuPlugin** | 6.32-37 | `fpadd`, `fpsub`, `fpmul`, `fpdiv`, etc. | ✅ Implemented | IEEE 754 operations |
+| **ControlFlowPlugin** | 6.11 | `ret`, `ldpi`, `gajw`, `gcall`, `lend` | 🔄 In Progress | Jump/call instructions |
+| **IndexingPlugin** | 6.13 | `bsub`, `wsub`, `lb`, `sb`, `ldl`, `stl` | 🔄 In Progress | Memory operations |
 
-### Milestone 6: Floating-Point ⏳
-- **Status**: FPU pipeline ready
-- **Features**: IEEE 754 operations
-- **Components**: Multi-cycle FP units, exception handling
+### Extended Operations (Priority 2) 🏅
+
+| Plugin | Table | Instructions | Status | Features |
+|--------|-------|-------------|---------|----------|
+| **LongArithPlugin** | 6.10 | `ladd`, `lsub`, `lmul`, `ldiv` | ⏳ Planned | 64-bit arithmetic |
+| **RangeCheckPlugin** | 6.14 | `cir`, `cb`, `cs`, `cword` | ⏳ Planned | Bounds checking |
+| **TimerPlugin** | 6.18 | `ldtimer`, `sttimer`, `tin`, `talt` | ✅ Framework | Timer operations |
+| **SchedulePlugin** | 6.25-26 | `startp`, `endp`, `runp`, `stopp` | ✅ Framework | Process scheduling |
+
+### System Features (Priority 3) 🛠️
+
+| Plugin | Table | Instructions | Status | Features |
+|--------|-------|-------------|---------|----------|
+| **IOPlugin** | 6.19-20 | `in`, `out`, `vin`, `vout` | ⏳ Planned | Channel I/O |
+| **ChannelPlugin** | 6.21 | `chantype`, `initvlcb`, `setchmode` | ⏳ Planned | Virtual channels |
+| **AlternativePlugin** | 6.24 | `alt`, `altwt`, `enbc`, `disc` | ⏳ Planned | ALT constructs |
+| **InterruptPlugin** | 6.27 | `intdis`, `intenb`, `ldshadow` | ⏳ Planned | Interrupt handling |
+| **ProtectionPlugin** | 6.28 | `ldth`, `selth`, `goprot` | ✅ Framework | Memory protection |
+
+### Advanced Features (Priority 4) 🎆
+
+| Plugin | Table | Instructions | Status | Features |
+|--------|-------|-------------|---------|----------|
+| **BlockMovePlugin** | 6.12 | `move`, `move2dinit`, `move2dall` | ⏳ Planned | Block operations |
+| **BitOpsPlugin** | 6.16 | `crcword`, `crcbyte`, `bitcnt` | ⏳ Planned | CRC & bit manipulation |
+| **ResourcePlugin** | 6.22 | `grant`, `enbg`, `disg`, `mkrc` | ⏳ Planned | Resource management |
+| **SemaphorePlugin** | 6.23 | `wait`, `signal` | ⏳ Planned | Synchronization |
+| **SystemPlugin** | 6.29-30 | `testpranal`, `ldconf`, `stconf` | ⏳ Planned | System configuration |
+
+### Development Phases
+
+**Phase 1: Core Infrastructure ✅**
+- 5-stage pipeline with hardware grouper
+- Register file (35+ registers) + 3-register stack 
+- Cache hierarchy (16KB main + 32-word workspace)
+- Memory protection and process management
+
+**Phase 2: Instruction Implementation 🔄**
+- Systematic plugin development per instruction table
+- Pipeline stage assignment and data flow
+- Error handling and exception generation
+
+**Phase 3: Integration & Optimization ⏳**
+- Multi-cycle operation support (CtrlLane API)
+- Performance tuning and hazard resolution
+- T9000 compliance verification
+- FPGA synthesis and timing closure
 
 ## Testing
 
@@ -313,46 +361,93 @@ sbt report
 - **Xilinx 7-Series**: Artix-7, Kintex-7 (experimental)
 - **Intel Cyclone V**: 5CGXFC7 (experimental)
 
-## Plugin Development
+## Plugin Architecture
 
-### Creating New Plugins
+### Directory Structure
 
-1. **Plugin Structure**
+The T9000 implementation follows a systematic plugin-per-instruction-table approach:
+
+```
+src/main/scala/transputer/plugins/
+├── arithmetic/         # Table 6.9: Basic arithmetic & logical operations
+│   ├── Service.scala   # ArithmeticService interface (✅ Implemented)
+│   └── ArithmeticPlugin.scala
+├── longarith/          # Table 6.10: 64-bit arithmetic operations  
+│   ├── Service.scala   # LongArithService interface (✅ Implemented)
+│   └── LongArithPlugin.scala
+├── controlflow/        # Table 6.11: Jump and call instructions
+│   ├── Service.scala   # ControlFlowService interface (✅ Implemented)
+│   └── ControlFlowPlugin.scala
+├── indexing/           # Table 6.13: Array indexing and memory operations
+│   ├── Service.scala   # IndexingService interface (✅ Implemented) 
+│   └── IndexingPlugin.scala
+├── general/            # Table 6.17: General stack operations
+│   ├── Service.scala   # GeneralService interface (✅ Implemented)
+│   └── GeneralPlugin.scala
+├── [15+ more plugin directories...]
+├── fpu/                # Tables 6.32-6.37: Floating-point operations
+│   ├── Service.scala   # FpuService interface (✅ Existing)
+│   ├── FpuPlugin.scala # FPU implementation (✅ Existing)
+│   ├── Adder.scala     # FP adder hardware (✅ Existing)
+│   └── Utils.scala     # FP utilities (✅ Existing)
+└── [existing infrastructure plugins...]
+```
+
+### Plugin Development Guidelines
+
+Each instruction table plugin follows a consistent structure:
+
+1. **Service Interface** (`Service.scala`)
 ```scala
-class MyPlugin extends FiberPlugin {
+package transputer.plugins.arithmetic
+
+trait ArithmeticService {
+  def isArithOp(opcode: Bits): Bool
+  def executeOp(op: ArithOp.C, operandA: UInt, operandB: UInt): ArithResult
+  def getLatency(op: ArithOp.C): Int
+}
+
+case class ArithResult() extends Bundle {
+  val result = UInt(32 bits)
+  val overflow = Bool()
+  val carry = Bool()
+  val zero = Bool()
+}
+```
+
+2. **Plugin Implementation** (`Plugin.scala`)
+```scala
+class ArithmeticPlugin extends FiberPlugin {
   during setup new Area {
-    // Register services, declare dependencies
+    addService(new ArithmeticService { ... })
   }
   
-  during build new Area {  
-    // Generate hardware, connect to other plugins
+  during build new Area {
+    val pipe = host[PipelineStageService]
+    // Implement in Execute stage (Stage 4)
+    val executeStage = new Area {
+      val opcode = pipe.memory(Global.OPCODE)
+      when(isArithmeticInstruction(opcode)) {
+        // Hardware implementation
+      }
+    }
   }
 }
 ```
 
-2. **Service Definition**
-```scala
-trait MyService {
-  def myMethod(): UInt
-  def mySignal: Bool
-}
-```
-
-3. **Service Registration**
-```scala
-addService(new MyService {
-  override def myMethod(): UInt = result
-  override def mySignal: Bool = signal
-})
-```
+3. **T9000 Integration**
+   - Each plugin recognizes specific opcodes from its instruction table
+   - Operations execute in appropriate pipeline stages
+   - Service interfaces enable inter-plugin communication
+   - Error handling integrated with protection system
 
 ### Development Guidelines
 
 - **Service Interfaces**: Define clean contracts between plugins
-- **Signal Ownership**: Respect SpinalHDL hierarchy rules
-- **Error Handling**: Use SpinalHDL's design rule checking
-- **Testing**: Include comprehensive unit tests for each plugin
-- **Documentation**: Document service interfaces and hardware behavior
+- **Pipeline Stage Assignment**: Place operations in correct T9000 pipeline stages
+- **Instruction Table Mapping**: One plugin per T9000 instruction table
+- **Error Handling**: Generate appropriate exceptions and traps
+- **Testing**: Comprehensive unit tests per plugin with SpinalSim
 
 ### Critical SpinalHDL Files for T9000 Development
 

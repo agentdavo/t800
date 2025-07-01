@@ -568,7 +568,7 @@ object Opcode {
       DEVMOVE -> 0x12c, // Hardware: -0x2C
       ICL -> 0x12d, // Hardware: -0x2D
       FDCL -> 0x12e, // Hardware: -0x2E
-      ICA -> 0x12f, // Hardware: -0x2F  
+      ICA -> 0x12f, // Hardware: -0x2F
       FDCA -> 0x130, // Hardware: -0x30
       NOP -> 0x140, // Hardware: -0x40
       LDPRODID -> 0x184 // Hardware: -0x84
