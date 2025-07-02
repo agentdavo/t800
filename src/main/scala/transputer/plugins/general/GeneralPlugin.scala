@@ -47,9 +47,12 @@ class GeneralPlugin extends FiberPlugin {
     val pipe = host[transputer.plugins.core.pipeline.PipelineStageService]
     val regStack = host[transputer.plugins.core.regstack.RegStackService]
 
+    // Initialize hardware signals
+    isGeneralOperation = Bool()
+
     // General operations logic
     val generalLogic = new Area {
-      val opcode = pipe.memory(Global.OPCODE)
+      val opcode = pipe.execute(Global.OPCODE)
       val isOpr = opcode(7 downto 4) === Opcode.PrimaryOpcode.OPR.asBits.resize(4)
       val oprFunc = opcode(3 downto 0)
 
@@ -95,7 +98,8 @@ class GeneralPlugin extends FiberPlugin {
 
           is(Opcode.SecondaryOpcode.MINT.asBits.resize(4)) {
             // Load minimum integer (0x80000000 for 32-bit)
-            val minInt = U(0x80000000, 32 bits)
+            // Use arithmetic to avoid literal issues: -(2^31)
+            val minInt = U(0) - U(1) << 31
             regStack.writeReg(transputer.plugins.core.regstack.RegName.Areg, minInt)
             regStack.writeReg(transputer.plugins.core.regstack.RegName.Breg, areg)
             regStack.writeReg(transputer.plugins.core.regstack.RegName.Creg, breg)

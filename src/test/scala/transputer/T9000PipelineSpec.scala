@@ -8,8 +8,8 @@ import transputer.plugins.core.regstack.RegStackService
 
 /** Tests for T9000 proper plugin pipeline architecture.
   *
-  * Tests the correct Transputer pipeline: systemBus -> FetchPlugin -> InstrGrouperPlugin ->
-  * PrimaryInstrPlugin -> SecondaryInstrPlugin
+  * Tests the correct T9000 5-stage pipeline: Fetch/Group → Local/Decode → Address/Cache → Execute →
+  * Writeback With instruction table plugins: ArithmeticPlugin, GeneralPlugin, etc.
   */
 class T9000PipelineSpec extends AnyFunSuite {
 
@@ -29,14 +29,15 @@ class T9000PipelineSpec extends AnyFunSuite {
     // Create proper T9000 plugin pipeline (minimal working set)
     val pipelinePlugins = Seq(
       new transputer.plugins.core.transputer.TransputerPlugin(),
-      new transputer.plugins.core.pipeline.PipelinePlugin(),
+      new transputer.plugins.core.pipeline.T9000PipelinePlugin(), // Use T9000 5-stage pipeline
       new transputer.plugins.core.regstack.RegStackPlugin(),
+      new transputer.plugins.bus.SystemBusPlugin(), // Required for FetchPlugin
       new transputer.plugins.core.fetch.FetchPlugin(),
-      // For now, skip complex plugins that have dependencies
-      // new transputer.plugins.core.grouper.InstrGrouperPlugin(),
-      // new transputer.plugins.decode.PrimaryInstrPlugin(),
-      // new transputer.plugins.execute.SecondaryInstrPlugin(),
-      new transputer.plugins.core.pipeline.PipelineBuilderPlugin()
+      new transputer.plugins.core.grouper.T9000GrouperOptimized(), // Advanced T9000 grouper
+      // Core instruction table plugins
+      new transputer.plugins.arithmetic.ArithmeticPlugin(),
+      new transputer.plugins.general.GeneralPlugin(),
+      new transputer.plugins.core.pipeline.PipelineBuilderPlugin() // Must be last
     )
 
     val core = Database(db).on(Transputer(pipelinePlugins))
@@ -44,7 +45,7 @@ class T9000PipelineSpec extends AnyFunSuite {
     // Get services safely
     val regStackService =
       try {
-        core.host[RegStackService]
+        core.host[transputer.plugins.core.regstack.RegStackService]
       } catch {
         case _: Exception => null
       }
@@ -67,8 +68,8 @@ class T9000PipelineSpec extends AnyFunSuite {
     io.instructionCount := instrCount
   }
 
-  test("T9000 minimal pipeline compilation") {
-    // Test that the minimal pipeline compiles and elaborates
+  test("T9000 pipeline compilation with instruction table plugins") {
+    // Test that the T9000 pipeline with instruction table plugins compiles and elaborates
     SimConfig.compile(new PipelineTestDut).doSim { dut =>
       dut.clockDomain.forkStimulus(10)
 
@@ -82,9 +83,13 @@ class T9000PipelineSpec extends AnyFunSuite {
       dut.clockDomain.waitRisingEdge(5)
 
       // Test completed successfully if we get here
-      assert(true, "Minimal pipeline compiled and elaborated successfully")
+      assert(
+        true,
+        "T9000 pipeline with instruction table plugins compiled and elaborated successfully"
+      )
       println(s"Pipeline ready: ${dut.io.pipelineReady.toBoolean}")
       println(s"Instruction count: ${dut.io.instructionCount.toInt}")
+      println(s"Stack A value: ${dut.io.stackA.toInt}")
     }
   }
 }

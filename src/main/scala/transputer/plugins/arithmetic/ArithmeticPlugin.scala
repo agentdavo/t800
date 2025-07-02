@@ -50,22 +50,28 @@ class ArithmeticPlugin extends FiberPlugin {
   during build new Area {
     println(s"[${ArithmeticPlugin.this.getDisplayName()}] build start")
 
-    // Get pipeline service  
+    // Get pipeline service
     val pipe = host[transputer.plugins.core.pipeline.PipelineStageService]
     val regStack = host[transputer.plugins.core.regstack.RegStackService]
 
     // Initialize hardware signals
     aluResult = AluResult()
     aluBusy = Reg(Bool()) init False
+    isAluOperation = Bool()
+    aluOperation = AluOp()
 
-    // ALU execution in Memory stage (stage 4) - T9000 specification
+    // ALU execution in Execute stage (stage 4) - T9000 specification
     val aluLogic = new Area {
-      val opcode = pipe.memory(Global.OPCODE)
+      val opcode = pipe.execute(Global.OPCODE)
       val isOpr = opcode(7 downto 4) === Opcode.PrimaryOpcode.OPR.asBits.resize(4)
       val oprFunc = opcode(3 downto 0)
 
-      // Table 6.9 instruction recognition
-      isAluOperation := isOpr && (
+      // Check for ALU command from decode stage in execute stage
+      val aluCmdValid = pipe.execute(Global.ALU_CMD_VALID)
+      val aluCmd = pipe.execute(Global.ALU_CMD)
+
+      // Table 6.9 instruction recognition (legacy opcode recognition)
+      val isLegacyAlu = isOpr && (
         oprFunc === Opcode.SecondaryOpcode.ADD.asBits.resize(4) || // F5 - add
           oprFunc === Opcode.SecondaryOpcode.SUB.asBits.resize(4) || // FC - sub
           oprFunc === Opcode.SecondaryOpcode.AND.asBits.resize(4) || // 24F6 - and
@@ -78,9 +84,28 @@ class ArithmeticPlugin extends FiberPlugin {
           oprFunc === Opcode.SecondaryOpcode.REV.asBits.resize(4) // F0 - rev
       )
 
-      // Decode ALU operation
+      // Accept either new command-based or legacy opcode-based recognition
+      isAluOperation := aluCmdValid || isLegacyAlu
+
+      // Decode ALU operation from either command or legacy opcode
       aluOperation := AluOp.ADD // Default
-      when(isOpr) {
+
+      when(aluCmdValid) {
+        // New command-based approach from SecondaryInstrPlugin
+        switch(aluCmd.op) {
+          is(B"0001") { aluOperation := AluOp.ADD }
+          is(B"0010") { aluOperation := AluOp.SUB }
+          is(B"0110") { aluOperation := AluOp.AND }
+          is(B"0111") { aluOperation := AluOp.OR }
+          is(B"1000") { aluOperation := AluOp.XOR }
+          is(B"1001") { aluOperation := AluOp.NOT }
+          is(B"1010") { aluOperation := AluOp.SHL }
+          is(B"1011") { aluOperation := AluOp.SHR }
+          is(B"1100") { aluOperation := AluOp.GT }
+          is(B"1111") { aluOperation := AluOp.REV }
+        }
+      } elsewhen (isLegacyAlu) {
+        // Legacy opcode-based approach
         switch(oprFunc) {
           is(Opcode.SecondaryOpcode.ADD.asBits.resize(4)) { aluOperation := AluOp.ADD }
           is(Opcode.SecondaryOpcode.SUB.asBits.resize(4)) { aluOperation := AluOp.SUB }
@@ -97,9 +122,22 @@ class ArithmeticPlugin extends FiberPlugin {
 
       // Execute ALU operations
       when(isAluOperation) {
-        val areg = regStack.readReg(transputer.plugins.core.regstack.RegName.Areg)
-        val breg = regStack.readReg(transputer.plugins.core.regstack.RegName.Breg)
-        val creg = regStack.readReg(transputer.plugins.core.regstack.RegName.Creg)
+        // Get operands either from command or from register stack
+        val areg = Mux(
+          aluCmdValid,
+          aluCmd.srcA,
+          regStack.readReg(transputer.plugins.core.regstack.RegName.Areg)
+        )
+        val breg = Mux(
+          aluCmdValid,
+          aluCmd.srcB,
+          regStack.readReg(transputer.plugins.core.regstack.RegName.Breg)
+        )
+        val creg = Mux(
+          aluCmdValid,
+          aluCmd.srcC,
+          regStack.readReg(transputer.plugins.core.regstack.RegName.Creg)
+        )
 
         // Execute operation
         aluResult.result := areg // Default

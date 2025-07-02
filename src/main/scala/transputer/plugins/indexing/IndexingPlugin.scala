@@ -73,10 +73,12 @@ class IndexingPlugin extends FiberPlugin {
     indexingResult = IndexingResult()
     calculatedAddress = UInt(32 bits)
     boundsError = Bool()
+    isIndexingOperation = Bool()
+    indexingOperation = IndexingOp()
 
     // Indexing execution in Memory stage (stage 4) - T9000 specification
     val indexingLogic = new Area {
-      val opcode = pipe.memory(Global.OPCODE)
+      val opcode = pipe.execute(Global.OPCODE)
       val isPrimary = opcode(7 downto 4) =/= Opcode.PrimaryOpcode.OPR.asBits.resize(4)
       val isOpr = opcode(7 downto 4) === Opcode.PrimaryOpcode.OPR.asBits.resize(4)
       val oprFunc = opcode(3 downto 0)
@@ -100,8 +102,9 @@ class IndexingPlugin extends FiberPlugin {
           oprFunc === Opcode.SecondaryOpcode.SS.asBits.resize(4) // 22F5 - ss
       ))
 
-      // Decode indexing operation
+      // Initialize default values to prevent latches
       indexingOperation := IndexingOp.LDL // Default
+      calculatedAddress := 0
       when(isPrimary) {
         switch(primaryOp) {
           is(Opcode.PrimaryOpcode.LDL.asBits.resize(4)) { indexingOperation := IndexingOp.LDL }
@@ -134,7 +137,9 @@ class IndexingPlugin extends FiberPlugin {
         val breg = regStack.readReg(transputer.plugins.core.regstack.RegName.Breg)
         val creg = regStack.readReg(transputer.plugins.core.regstack.RegName.Creg)
         val wptr: UInt =
-          (regStack.readReg(transputer.plugins.core.regstack.RegName.WdescReg)(31 downto 2) ## U"00").asUInt
+          (regStack.readReg(transputer.plugins.core.regstack.RegName.WdescReg)(
+            31 downto 2
+          ) ## U"00").asUInt
 
         // Initialize result
         indexingResult.address := 0
@@ -243,7 +248,7 @@ class IndexingPlugin extends FiberPlugin {
 
           is(IndexingOp.WSUB) {
             // Word subscript: Areg = Breg + Areg*4 (word addressing)
-            calculatedAddress := breg + (areg << 2)
+            calculatedAddress := (breg + (areg << 2)).resize(32)
             indexingResult.address := calculatedAddress
             regStack.writeReg(transputer.plugins.core.regstack.RegName.Areg, calculatedAddress)
             regStack.writeReg(transputer.plugins.core.regstack.RegName.Breg, creg)

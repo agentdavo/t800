@@ -30,8 +30,10 @@ class AlternativePlugin extends FiberPlugin {
   during setup new Area {
     println(s"[${AlternativePlugin.this.getDisplayName()}] setup start")
 
-    addService(new AltService {
-      override def executeOp(op: AltOp.C, guardIndex: UInt, channelAddr: UInt): AltState = altState
+    addService(new AlternativeService {
+      override def executeOp(op: AltOp.C, channelMask: Bits, timerValue: UInt): AltResult =
+        altResult
+      override def getState(): AltState = altState
       override def isAltOp(opcode: Bits): Bool = isAltOperation
       override def getAltOp(opcode: Bits): AltOp.C = altOperation
     })
@@ -40,6 +42,7 @@ class AlternativePlugin extends FiberPlugin {
   }
 
   // Hardware will be created in build phase
+  var altResult: AltResult = null
   var altState: AltState = null
   var isAltOperation: Bool = null
   var altOperation: AltOp.C = null
@@ -48,16 +51,24 @@ class AlternativePlugin extends FiberPlugin {
     println(s"[${AlternativePlugin.this.getDisplayName()}] build start")
 
     // Initialize hardware signals
+    altResult = AltResult()
     altState = AltState()
     isAltOperation = Bool()
     altOperation = AltOp()
 
     // Default values
-    altState.enabled := False
+    altResult.ready := False
+    altResult.channelId := 0
+    altResult.isTimer := False
+    altResult.skipTaken := False
+    altResult.error := False
+
+    altState.inAlt := False
     altState.waiting := False
-    altState.selectedGuard := 0
-    altState.guardCount := 0
+    altState.selectedChannel := 0
+    altState.skipEnabled := False
     altState.timerEnabled := False
+
     isAltOperation := False
     altOperation := AltOp.ALT
 

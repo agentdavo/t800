@@ -80,13 +80,13 @@ case class T9000Param(
     plugins += new transputer.plugins.core.transputer.TransputerPlugin()
 
     // Pipeline infrastructure
-    plugins += new transputer.plugins.core.pipeline.T9000PipelinePlugin()  // Use T9000 5-stage pipeline
-    plugins += new transputer.plugins.core.pipeline.StageAssignmentPlugin() // Stage assignment logic
-    plugins += new transputer.plugins.core.pipeline.LaneArbitrationPlugin() // Lane arbitration for parallel execution
+    plugins += new transputer.plugins.core.pipeline.T9000PipelinePlugin() // Use T9000 5-stage pipeline
+    // plugins += new transputer.plugins.core.pipeline.StageAssignmentPlugin() // Temporarily disabled - needs workspace service integration
+    // plugins += new transputer.plugins.core.pipeline.LaneArbitrationPlugin() // Temporarily disabled - needs SpinalHDL Pipeline API fixes
     plugins += new transputer.plugins.core.regstack.RegStackPlugin()
 
-    // System bus arbitration - temporarily disabled to diagnose BMB issues
-    // plugins += new transputer.plugins.bus.SystemBusPlugin()
+    // System bus arbitration
+    plugins += new transputer.plugins.bus.SystemBusPlugin()
 
     // ========================================
     // T9000 INSTRUCTION PIPELINE
@@ -94,7 +94,8 @@ case class T9000Param(
 
     // Instruction fetch and decode pipeline
     plugins += new transputer.plugins.core.fetch.FetchPlugin()
-    plugins += new transputer.plugins.core.grouper.InstrGrouperPlugin()
+    plugins += new transputer.plugins.core.grouper.T9000GrouperOptimized() // Advanced T9000 grouper
+    // plugins += new transputer.plugins.core.grouper.InstrGrouperPlugin() // Disabled - service dependency issue
 
     // ========================================
     // T9000 INSTRUCTION TABLE PLUGINS
@@ -102,14 +103,26 @@ case class T9000Param(
 
     // Core instruction set implementations (Tables 6.9-6.37)
     plugins += new transputer.plugins.arithmetic.ArithmeticPlugin() // Table 6.9: Basic arithmetic & logical
-    plugins += new transputer.plugins.longarith.LongArithPlugin() // Table 6.10: 64-bit arithmetic  
+    plugins += new transputer.plugins.longarith.LongArithPlugin() // Table 6.10: 64-bit arithmetic
     plugins += new transputer.plugins.controlflow.ControlFlowPlugin() // Table 6.11: Jump and call
+    plugins += new transputer.plugins.blockmove.BlockMovePlugin() // Table 6.12: Block move operations
     plugins += new transputer.plugins.indexing.IndexingPlugin() // Table 6.13: Array indexing & memory
+    plugins += new transputer.plugins.rangecheck.RangeCheckPlugin() // Table 6.14: Range checking & conversion
+    plugins += new transputer.plugins.device.DevicePlugin() // Table 6.15: Device access operations
     plugins += new transputer.plugins.general.GeneralPlugin() // Table 6.17: General stack operations
+    plugins += new transputer.plugins.io.IOPlugin() // Tables 6.19-6.20: Input/output operations
+    plugins += new transputer.plugins.channels.ChannelPlugin() // Table 6.21: Channel management
+    plugins += new transputer.plugins.alternative.AlternativePlugin() // Table 6.24: ALT constructs
+    plugins += new transputer.plugins.interrupts.InterruptPlugin() // Table 6.27: Interrupt handling
+    plugins += new transputer.plugins.protection.MemoryProtectionPlugin() // Table 6.28: Trap handlers & protection
+    plugins += new transputer.plugins.bitops.BitOpsPlugin() // Table 6.16: CRC and bit manipulation
+    plugins += new transputer.plugins.resources.ResourcePlugin() // Table 6.22: Resource channels
+    plugins += new transputer.plugins.semaphore.SemaphorePlugin() // Table 6.23: Semaphore operations
+    plugins += new transputer.plugins.system.SystemPlugin() // Tables 6.29-6.30: System configuration
 
     // IEEE 754 compliant floating-point unit (Tables 6.32-6.37)
     if (enableFpu) {
-      plugins += new transputer.plugins.fpu.FpuPlugin()
+      plugins += new transputer.plugins.fpu.FpuPlugin() // Updated for new pipeline architecture
     }
 
     // ========================================
@@ -117,8 +130,8 @@ case class T9000Param(
     // ========================================
 
     // Hierarchical cache system per T9000 specification
-    plugins += new transputer.plugins.core.cache.MainCachePlugin() // Re-enabled
-    plugins += new transputer.plugins.core.cache.WorkspaceCachePlugin() // Re-enabled
+    plugins += new transputer.plugins.core.cache.MainCachePlugin() // Table 6.31: Cache operations (fdca, fdcl, ica, icl)
+    plugins += new transputer.plugins.core.cache.WorkspaceCachePlugin() // Workspace cache support
 
     // Memory management unit with 4-region protection per T9000 spec (temporarily disabled)
     // if (enableMmu) {
@@ -140,7 +153,7 @@ case class T9000Param(
     // }
 
     // ========================================
-    // T9000 SYSTEM SERVICES  
+    // T9000 SYSTEM SERVICES
     // ========================================
 
     // Process scheduler with multi-state management

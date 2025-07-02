@@ -75,9 +75,9 @@ trait BlockMoveService {
 
 /** T9000 Table 6.12 Instruction Opcodes */
 object Table6_12 {
-  val MOVE_OPCODE = 0x4a // move - block move
-  val MOVE2DINIT_OPCODE = 0x21f5 // move2dinit - initialize 2D move
-  val MOVE2DALL_OPCODE = 0x26fb // move2dall - 2D move all
-  val MOVE2DNONZERO_OPCODE = 0x26fc // move2dnonzero - 2D move non-zero
-  val MOVE2DZERO_OPCODE = 0x26fd // move2dzero - 2D move zero
+  val MOVE_OPCODE = 0x4a // move - block move (secondary opcode)
+  val MOVE2DINIT_OPCODE = 0x5b // move2dinit - initialize 2D move (secondary)
+  val MOVE2DALL_OPCODE = 0x5c // move2dall - 2D move all (secondary)
+  val MOVE2DNONZERO_OPCODE = 0x5d // move2dnonzero - 2D move non-zero (secondary)
+  val MOVE2DZERO_OPCODE = 0x5e // move2dzero - 2D move zero (secondary)
 }

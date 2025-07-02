@@ -74,14 +74,17 @@ trait RangeCheckService {
 
 /** T9000 Table 6.14 Instruction Opcodes */
 object Table6_14 {
-  val CIR_OPCODE = 0x23f4 // cir - check in range
-  val CB_OPCODE = 0x23f8 // cb - check byte
-  val CS_OPCODE = 0x23f9 // cs - check 16-bit
-  val CWORD_OPCODE = 0x23fa // cword - check word
-  val XSWORD_OPCODE = 0x26ff // xsword - extend sign word
-  val CCNT1_OPCODE = 0x24fd // ccnt1 - check count from 1
-  val CJ_OPCODE = 0xa0 // cj - conditional jump (primary)
-  val CALL_OPCODE = 0x90 // call - call subroutine (primary)
-  val CSNGL_OPCODE = 0x63f2 // csngl - check single
-  val CDBL_OPCODE = 0x63f3 // cdbl - check double
+  // Secondary opcodes (accessed via OPR 0xF)
+  val CIR_OPCODE = 0xc7 // cir - check in range
+  val CB_OPCODE = 0xba // cb - check byte
+  val CS_OPCODE = 0xfa // cs - check 16-bit
+  val CWORD_OPCODE = 0x56 // cword - check word
+  val XSWORD_OPCODE = 0xf8 // xsword - extend sign word
+  val CCNT1_OPCODE = 0x4d // ccnt1 - check count from 1 (was CCNT)
+  val CSNGL_OPCODE = 0x4c // csngl - check single
+  val CDBL_OPCODE = 0xff // cdbl - check double (not in standard list, using placeholder)
+
+  // Primary opcodes (direct 4-bit opcodes)
+  val CJ_OPCODE = 0xa // cj - conditional jump (primary)
+  val CALL_OPCODE = 0x9 // call - call subroutine (primary)
 }

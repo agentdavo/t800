@@ -72,21 +72,46 @@ object Global extends AreaObject {
   def OPCODE: Payload[Bits] = Payload(Bits(8 bits))
   def MEM_ADDR: Payload[UInt] = Payload(UInt(AddrBitsValue bits))
   def MEM_DATA: Payload[Bits] = Payload(Bits(WordBits bits))
-  
+
   // T9000 pipeline payloads
   def OPERAND: Payload[Bits] = Payload(Bits(WordBits bits))
-  def GROUPED_INSTR: Payload[Bits] = Payload(Bits(64 bits))  // Up to 2 instructions
+  def GROUPED_INSTR: Payload[Bits] = Payload(Bits(64 bits)) // Up to 2 instructions
   def AREG_VALUE: Payload[UInt] = Payload(UInt(WordBits bits))
   def BREG_VALUE: Payload[UInt] = Payload(UInt(WordBits bits))
   def CREG_VALUE: Payload[UInt] = Payload(UInt(WordBits bits))
   def MEM_WRITE: Payload[Bool] = Payload(Bool())
   def ALU_RESULT: Payload[UInt] = Payload(UInt(WordBits bits))
-  def FPU_RESULT: Payload[Bits] = Payload(Bits(64 bits))  // Double precision
-  def STACK_OP: Payload[Bits] = Payload(Bits(3 bits))  // Stack operation type
+  def FPU_RESULT: Payload[Bits] = Payload(Bits(64 bits)) // Double precision
+  def STACK_OP: Payload[Bits] = Payload(Bits(3 bits)) // Stack operation type
   def BRANCH_TARGET: Payload[UInt] = Payload(UInt(AddrBitsValue bits))
   def BRANCH_TAKEN: Payload[Bool] = Payload(Bool())
   def TRAP_CAUSE: Payload[Bits] = Payload(Bits(8 bits))
   def TRAP_ENABLE: Payload[Bool] = Payload(Bool())
+
+  // ALU command payload for pipeline communication
+  def ALU_CMD: Payload[AluCmd] = Payload(AluCmd())
+  def ALU_CMD_VALID: Payload[Bool] = Payload(Bool())
+
+  // FPU command payload for pipeline communication
+  def FPU_CMD: Payload[FpuCmd] = Payload(FpuCmd())
+  def FPU_CMD_VALID: Payload[Bool] = Payload(Bool())
+
+  // Command structure for ALU operations
+  case class AluCmd() extends Bundle {
+    val op = Bits(4 bits) // ALU operation code
+    val srcA = UInt(WordBits bits) // First operand
+    val srcB = UInt(WordBits bits) // Second operand
+    val srcC = UInt(WordBits bits) // Third operand (for 3-operand instructions)
+  }
+
+  // Command structure for FPU operations
+  case class FpuCmd() extends Bundle {
+    val op = Bits(8 bits) // FPU operation code (T9000 secondary opcode)
+    val srcA = Bits(64 bits) // First FP operand (FPA)
+    val srcB = Bits(64 bits) // Second FP operand (FPB)
+    val srcC = Bits(64 bits) // Third FP operand (FPC)
+    val roundingMode = Bits(2 bits) // IEEE 754 rounding mode
+  }
 
   // Memory command definitions, aligned with T9000
   case class MemRead[T <: Data](

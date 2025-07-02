@@ -89,6 +89,9 @@ class FpuPlugin extends FiberPlugin with PipelineService {
       val errorFlags = Reg(Bits(5 bits)) init 0 // Overflow, underflow, inexact, invalid, denormal
     }
 
+    // Cycle counter using proper register to avoid combinatorial loops
+    val cycleCounter = Reg(UInt(10 bits)) init 0
+
     // FPU doesn't need direct memory access - it operates on the evaluation stack
 
     // Execution units - create stub implementations for now
@@ -169,17 +172,25 @@ class FpuPlugin extends FiberPlugin with PipelineService {
     adder.io.cmd.payload.sub := False
     adder.io.cmd.payload.rounding := status.roundingMode
 
-    // Opcode handling
+    // FPU command handling - accept commands from decode stage in execute stage
+    val fpuCmdValid = pipe.execute(Global.FPU_CMD_VALID)
+    val fpuCmd = pipe.execute(Global.FPU_CMD)
+
+    // Legacy opcode handling for direct FPU operations
     val opcode = pipe.execute(Global.OPCODE)
-    val isFpuOp =
+    val isLegacyFpuOp =
       opcode === Opcode.SecondaryOpcode.FPADD.asBits.resize(8) ||
         opcode === Opcode.SecondaryOpcode.FPSUB.asBits.resize(8) ||
         opcode === Opcode.SecondaryOpcode.FPMUL.asBits.resize(8) ||
         opcode === Opcode.SecondaryOpcode.FPDIV.asBits.resize(8)
 
+    // Accept either pipeline command or legacy opcode recognition
+    val isFpuOp = fpuCmdValid || isLegacyFpuOp
+    val currentOpcode = Mux(fpuCmdValid, fpuCmd.op, opcode)
+
     val opCycles = UInt(10 bits)
     opCycles := 0
-    switch(opcode) {
+    switch(currentOpcode) {
       is(B"10101010") { opCycles := 2 }
       is(Opcode.SecondaryOpcode.FPADD.asBits.resize(8)) { opCycles := 2 }
       is(Opcode.SecondaryOpcode.FPSUB.asBits.resize(8)) { opCycles := 2 }
@@ -188,6 +199,16 @@ class FpuPlugin extends FiberPlugin with PipelineService {
       is(Opcode.SecondaryOpcode.FPSQRT.asBits.resize(8)) { opCycles := divRootCycles }
       is(Opcode.SecondaryOpcode.FPREM.asBits.resize(8)) { opCycles := divRootCycles }
       is(Opcode.SecondaryOpcode.FPRANGE.asBits.resize(8)) { opCycles := 17 }
+      // Single-cycle operations
+      is(Opcode.SecondaryOpcode.FPABS.asBits.resize(8)) { opCycles := 1 }
+      is(Opcode.SecondaryOpcode.FPINT.asBits.resize(8)) { opCycles := 1 }
+      is(Opcode.SecondaryOpcode.FPMULBY2.asBits.resize(8)) { opCycles := 1 }
+      is(Opcode.SecondaryOpcode.FPDIVBY2.asBits.resize(8)) { opCycles := 1 }
+      // Rounding mode operations (no cycles needed)
+      is(Opcode.SecondaryOpcode.FPRN.asBits.resize(8)) { opCycles := 0 }
+      is(Opcode.SecondaryOpcode.FPRP.asBits.resize(8)) { opCycles := 0 }
+      is(Opcode.SecondaryOpcode.FPRM.asBits.resize(8)) { opCycles := 0 }
+      is(Opcode.SecondaryOpcode.FPRZ.asBits.resize(8)) { opCycles := 0 }
       is(B"01000001", B"01000010", B"01000011", B"01011111", B"10010000") {
         opCycles := divRootCycles
       }
@@ -198,7 +219,7 @@ class FpuPlugin extends FiberPlugin with PipelineService {
     pipe.execute.haltWhen(s0.isValid && !s0.down.isReady)
 
     // Stall pipeline while operation is in progress
-    s0.haltWhen(s0(CYCLE_CNT) =/= 0)
+    s0.haltWhen(cycleCounter =/= 0)
 
     // Default assignments to avoid latches (must be outside when() to always assign)
     s0(RESULT) := B(0, 64 bits)
@@ -209,10 +230,16 @@ class FpuPlugin extends FiberPlugin with PipelineService {
 
     when(s0.isValid) {
 
+      // Use operands from pipeline command when available, otherwise use internal registers
+      val operandA = Mux(fpuCmdValid, fpuCmd.srcA, fa)
+      val operandB = Mux(fpuCmdValid, fpuCmd.srcB, fb)
+      val operandC = Mux(fpuCmdValid, fpuCmd.srcC, fc)
+      val roundingMode = Mux(fpuCmdValid, fpuCmd.roundingMode, status.roundingMode)
+
       // VCU logic would evaluate special values here
       // For now just use stub signals
-      val op1Parsed = parseIeee754(fa)
-      val op2Parsed = parseIeee754(fb)
+      val op1Parsed = parseIeee754(operandA)
+      val op2Parsed = parseIeee754(operandB)
       val op1Afix = AFix(op1Parsed.mantissa.asUInt, 0 exp)
       val op2Afix = AFix(op2Parsed.mantissa.asUInt, 0 exp)
 
@@ -224,7 +251,7 @@ class FpuPlugin extends FiberPlugin with PipelineService {
         tempA := fa
         tempB := fb
       } otherwise {
-        switch(opcode) {
+        switch(currentOpcode) {
           // Load/store
           is(B"10001110") { // fpldnlsn
             // TODO: Implement through integer pipeline
@@ -303,16 +330,16 @@ class FpuPlugin extends FiberPlugin with PipelineService {
           // Arithmetic ops
           is(Opcode.SecondaryOpcode.FPADD.asBits.resize(8)) {
             adder.io.cmd.valid := True
-            adder.io.cmd.payload.a := fa
-            adder.io.cmd.payload.b := fb
+            adder.io.cmd.payload.a := operandA
+            adder.io.cmd.payload.b := operandB
             adder.io.cmd.payload.sub := False
-            adder.io.cmd.payload.rounding := status.roundingMode
+            adder.io.cmd.payload.rounding := roundingMode
             s0(RESULT) := adder.io.rsp.payload
 
             // Generate IEEE 754 exception flags for addition
             val addFlags = Utils.generateExceptionFlags(
-              fa,
-              fb,
+              operandA,
+              operandB,
               adder.io.rsp.payload,
               Opcode.SecondaryOpcode.FPADD.asBits.resize(8),
               True
@@ -326,16 +353,16 @@ class FpuPlugin extends FiberPlugin with PipelineService {
           }
           is(Opcode.SecondaryOpcode.FPSUB.asBits.resize(8)) {
             adder.io.cmd.valid := True
-            adder.io.cmd.payload.a := fa
-            adder.io.cmd.payload.b := fb
+            adder.io.cmd.payload.a := operandA
+            adder.io.cmd.payload.b := operandB
             adder.io.cmd.payload.sub := True
-            adder.io.cmd.payload.rounding := status.roundingMode
+            adder.io.cmd.payload.rounding := roundingMode
             s0(RESULT) := adder.io.rsp.payload
 
             // Generate IEEE 754 exception flags for subtraction
             val subFlags = Utils.generateExceptionFlags(
-              fa,
-              fb,
+              operandA,
+              operandB,
               adder.io.rsp.payload,
               Opcode.SecondaryOpcode.FPSUB.asBits.resize(8),
               True
@@ -375,21 +402,21 @@ class FpuPlugin extends FiberPlugin with PipelineService {
           // Missing IEEE 754 arithmetic operations
           is(Opcode.SecondaryOpcode.FPABS.asBits.resize(8)) {
             // Absolute value: clear sign bit
-            val parsed = parseIeee754(fa)
+            val parsed = parseIeee754(operandA)
             s0(RESULT) := packIeee754(False, parsed.exponent, parsed.mantissa)
           }
           is(Opcode.SecondaryOpcode.FPINT.asBits.resize(8)) {
             // Round to integer in floating point format
             val rounded =
-              Utils.roundIeee754Extended(fa, 52, status.roundingMode, parseIeee754(fa).sign)
-            val parsed = parseIeee754(fa)
+              Utils.roundIeee754Extended(operandA, 52, roundingMode, parseIeee754(operandA).sign)
+            val parsed = parseIeee754(operandA)
             s0(RESULT) := packIeee754(parsed.sign, parsed.exponent, rounded)
             exceptionFlags.current.inexact := True
             exceptionFlags.updateStatusFlags()
           }
           is(Opcode.SecondaryOpcode.FPMULBY2.asBits.resize(8)) {
             // Multiply by 2: increment exponent
-            val parsed = parseIeee754(fa)
+            val parsed = parseIeee754(operandA)
             val newExp = parsed.exponent + 1
             when(newExp >= 0x7ff) {
               // Overflow to infinity
@@ -402,7 +429,7 @@ class FpuPlugin extends FiberPlugin with PipelineService {
           }
           is(Opcode.SecondaryOpcode.FPDIVBY2.asBits.resize(8)) {
             // Divide by 2: decrement exponent
-            val parsed = parseIeee754(fa)
+            val parsed = parseIeee754(operandA)
             val newExp = parsed.exponent - 1
             when(newExp <= 0) {
               // Underflow to denormal/zero
@@ -412,6 +439,20 @@ class FpuPlugin extends FiberPlugin with PipelineService {
               s0(RESULT) := packIeee754(parsed.sign, newExp, parsed.mantissa)
             }
             exceptionFlags.updateStatusFlags()
+          }
+
+          // Rounding mode operations - update status register
+          is(Opcode.SecondaryOpcode.FPRN.asBits.resize(8)) {
+            status.roundingMode := B"00" // Round to nearest
+          }
+          is(Opcode.SecondaryOpcode.FPRP.asBits.resize(8)) {
+            status.roundingMode := B"10" // Round toward +infinity
+          }
+          is(Opcode.SecondaryOpcode.FPRM.asBits.resize(8)) {
+            status.roundingMode := B"11" // Round toward -infinity
+          }
+          is(Opcode.SecondaryOpcode.FPRZ.asBits.resize(8)) {
+            status.roundingMode := B"01" // Round toward zero
           }
 
           // Error flag operations (temporarily disabled for compilation)
@@ -464,15 +505,17 @@ class FpuPlugin extends FiberPlugin with PipelineService {
       }
     }
 
-    // Cycle counter - ensure CYCLE_CNT always has a valid assignment
+    // Cycle counter logic
     when(s0.up.isFiring) {
       s0(MAX_CYCLES) := opCycles
-      s0(CYCLE_CNT) := opCycles
-    } elsewhen (s0.isValid && s0(CYCLE_CNT) =/= 0) {
-      s0(CYCLE_CNT) := s0(CYCLE_CNT) - 1
+      cycleCounter := opCycles
+    } elsewhen (s0.isValid && cycleCounter =/= 0) {
+      cycleCounter := cycleCounter - 1
     } otherwise {
-      s0(CYCLE_CNT) := 0 // Default to 0 when not active
+      cycleCounter := 0 // Default to 0 when not active
     }
+    // Connect register to payload
+    s0(CYCLE_CNT) := cycleCounter
 
     // Service implementation
     addService(new FpuOpsService {

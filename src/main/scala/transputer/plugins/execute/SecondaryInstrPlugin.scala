@@ -8,6 +8,7 @@ import spinal.core.fiber.{Retainer, _}
 import scala.util.Try
 import transputer.Opcode
 import transputer.Global
+import transputer.plugins.arithmetic.{AluService, AluOp}
 import transputer.plugins.{
   ChannelService,
   ChannelTxCmd,
@@ -198,6 +199,9 @@ class SecondaryInstrPlugin extends FiberPlugin {
     val primary = Opcode.PrimaryOpcode()
     primary.assignFromBits(inst(7 downto 4))
 
+    // Access arithmetic service for delegation
+    val aluService = Try(Plugin[AluService]).toOption
+
     arb.exeRd.valid := False
     arb.exeRd.payload.address := U(0)
     arb.exeWr.valid := False
@@ -218,14 +222,38 @@ class SecondaryInstrPlugin extends FiberPlugin {
             regStack.rev()
           }
           is(Opcode.SecondaryOpcode.ADD) {
-            val sum = regStack.readReg(RegName.Areg) + regStack.readReg(RegName.Breg)
-            regStack.writeReg(RegName.Areg, sum)
-            regStack.stackPop()
+            // Delegate to ArithmeticPlugin via service interface
+            aluService match {
+              case Some(alu) =>
+                // ArithmeticPlugin will handle this in memory stage
+                pipe.execute(Global.ALU_CMD_VALID) := True
+                pipe.execute(Global.ALU_CMD).op := B"0001" // ADD opcode
+                pipe.execute(Global.ALU_CMD).srcA := regStack.readReg(RegName.Areg)
+                pipe.execute(Global.ALU_CMD).srcB := regStack.readReg(RegName.Breg)
+                pipe.execute(Global.ALU_CMD).srcC := regStack.readReg(RegName.Creg)
+              case None =>
+                // Fallback for when ArithmeticPlugin not available
+                val sum = regStack.readReg(RegName.Areg) + regStack.readReg(RegName.Breg)
+                regStack.writeReg(RegName.Areg, sum)
+                regStack.stackPop()
+            }
           }
           is(Opcode.SecondaryOpcode.SUB) {
-            val diff = regStack.readReg(RegName.Breg) - regStack.readReg(RegName.Areg)
-            regStack.writeReg(RegName.Areg, diff)
-            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            // Delegate to ArithmeticPlugin via service interface
+            aluService match {
+              case Some(alu) =>
+                // ArithmeticPlugin will handle this in memory stage
+                pipe.execute(Global.ALU_CMD_VALID) := True
+                pipe.execute(Global.ALU_CMD).op := B"0010" // SUB opcode
+                pipe.execute(Global.ALU_CMD).srcA := regStack.readReg(RegName.Areg)
+                pipe.execute(Global.ALU_CMD).srcB := regStack.readReg(RegName.Breg)
+                pipe.execute(Global.ALU_CMD).srcC := regStack.readReg(RegName.Creg)
+              case None =>
+                // Fallback for when ArithmeticPlugin not available
+                val diff = regStack.readReg(RegName.Breg) - regStack.readReg(RegName.Areg)
+                regStack.writeReg(RegName.Areg, diff)
+                regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            }
           }
           is(Opcode.SecondaryOpcode.LADD) {
             val res = regStack.readReg(RegName.Breg) + regStack
@@ -273,25 +301,69 @@ class SecondaryInstrPlugin extends FiberPlugin {
             }
           }
           is(Opcode.SecondaryOpcode.AND) {
-            val res = regStack.readReg(RegName.Areg) & regStack.readReg(RegName.Breg)
-            regStack.writeReg(RegName.Areg, res)
-            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            // Delegate to ArithmeticPlugin - Table 6.9 operation
+            aluService match {
+              case Some(alu) =>
+                pipe.execute(Global.ALU_CMD_VALID) := True
+                pipe.execute(Global.ALU_CMD).op := B"0110" // AND opcode
+                pipe.execute(Global.ALU_CMD).srcA := regStack.readReg(RegName.Areg)
+                pipe.execute(Global.ALU_CMD).srcB := regStack.readReg(RegName.Breg)
+                pipe.execute(Global.ALU_CMD).srcC := regStack.readReg(RegName.Creg)
+              case None =>
+                // Fallback
+                val res = regStack.readReg(RegName.Areg) & regStack.readReg(RegName.Breg)
+                regStack.writeReg(RegName.Areg, res)
+                regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            }
           }
           is(Opcode.SecondaryOpcode.XOR) {
-            val res = regStack.readReg(RegName.Areg) ^ regStack.readReg(RegName.Breg)
-            regStack.writeReg(RegName.Areg, res)
-            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            // Delegate to ArithmeticPlugin - Table 6.9 operation
+            aluService match {
+              case Some(alu) =>
+                pipe.execute(Global.ALU_CMD_VALID) := True
+                pipe.execute(Global.ALU_CMD).op := B"1000" // XOR opcode
+                pipe.execute(Global.ALU_CMD).srcA := regStack.readReg(RegName.Areg)
+                pipe.execute(Global.ALU_CMD).srcB := regStack.readReg(RegName.Breg)
+                pipe.execute(Global.ALU_CMD).srcC := regStack.readReg(RegName.Creg)
+              case None =>
+                // Fallback
+                val res = regStack.readReg(RegName.Areg) ^ regStack.readReg(RegName.Breg)
+                regStack.writeReg(RegName.Areg, res)
+                regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            }
           }
           is(Opcode.SecondaryOpcode.SHL) {
-            val res = regStack.readReg(RegName.Breg) |<< regStack.readReg(RegName.Areg)
-            regStack.writeReg(RegName.Areg, res)
-            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            // Delegate to ArithmeticPlugin - Table 6.9 operation
+            aluService match {
+              case Some(alu) =>
+                pipe.execute(Global.ALU_CMD_VALID) := True
+                pipe.execute(Global.ALU_CMD).op := B"1001" // SHL opcode
+                pipe.execute(Global.ALU_CMD).srcA := regStack.readReg(RegName.Areg)
+                pipe.execute(Global.ALU_CMD).srcB := regStack.readReg(RegName.Breg)
+                pipe.execute(Global.ALU_CMD).srcC := regStack.readReg(RegName.Creg)
+              case None =>
+                // Fallback
+                val res = regStack.readReg(RegName.Breg) |<< regStack.readReg(RegName.Areg)
+                regStack.writeReg(RegName.Areg, res)
+                regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            }
           }
           is(Opcode.SecondaryOpcode.SHR) {
-            val res =
-              (regStack.readReg(RegName.Breg).asSInt >> regStack.readReg(RegName.Areg)).asUInt
-            regStack.writeReg(RegName.Areg, res)
-            regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            // Delegate to ArithmeticPlugin - Table 6.9 operation
+            aluService match {
+              case Some(alu) =>
+                pipe.execute(Global.ALU_CMD_VALID) := True
+                pipe.execute(Global.ALU_CMD).op := B"1010" // SHR opcode
+                pipe.execute(Global.ALU_CMD).srcA := regStack.readReg(RegName.Areg)
+                pipe.execute(Global.ALU_CMD).srcB := regStack.readReg(RegName.Breg)
+                pipe.execute(Global.ALU_CMD).srcC := regStack.readReg(RegName.Creg)
+              case None =>
+                // Fallback
+                val res =
+                  (regStack.readReg(RegName.Breg).asSInt >> regStack.readReg(RegName.Areg)).asUInt
+                regStack.writeReg(RegName.Areg, res)
+                regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            }
           }
           is(Opcode.SecondaryOpcode.LSHR) {
             when(regStack.readReg(RegName.Areg) < 64) {
@@ -593,51 +665,84 @@ class SecondaryInstrPlugin extends FiberPlugin {
             )
           }
           is(Opcode.SecondaryOpcode.FPADD) {
-            fpu.send(
-              FpOp.Arithmetic.FPADD,
-              regStack.readReg(RegName.Areg),
-              regStack.readReg(RegName.Breg)
-            )
-            pipe.execute.haltWhen(!fpu.resultValid)
-            when(pipe.execute.down.isFiring) {
-              regStack.writeReg(RegName.Areg, fpu.result)
-              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            // Delegate to FpuPlugin via pipeline command
+            fpuOpt match {
+              case Some(fpuService) =>
+                pipe.execute(Global.FPU_CMD_VALID) := True
+                pipe.execute(Global.FPU_CMD).op := Opcode.SecondaryOpcode.FPADD.asBits.resize(8)
+                pipe
+                  .execute(Global.FPU_CMD)
+                  .srcA := regStack.readReg(RegName.Areg).asBits.resize(64)
+                pipe
+                  .execute(Global.FPU_CMD)
+                  .srcB := regStack.readReg(RegName.Breg).asBits.resize(64)
+                pipe
+                  .execute(Global.FPU_CMD)
+                  .srcC := regStack.readReg(RegName.Creg).asBits.resize(64)
+                pipe.execute(Global.FPU_CMD).roundingMode := B"00" // Default rounding
+              case None =>
+                // Fallback implementation when FPU not available
+                regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Areg))
             }
           }
           is(Opcode.SecondaryOpcode.FPSUB) {
-            fpu.send(
-              FpOp.Arithmetic.FPSUB,
-              regStack.readReg(RegName.Areg),
-              regStack.readReg(RegName.Breg)
-            )
-            pipe.execute.haltWhen(!fpu.resultValid)
-            when(pipe.execute.down.isFiring) {
-              regStack.writeReg(RegName.Areg, fpu.result)
-              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            // Delegate to FpuPlugin via pipeline command
+            fpuOpt match {
+              case Some(fpuService) =>
+                pipe.execute(Global.FPU_CMD_VALID) := True
+                pipe.execute(Global.FPU_CMD).op := Opcode.SecondaryOpcode.FPSUB.asBits.resize(8)
+                pipe
+                  .execute(Global.FPU_CMD)
+                  .srcA := regStack.readReg(RegName.Areg).asBits.resize(64)
+                pipe
+                  .execute(Global.FPU_CMD)
+                  .srcB := regStack.readReg(RegName.Breg).asBits.resize(64)
+                pipe
+                  .execute(Global.FPU_CMD)
+                  .srcC := regStack.readReg(RegName.Creg).asBits.resize(64)
+                pipe.execute(Global.FPU_CMD).roundingMode := B"00" // Default rounding
+              case None =>
+                regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Areg))
             }
           }
           is(Opcode.SecondaryOpcode.FPMUL) {
-            fpu.send(
-              FpOp.Arithmetic.FPMUL,
-              regStack.readReg(RegName.Areg),
-              regStack.readReg(RegName.Breg)
-            )
-            pipe.execute.haltWhen(!fpu.resultValid)
-            when(pipe.execute.down.isFiring) {
-              regStack.writeReg(RegName.Areg, fpu.result)
-              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            // Delegate to FpuPlugin via pipeline command
+            fpuOpt match {
+              case Some(fpuService) =>
+                pipe.execute(Global.FPU_CMD_VALID) := True
+                pipe.execute(Global.FPU_CMD).op := Opcode.SecondaryOpcode.FPMUL.asBits.resize(8)
+                pipe
+                  .execute(Global.FPU_CMD)
+                  .srcA := regStack.readReg(RegName.Areg).asBits.resize(64)
+                pipe
+                  .execute(Global.FPU_CMD)
+                  .srcB := regStack.readReg(RegName.Breg).asBits.resize(64)
+                pipe
+                  .execute(Global.FPU_CMD)
+                  .srcC := regStack.readReg(RegName.Creg).asBits.resize(64)
+                pipe.execute(Global.FPU_CMD).roundingMode := B"00" // Default rounding
+              case None =>
+                regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Areg))
             }
           }
           is(Opcode.SecondaryOpcode.FPDIV) {
-            fpu.send(
-              FpOp.Arithmetic.FPDIV,
-              regStack.readReg(RegName.Areg),
-              regStack.readReg(RegName.Breg)
-            )
-            pipe.execute.haltWhen(!fpu.resultValid)
-            when(pipe.execute.down.isFiring) {
-              regStack.writeReg(RegName.Areg, fpu.result)
-              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            // Delegate to FpuPlugin via pipeline command
+            fpuOpt match {
+              case Some(fpuService) =>
+                pipe.execute(Global.FPU_CMD_VALID) := True
+                pipe.execute(Global.FPU_CMD).op := Opcode.SecondaryOpcode.FPDIV.asBits.resize(8)
+                pipe
+                  .execute(Global.FPU_CMD)
+                  .srcA := regStack.readReg(RegName.Areg).asBits.resize(64)
+                pipe
+                  .execute(Global.FPU_CMD)
+                  .srcB := regStack.readReg(RegName.Breg).asBits.resize(64)
+                pipe
+                  .execute(Global.FPU_CMD)
+                  .srcC := regStack.readReg(RegName.Creg).asBits.resize(64)
+                pipe.execute(Global.FPU_CMD).roundingMode := B"00" // Default rounding
+              case None =>
+                regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Areg))
             }
           }
 
@@ -646,203 +751,405 @@ class SecondaryInstrPlugin extends FiberPlugin {
           // ========================================
 
           is(Opcode.SecondaryOpcode.FPABS) {
-            fpu.send(FpOp.Arithmetic.FPABS, regStack.readReg(RegName.Areg), U(0))
-            pipe.execute.haltWhen(!fpu.resultValid)
-            when(pipe.execute.down.isFiring) {
-              regStack.writeReg(RegName.Areg, fpu.result)
-              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            // Delegate to FpuPlugin via pipeline command
+            fpuOpt match {
+              case Some(fpuService) =>
+                pipe.execute(Global.FPU_CMD_VALID) := True
+                pipe.execute(Global.FPU_CMD).op := Opcode.SecondaryOpcode.FPABS.asBits.resize(8)
+                pipe
+                  .execute(Global.FPU_CMD)
+                  .srcA := regStack.readReg(RegName.Areg).asBits.resize(64)
+                pipe.execute(Global.FPU_CMD).srcB := B(0, 64 bits)
+                pipe.execute(Global.FPU_CMD).srcC := B(0, 64 bits)
+                pipe.execute(Global.FPU_CMD).roundingMode := B"00"
+              case None =>
+                regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Areg))
             }
           }
           is(Opcode.SecondaryOpcode.FPINT) {
-            fpu.send(FpOp.Conversion.FPINT, regStack.readReg(RegName.Areg), U(0))
-            pipe.execute.haltWhen(!fpu.resultValid)
-            when(pipe.execute.down.isFiring) {
-              regStack.writeReg(RegName.Areg, fpu.result)
-              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            // Delegate to FpuPlugin via pipeline command - round to integer
+            fpuOpt match {
+              case Some(fpuService) =>
+                pipe.execute(Global.FPU_CMD_VALID) := True
+                pipe.execute(Global.FPU_CMD).op := Opcode.SecondaryOpcode.FPINT.asBits.resize(8)
+                pipe
+                  .execute(Global.FPU_CMD)
+                  .srcA := regStack.readReg(RegName.Areg).asBits.resize(64)
+                pipe.execute(Global.FPU_CMD).srcB := B(0, 64 bits)
+                pipe.execute(Global.FPU_CMD).srcC := B(0, 64 bits)
+                pipe.execute(Global.FPU_CMD).roundingMode := B"00" // Use current rounding mode
+              case None =>
+                regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Areg))
             }
           }
           is(Opcode.SecondaryOpcode.FPMULBY2) {
-            fpu.send(FpOp.Arithmetic.FPMULBY2, regStack.readReg(RegName.Areg), U(0))
-            pipe.execute.haltWhen(!fpu.resultValid)
-            when(pipe.execute.down.isFiring) {
-              regStack.writeReg(RegName.Areg, fpu.result)
-              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            // Delegate to FpuPlugin via pipeline command - multiply by 2
+            fpuOpt match {
+              case Some(fpuService) =>
+                pipe.execute(Global.FPU_CMD_VALID) := True
+                pipe.execute(Global.FPU_CMD).op := Opcode.SecondaryOpcode.FPMULBY2.asBits.resize(8)
+                pipe
+                  .execute(Global.FPU_CMD)
+                  .srcA := regStack.readReg(RegName.Areg).asBits.resize(64)
+                pipe.execute(Global.FPU_CMD).srcB := B(0, 64 bits)
+                pipe.execute(Global.FPU_CMD).srcC := B(0, 64 bits)
+                pipe.execute(Global.FPU_CMD).roundingMode := B"00"
+              case None =>
+                regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Areg))
             }
           }
           is(Opcode.SecondaryOpcode.FPDIVBY2) {
-            fpu.send(FpOp.Arithmetic.FPDIVBY2, regStack.readReg(RegName.Areg), U(0))
-            pipe.execute.haltWhen(!fpu.resultValid)
-            when(pipe.execute.down.isFiring) {
-              regStack.writeReg(RegName.Areg, fpu.result)
-              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            // Delegate to FpuPlugin via pipeline command - divide by 2
+            fpuOpt match {
+              case Some(fpuService) =>
+                pipe.execute(Global.FPU_CMD_VALID) := True
+                pipe.execute(Global.FPU_CMD).op := Opcode.SecondaryOpcode.FPDIVBY2.asBits.resize(8)
+                pipe
+                  .execute(Global.FPU_CMD)
+                  .srcA := regStack.readReg(RegName.Areg).asBits.resize(64)
+                pipe.execute(Global.FPU_CMD).srcB := B(0, 64 bits)
+                pipe.execute(Global.FPU_CMD).srcC := B(0, 64 bits)
+                pipe.execute(Global.FPU_CMD).roundingMode := B"00"
+              case None =>
+                regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Areg))
             }
           }
           is(Opcode.SecondaryOpcode.FPREM) {
-            fpu.send(
-              FpOp.Additional.FPREM,
-              regStack.readReg(RegName.Areg),
-              regStack.readReg(RegName.Breg)
-            )
-            pipe.execute.haltWhen(!fpu.resultValid)
-            when(pipe.execute.down.isFiring) {
-              regStack.writeReg(RegName.Areg, fpu.result)
-              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            // Delegate to FpuPlugin via pipeline command - remainder
+            fpuOpt match {
+              case Some(fpuService) =>
+                pipe.execute(Global.FPU_CMD_VALID) := True
+                pipe.execute(Global.FPU_CMD).op := Opcode.SecondaryOpcode.FPREM.asBits.resize(8)
+                pipe
+                  .execute(Global.FPU_CMD)
+                  .srcA := regStack.readReg(RegName.Areg).asBits.resize(64)
+                pipe
+                  .execute(Global.FPU_CMD)
+                  .srcB := regStack.readReg(RegName.Breg).asBits.resize(64)
+                pipe.execute(Global.FPU_CMD).srcC := B(0, 64 bits)
+                pipe.execute(Global.FPU_CMD).roundingMode := B"00"
+              case None =>
+                regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Areg))
+                regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
             }
           }
           is(Opcode.SecondaryOpcode.FPSQRT) {
-            fpu.send(FpOp.Additional.FPSQRT, regStack.readReg(RegName.Areg), U(0))
-            pipe.execute.haltWhen(!fpu.resultValid)
-            when(pipe.execute.down.isFiring) {
-              regStack.writeReg(RegName.Areg, fpu.result)
-              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            // Delegate to FpuPlugin via pipeline command - square root
+            fpuOpt match {
+              case Some(fpuService) =>
+                pipe.execute(Global.FPU_CMD_VALID) := True
+                pipe.execute(Global.FPU_CMD).op := Opcode.SecondaryOpcode.FPSQRT.asBits.resize(8)
+                pipe
+                  .execute(Global.FPU_CMD)
+                  .srcA := regStack.readReg(RegName.Areg).asBits.resize(64)
+                pipe.execute(Global.FPU_CMD).srcB := B(0, 64 bits)
+                pipe.execute(Global.FPU_CMD).srcC := B(0, 64 bits)
+                pipe.execute(Global.FPU_CMD).roundingMode := B"00"
+              case None =>
+                regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Areg))
             }
           }
           is(Opcode.SecondaryOpcode.FPRN) {
-            fpu.setRoundingMode(B"00") // Round to nearest
+            // Delegate rounding mode change to FpuPlugin
+            fpuOpt match {
+              case Some(fpuService) =>
+                pipe.execute(Global.FPU_CMD_VALID) := True
+                pipe.execute(Global.FPU_CMD).op := Opcode.SecondaryOpcode.FPRN.asBits.resize(8)
+                pipe.execute(Global.FPU_CMD).roundingMode := B"00" // Round to nearest
+              case None =>
+              // No action needed for fallback
+            }
           }
           is(Opcode.SecondaryOpcode.FPRP) {
-            fpu.setRoundingMode(B"10") // Round toward +infinity
+            // Delegate rounding mode change to FpuPlugin
+            fpuOpt match {
+              case Some(fpuService) =>
+                pipe.execute(Global.FPU_CMD_VALID) := True
+                pipe.execute(Global.FPU_CMD).op := Opcode.SecondaryOpcode.FPRP.asBits.resize(8)
+                pipe.execute(Global.FPU_CMD).roundingMode := B"10" // Round toward +infinity
+              case None =>
+              // No action needed for fallback
+            }
           }
           is(Opcode.SecondaryOpcode.FPRM) {
-            fpu.setRoundingMode(B"11") // Round toward -infinity
+            // Delegate rounding mode change to FpuPlugin
+            fpuOpt match {
+              case Some(fpuService) =>
+                pipe.execute(Global.FPU_CMD_VALID) := True
+                pipe.execute(Global.FPU_CMD).op := Opcode.SecondaryOpcode.FPRM.asBits.resize(8)
+                pipe.execute(Global.FPU_CMD).roundingMode := B"11" // Round toward -infinity
+              case None =>
+              // No action needed for fallback
+            }
           }
           is(Opcode.SecondaryOpcode.FPRZ) {
-            fpu.setRoundingMode(B"01") // Round toward zero
+            // Delegate rounding mode change to FpuPlugin
+            fpuOpt match {
+              case Some(fpuService) =>
+                pipe.execute(Global.FPU_CMD_VALID) := True
+                pipe.execute(Global.FPU_CMD).op := Opcode.SecondaryOpcode.FPRZ.asBits.resize(8)
+                pipe.execute(Global.FPU_CMD).roundingMode := B"01" // Round toward zero
+              case None =>
+              // No action needed for fallback
+            }
           }
           is(Opcode.SecondaryOpcode.FPR32TOR64) {
-            fpu.send(FpOp.Conversion.FPR32TOR64, regStack.readReg(RegName.Areg), U(0))
-            pipe.execute.haltWhen(!fpu.resultValid)
-            when(pipe.execute.down.isFiring) {
-              regStack.writeReg(RegName.Areg, fpu.result)
-              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            // Delegate to FpuPlugin via pipeline command - convert 32-bit to 64-bit float
+            fpuOpt match {
+              case Some(fpuService) =>
+                pipe.execute(Global.FPU_CMD_VALID) := True
+                pipe.execute(Global.FPU_CMD).op := Opcode.SecondaryOpcode.FPR32TOR64.asBits
+                  .resize(8)
+                pipe
+                  .execute(Global.FPU_CMD)
+                  .srcA := regStack.readReg(RegName.Areg).asBits.resize(64)
+                pipe.execute(Global.FPU_CMD).srcB := B(0, 64 bits)
+                pipe.execute(Global.FPU_CMD).srcC := B(0, 64 bits)
+                pipe.execute(Global.FPU_CMD).roundingMode := B"00"
+              case None =>
+                regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Areg))
             }
           }
           is(Opcode.SecondaryOpcode.FPR64TOR32) {
-            fpu.send(FpOp.Conversion.FPR64TOR32, regStack.readReg(RegName.Areg), U(0))
-            pipe.execute.haltWhen(!fpu.resultValid)
-            when(pipe.execute.down.isFiring) {
-              regStack.writeReg(RegName.Areg, fpu.result)
-              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            // Delegate to FpuPlugin via pipeline command - convert 64-bit to 32-bit float
+            fpuOpt match {
+              case Some(fpuService) =>
+                pipe.execute(Global.FPU_CMD_VALID) := True
+                pipe.execute(Global.FPU_CMD).op := Opcode.SecondaryOpcode.FPR64TOR32.asBits
+                  .resize(8)
+                pipe
+                  .execute(Global.FPU_CMD)
+                  .srcA := regStack.readReg(RegName.Areg).asBits.resize(64)
+                pipe.execute(Global.FPU_CMD).srcB := B(0, 64 bits)
+                pipe.execute(Global.FPU_CMD).srcC := B(0, 64 bits)
+                pipe.execute(Global.FPU_CMD).roundingMode := B"00"
+              case None =>
+                regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Areg))
             }
           }
           is(Opcode.SecondaryOpcode.FPEXPDEC32) {
-            fpu.send(FpOp.Arithmetic.FPEXPDEC32, regStack.readReg(RegName.Areg), U(0))
-            pipe.execute.haltWhen(!fpu.resultValid)
-            when(pipe.execute.down.isFiring) {
-              regStack.writeReg(RegName.Areg, fpu.result)
-              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            // Delegate to FpuPlugin via pipeline command - decrement exponent
+            fpuOpt match {
+              case Some(fpuService) =>
+                pipe.execute(Global.FPU_CMD_VALID) := True
+                pipe.execute(Global.FPU_CMD).op := Opcode.SecondaryOpcode.FPEXPDEC32.asBits
+                  .resize(8)
+                pipe
+                  .execute(Global.FPU_CMD)
+                  .srcA := regStack.readReg(RegName.Areg).asBits.resize(64)
+                pipe.execute(Global.FPU_CMD).srcB := B(0, 64 bits)
+                pipe.execute(Global.FPU_CMD).srcC := B(0, 64 bits)
+                pipe.execute(Global.FPU_CMD).roundingMode := B"00"
+              case None =>
+                regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Areg))
             }
           }
           is(Opcode.SecondaryOpcode.FPEXPINC32) {
-            fpu.send(FpOp.Arithmetic.FPEXPINC32, regStack.readReg(RegName.Areg), U(0))
-            pipe.execute.haltWhen(!fpu.resultValid)
-            when(pipe.execute.down.isFiring) {
-              regStack.writeReg(RegName.Areg, fpu.result)
-              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            // Delegate to FpuPlugin via pipeline command - increment exponent
+            fpuOpt match {
+              case Some(fpuService) =>
+                pipe.execute(Global.FPU_CMD_VALID) := True
+                pipe.execute(Global.FPU_CMD).op := Opcode.SecondaryOpcode.FPEXPINC32.asBits
+                  .resize(8)
+                pipe
+                  .execute(Global.FPU_CMD)
+                  .srcA := regStack.readReg(RegName.Areg).asBits.resize(64)
+                pipe.execute(Global.FPU_CMD).srcB := B(0, 64 bits)
+                pipe.execute(Global.FPU_CMD).srcC := B(0, 64 bits)
+                pipe.execute(Global.FPU_CMD).roundingMode := B"00"
+              case None =>
+                regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Areg))
             }
           }
           is(Opcode.SecondaryOpcode.FPCHKI32) {
-            fpu.send(FpOp.Comparison.FPCHKI32, regStack.readReg(RegName.Areg), U(0))
-            pipe.execute.haltWhen(!fpu.resultValid)
-            when(pipe.execute.down.isFiring) {
-              regStack.writeReg(RegName.Areg, fpu.result)
-              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            // Delegate to FpuPlugin via pipeline command - check if fits in 32-bit int
+            fpuOpt match {
+              case Some(fpuService) =>
+                pipe.execute(Global.FPU_CMD_VALID) := True
+                pipe.execute(Global.FPU_CMD).op := Opcode.SecondaryOpcode.FPCHKI32.asBits.resize(8)
+                pipe
+                  .execute(Global.FPU_CMD)
+                  .srcA := regStack.readReg(RegName.Areg).asBits.resize(64)
+                pipe.execute(Global.FPU_CMD).srcB := B(0, 64 bits)
+                pipe.execute(Global.FPU_CMD).srcC := B(0, 64 bits)
+                pipe.execute(Global.FPU_CMD).roundingMode := B"00"
+              case None =>
+                regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Areg))
             }
           }
           is(Opcode.SecondaryOpcode.FPCHKI64) {
-            fpu.send(FpOp.Comparison.FPCHKI64, regStack.readReg(RegName.Areg), U(0))
-            pipe.execute.haltWhen(!fpu.resultValid)
-            when(pipe.execute.down.isFiring) {
-              regStack.writeReg(RegName.Areg, fpu.result)
-              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            // Delegate to FpuPlugin via pipeline command - check if fits in 64-bit int
+            fpuOpt match {
+              case Some(fpuService) =>
+                pipe.execute(Global.FPU_CMD_VALID) := True
+                pipe.execute(Global.FPU_CMD).op := Opcode.SecondaryOpcode.FPCHKI64.asBits.resize(8)
+                pipe
+                  .execute(Global.FPU_CMD)
+                  .srcA := regStack.readReg(RegName.Areg).asBits.resize(64)
+                pipe.execute(Global.FPU_CMD).srcB := B(0, 64 bits)
+                pipe.execute(Global.FPU_CMD).srcC := B(0, 64 bits)
+                pipe.execute(Global.FPU_CMD).roundingMode := B"00"
+              case None =>
+                regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Areg))
             }
           }
           is(Opcode.SecondaryOpcode.FPGT) {
-            fpu.send(
-              FpOp.Comparison.FPGT,
-              regStack.readReg(RegName.Areg),
-              regStack.readReg(RegName.Breg)
-            )
-            pipe.execute.haltWhen(!fpu.resultValid)
-            when(pipe.execute.down.isFiring) {
-              regStack.writeReg(RegName.Areg, fpu.result)
-              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            // Delegate to FpuPlugin via pipeline command - greater than
+            fpuOpt match {
+              case Some(fpuService) =>
+                pipe.execute(Global.FPU_CMD_VALID) := True
+                pipe.execute(Global.FPU_CMD).op := Opcode.SecondaryOpcode.FPGT.asBits.resize(8)
+                pipe
+                  .execute(Global.FPU_CMD)
+                  .srcA := regStack.readReg(RegName.Areg).asBits.resize(64)
+                pipe
+                  .execute(Global.FPU_CMD)
+                  .srcB := regStack.readReg(RegName.Breg).asBits.resize(64)
+                pipe.execute(Global.FPU_CMD).srcC := B(0, 64 bits)
+                pipe.execute(Global.FPU_CMD).roundingMode := B"00"
+              case None =>
+                regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Areg))
+                regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
             }
           }
           is(Opcode.SecondaryOpcode.FPEQ) {
-            fpu.send(
-              FpOp.Comparison.FPEQ,
-              regStack.readReg(RegName.Areg),
-              regStack.readReg(RegName.Breg)
-            )
-            pipe.execute.haltWhen(!fpu.resultValid)
-            when(pipe.execute.down.isFiring) {
-              regStack.writeReg(RegName.Areg, fpu.result)
-              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            // Delegate to FpuPlugin via pipeline command - equal
+            fpuOpt match {
+              case Some(fpuService) =>
+                pipe.execute(Global.FPU_CMD_VALID) := True
+                pipe.execute(Global.FPU_CMD).op := Opcode.SecondaryOpcode.FPEQ.asBits.resize(8)
+                pipe
+                  .execute(Global.FPU_CMD)
+                  .srcA := regStack.readReg(RegName.Areg).asBits.resize(64)
+                pipe
+                  .execute(Global.FPU_CMD)
+                  .srcB := regStack.readReg(RegName.Breg).asBits.resize(64)
+                pipe.execute(Global.FPU_CMD).srcC := B(0, 64 bits)
+                pipe.execute(Global.FPU_CMD).roundingMode := B"00"
+              case None =>
+                regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Areg))
+                regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
             }
           }
           is(Opcode.SecondaryOpcode.FPGE) {
-            fpu.send(
-              FpOp.Additional.FPGE,
-              regStack.readReg(RegName.Areg),
-              regStack.readReg(RegName.Breg)
-            )
-            pipe.execute.haltWhen(!fpu.resultValid)
-            when(pipe.execute.down.isFiring) {
-              regStack.writeReg(RegName.Areg, fpu.result)
-              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            // Delegate to FpuPlugin via pipeline command - greater than or equal
+            fpuOpt match {
+              case Some(fpuService) =>
+                pipe.execute(Global.FPU_CMD_VALID) := True
+                pipe.execute(Global.FPU_CMD).op := Opcode.SecondaryOpcode.FPGE.asBits.resize(8)
+                pipe
+                  .execute(Global.FPU_CMD)
+                  .srcA := regStack.readReg(RegName.Areg).asBits.resize(64)
+                pipe
+                  .execute(Global.FPU_CMD)
+                  .srcB := regStack.readReg(RegName.Breg).asBits.resize(64)
+                pipe.execute(Global.FPU_CMD).srcC := B(0, 64 bits)
+                pipe.execute(Global.FPU_CMD).roundingMode := B"00"
+              case None =>
+                regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Areg))
+                regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
             }
           }
           is(Opcode.SecondaryOpcode.FPNAN) {
-            fpu.send(FpOp.Comparison.FPNAN, regStack.readReg(RegName.Areg), U(0))
-            pipe.execute.haltWhen(!fpu.resultValid)
-            when(pipe.execute.down.isFiring) {
-              regStack.writeReg(RegName.Areg, fpu.result)
-              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            // Delegate to FpuPlugin via pipeline command - check if NaN
+            fpuOpt match {
+              case Some(fpuService) =>
+                pipe.execute(Global.FPU_CMD_VALID) := True
+                pipe.execute(Global.FPU_CMD).op := Opcode.SecondaryOpcode.FPNAN.asBits.resize(8)
+                pipe
+                  .execute(Global.FPU_CMD)
+                  .srcA := regStack.readReg(RegName.Areg).asBits.resize(64)
+                pipe.execute(Global.FPU_CMD).srcB := B(0, 64 bits)
+                pipe.execute(Global.FPU_CMD).srcC := B(0, 64 bits)
+                pipe.execute(Global.FPU_CMD).roundingMode := B"00"
+              case None =>
+                regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Areg))
             }
           }
           is(Opcode.SecondaryOpcode.FPORDERED) {
-            fpu.send(
-              FpOp.Comparison.FPORDERED,
-              regStack.readReg(RegName.Areg),
-              regStack.readReg(RegName.Breg)
-            )
-            pipe.execute.haltWhen(!fpu.resultValid)
-            when(pipe.execute.down.isFiring) {
-              regStack.writeReg(RegName.Areg, fpu.result)
-              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            // Delegate to FpuPlugin via pipeline command - check if both ordered (not NaN)
+            fpuOpt match {
+              case Some(fpuService) =>
+                pipe.execute(Global.FPU_CMD_VALID) := True
+                pipe.execute(Global.FPU_CMD).op := Opcode.SecondaryOpcode.FPORDERED.asBits.resize(8)
+                pipe
+                  .execute(Global.FPU_CMD)
+                  .srcA := regStack.readReg(RegName.Areg).asBits.resize(64)
+                pipe
+                  .execute(Global.FPU_CMD)
+                  .srcB := regStack.readReg(RegName.Breg).asBits.resize(64)
+                pipe.execute(Global.FPU_CMD).srcC := B(0, 64 bits)
+                pipe.execute(Global.FPU_CMD).roundingMode := B"00"
+              case None =>
+                regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Areg))
+                regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
             }
           }
           is(Opcode.SecondaryOpcode.FPNOTFINITE) {
-            fpu.send(FpOp.Comparison.FPNOTFINITE, regStack.readReg(RegName.Areg), U(0))
-            pipe.execute.haltWhen(!fpu.resultValid)
-            when(pipe.execute.down.isFiring) {
-              regStack.writeReg(RegName.Areg, fpu.result)
-              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            // Delegate to FpuPlugin via pipeline command - check if not finite (NaN or infinity)
+            fpuOpt match {
+              case Some(fpuService) =>
+                pipe.execute(Global.FPU_CMD_VALID) := True
+                pipe.execute(Global.FPU_CMD).op := Opcode.SecondaryOpcode.FPNOTFINITE.asBits
+                  .resize(8)
+                pipe
+                  .execute(Global.FPU_CMD)
+                  .srcA := regStack.readReg(RegName.Areg).asBits.resize(64)
+                pipe.execute(Global.FPU_CMD).srcB := B(0, 64 bits)
+                pipe.execute(Global.FPU_CMD).srcC := B(0, 64 bits)
+                pipe.execute(Global.FPU_CMD).roundingMode := B"00"
+              case None =>
+                regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Areg))
             }
           }
           is(Opcode.SecondaryOpcode.FPI32TOR32) {
-            fpu.send(FpOp.Conversion.FPI32TOR32, regStack.readReg(RegName.Areg), U(0))
-            pipe.execute.haltWhen(!fpu.resultValid)
-            when(pipe.execute.down.isFiring) {
-              regStack.writeReg(RegName.Areg, fpu.result)
-              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            // Delegate to FpuPlugin via pipeline command - convert 32-bit int to 32-bit float
+            fpuOpt match {
+              case Some(fpuService) =>
+                pipe.execute(Global.FPU_CMD_VALID) := True
+                pipe.execute(Global.FPU_CMD).op := Opcode.SecondaryOpcode.FPI32TOR32.asBits
+                  .resize(8)
+                pipe
+                  .execute(Global.FPU_CMD)
+                  .srcA := regStack.readReg(RegName.Areg).asBits.resize(64)
+                pipe.execute(Global.FPU_CMD).srcB := B(0, 64 bits)
+                pipe.execute(Global.FPU_CMD).srcC := B(0, 64 bits)
+                pipe.execute(Global.FPU_CMD).roundingMode := B"00"
+              case None =>
+                regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Areg))
             }
           }
           is(Opcode.SecondaryOpcode.FPI32TOR64) {
-            fpu.send(FpOp.Conversion.FPI32TOR64, regStack.readReg(RegName.Areg), U(0))
-            pipe.execute.haltWhen(!fpu.resultValid)
-            when(pipe.execute.down.isFiring) {
-              regStack.writeReg(RegName.Areg, fpu.result)
-              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            // Delegate to FpuPlugin via pipeline command - convert 32-bit int to 64-bit float
+            fpuOpt match {
+              case Some(fpuService) =>
+                pipe.execute(Global.FPU_CMD_VALID) := True
+                pipe.execute(Global.FPU_CMD).op := Opcode.SecondaryOpcode.FPI32TOR64.asBits
+                  .resize(8)
+                pipe
+                  .execute(Global.FPU_CMD)
+                  .srcA := regStack.readReg(RegName.Areg).asBits.resize(64)
+                pipe.execute(Global.FPU_CMD).srcB := B(0, 64 bits)
+                pipe.execute(Global.FPU_CMD).srcC := B(0, 64 bits)
+                pipe.execute(Global.FPU_CMD).roundingMode := B"00"
+              case None =>
+                regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Areg))
             }
           }
           is(Opcode.SecondaryOpcode.FPRTOI32) {
-            fpu.send(FpOp.Conversion.FPRTOI32, regStack.readReg(RegName.Areg), U(0))
-            pipe.execute.haltWhen(!fpu.resultValid)
-            when(pipe.execute.down.isFiring) {
-              regStack.writeReg(RegName.Areg, fpu.result)
-              regStack.writeReg(RegName.Breg, regStack.readReg(RegName.Creg))
+            // Delegate to FpuPlugin via pipeline command - convert float to 32-bit int
+            fpuOpt match {
+              case Some(fpuService) =>
+                pipe.execute(Global.FPU_CMD_VALID) := True
+                pipe.execute(Global.FPU_CMD).op := Opcode.SecondaryOpcode.FPRTOI32.asBits.resize(8)
+                pipe
+                  .execute(Global.FPU_CMD)
+                  .srcA := regStack.readReg(RegName.Areg).asBits.resize(64)
+                pipe.execute(Global.FPU_CMD).srcB := B(0, 64 bits)
+                pipe.execute(Global.FPU_CMD).srcC := B(0, 64 bits)
+                pipe.execute(Global.FPU_CMD).roundingMode := B"00"
+              case None =>
+                regStack.writeReg(RegName.Areg, regStack.readReg(RegName.Areg))
             }
           }
           is(Opcode.SecondaryOpcode.FPDUP) {

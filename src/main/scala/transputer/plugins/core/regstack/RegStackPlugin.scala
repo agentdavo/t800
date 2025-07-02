@@ -47,32 +47,43 @@ class RegStackPlugin extends FiberPlugin with RegStackService {
   // RegStackService Implementation
   // ========================================
 
-  // Register file interface
-  def read(reg: SpinalEnumElement[RegName.type], mask: UInt): Bits = regStack.read(reg, mask)
+  // Register file interface - safe for null regStack
+  def read(reg: SpinalEnumElement[RegName.type], mask: UInt): Bits =
+    if (regStack != null) regStack.read(reg, mask) else B"32'h00000000"
   def write(reg: SpinalEnumElement[RegName.type], data: Bits, mask: UInt): Unit =
-    regStack.write(reg, data, mask)
+    if (regStack != null) regStack.write(reg, data, mask)
 
-  // Stack interface
-  def push(value: UInt): Unit = regStack.push(value)
-  def pop(): UInt = regStack.pop()
-  def drop(): Unit = regStack.drop()
-  def dup(): Unit = regStack.dup()
-  def rev(): Unit = regStack.rev()
-  def stackEmpty(): Bool = regStack.stackEmpty()
-  def stackFull(): Bool = regStack.stackFull()
+  // Stack interface - safe for null regStack
+  def push(value: UInt): Unit = if (regStack != null) regStack.push(value)
+  def pop(): UInt = if (regStack != null) regStack.pop() else U(0, 32 bits)
+  def drop(): Unit = if (regStack != null) regStack.drop()
+  def dup(): Unit = if (regStack != null) regStack.dup()
+  def rev(): Unit = if (regStack != null) regStack.rev()
+  def stackEmpty(): Bool = if (regStack != null) regStack.stackEmpty() else True
+  def stackFull(): Bool = if (regStack != null) regStack.stackFull() else False
 
-  // Direct register access
-  def A: UInt = regStack.A
-  def B: UInt = regStack.B
-  def C: UInt = regStack.C
-  def O: UInt = regStack.O
-  def WPtr: UInt = regStack.WPtr
-  def IPtr: UInt = regStack.IPtr
-  def updateRegisters(): Unit = regStack.updateRegisters()
+  // Direct register access - safe for null regStack
+  def A: UInt = if (regStack != null) regStack.A else U(0, 32 bits)
+  def B: UInt = if (regStack != null) regStack.B else U(0, 32 bits)
+  def C: UInt = if (regStack != null) regStack.C else U(0, 32 bits)
+  def O: UInt = if (regStack != null) regStack.O else U(0, 32 bits)
+  def WPtr: UInt = if (regStack != null) regStack.WPtr else U(0, 32 bits)
+  def IPtr: UInt = if (regStack != null) regStack.IPtr else U(0, 32 bits)
+  def updateRegisters(): Unit = if (regStack != null) regStack.updateRegisters()
 
-  // Workspace memory access
-  def read(offset: SInt): UInt = regStack.workspaceRead(offset)
-  def write(offset: SInt, data: UInt): Unit = regStack.workspaceWrite(offset, data)
+  // Workspace memory access - safe for null regStack
+  def read(offset: SInt): UInt =
+    if (regStack != null) regStack.workspaceRead(offset) else U(0, 32 bits)
+  def write(offset: SInt, data: UInt): Unit =
+    if (regStack != null) regStack.workspaceWrite(offset, data)
+
+  // Convenience methods for register access
+  override def readReg(reg: SpinalEnumElement[RegName.type]): UInt = {
+    read(reg, U((1L << 32) - 1, 32 bits)).asUInt
+  }
+  override def writeReg(reg: SpinalEnumElement[RegName.type], data: UInt): Unit = {
+    write(reg, data.asBits, U((1L << 32) - 1, 32 bits))
+  }
 }
 
 /** Core register file and stack implementation.

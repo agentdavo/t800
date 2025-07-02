@@ -347,7 +347,7 @@ object Opcode {
 
     // format: on
 
-    defaultEncoding = SpinalEnumEncoding("static")(
+    defaultEncoding = SpinalEnumEncoding("fixed")(
       // No Prefix (Table B.2)
       REV -> 0x00,
       LB -> 0x01,

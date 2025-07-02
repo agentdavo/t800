@@ -67,14 +67,16 @@ class LongArithPlugin extends FiberPlugin {
     longArithResult = LongArithResult()
     longArithBusy = Reg(Bool()) init False
     cycleCount = UInt(4 bits)
+    isLongArithOperation = Bool()
+    longArithOperation = LongArithOp()
 
     // Multi-cycle operation control
     val operationCounter = Reg(UInt(4 bits)) init 0
     val currentOperation = Reg(LongArithOp())
 
-    // Long arithmetic execution in Memory stage (stage 4) - T9000 specification
+    // Long arithmetic execution in Execute stage (stage 4) - T9000 specification
     val longArithLogic = new Area {
-      val opcode = pipe.memory(Global.OPCODE)
+      val opcode = pipe.execute(Global.OPCODE)
       val isOpr = opcode(7 downto 4) === Opcode.PrimaryOpcode.OPR.asBits.resize(4)
       val oprFunc = opcode(3 downto 0)
 
@@ -233,10 +235,10 @@ class LongArithPlugin extends FiberPlugin {
                 remainder(31 downto 0)
               )
             } otherwise {
-              // Division by zero
+              // Division by zero - use max unsigned value
               longArithResult.overflow := True
-              longArithResult.resultLow := U(0xffffffff)
-              longArithResult.resultHigh := U(0xffffffff)
+              longArithResult.resultLow := U((1L << 32) - 1, 32 bits)
+              longArithResult.resultHigh := U((1L << 32) - 1, 32 bits)
             }
           }
 
@@ -270,11 +272,11 @@ class LongArithPlugin extends FiberPlugin {
 
           is(LongArithOp.MINT) {
             // Load minimum integer: 0x80000000
-            longArithResult.resultLow := U(0x80000000)
+            longArithResult.resultLow := U(0) - U(1) << 31
             longArithResult.precision := LongPrecision.WORD32
             longArithResult.stackOperation := B"01" // Push
 
-            regStack.writeReg(transputer.plugins.core.regstack.RegName.Areg, U(0x80000000))
+            regStack.writeReg(transputer.plugins.core.regstack.RegName.Areg, U(0) - U(1) << 31)
             regStack.writeReg(transputer.plugins.core.regstack.RegName.Breg, operandALow)
             regStack.writeReg(transputer.plugins.core.regstack.RegName.Creg, operandAHigh)
           }

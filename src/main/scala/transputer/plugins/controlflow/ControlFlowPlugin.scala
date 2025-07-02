@@ -63,10 +63,12 @@ class ControlFlowPlugin extends FiberPlugin {
 
     // Initialize hardware signals
     controlFlowResult = ControlFlowResult()
+    isControlFlowOperation = Bool()
+    controlFlowOperation = ControlFlowOp()
 
     // Control flow execution in Memory stage (stage 4) - T9000 specification
     val controlFlowLogic = new Area {
-      val opcode = pipe.memory(Global.OPCODE)
+      val opcode = pipe.execute(Global.OPCODE)
       val isOpr = opcode(7 downto 4) === Opcode.PrimaryOpcode.OPR.asBits.resize(4)
       val oprFunc = opcode(3 downto 0)
 
@@ -114,9 +116,11 @@ class ControlFlowPlugin extends FiberPlugin {
         val areg = regStack.readReg(transputer.plugins.core.regstack.RegName.Areg)
         val breg = regStack.readReg(transputer.plugins.core.regstack.RegName.Breg)
         val creg = regStack.readReg(transputer.plugins.core.regstack.RegName.Creg)
-        val currentIptr = pipe.memory(Global.IPTR)
+        val currentIptr = pipe.execute(Global.IPTR)
         val currentWptr: UInt =
-          (regStack.readReg(transputer.plugins.core.regstack.RegName.WdescReg)(31 downto 2) ## U"00").asUInt
+          (regStack.readReg(transputer.plugins.core.regstack.RegName.WdescReg)(
+            31 downto 2
+          ) ## U"00").asUInt
 
         // Initialize result
         controlFlowResult.newIptr := currentIptr + 1 // Default: next instruction

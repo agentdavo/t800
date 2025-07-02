@@ -4,50 +4,61 @@ import spinal.core._
 
 /** T9000 Table 6.24 Alternative (ALT) Operations
   *
-  * This service defines the interface for alternative construct operations as specified in T9000
-  * Table 6.24. These instructions implement the transputer's ALT construct for non-deterministic
-  * choice.
+  * This service defines the interface for alternative/select operations as specified in T9000 Table
+  * 6.24. These instructions implement the ALT construct for non-deterministic choice between
+  * multiple channel communications.
   */
 
-// ALT operation types from Table 6.24
+// Alternative operation types from Table 6.24
 object AltOp extends SpinalEnum {
-  val ALT, // start alternative
-  ALTWT, // alternative wait
-  ALTEND, // end alternative
-  ENBC, // enable channel
-  DISC, // disable channel
-  ENBT, // enable timer
-  DIST, // disable timer
-  TALT, // timer alternative
-  TALTWT // timer alternative wait
+  val ALT, // Start alternative
+  ALTWT, // Alternative wait
+  ALTEND, // End alternative
+  ENBC, // Enable channel
+  DISC, // Disable channel
+  DISS, // Disable skip
+  ENBS, // Enable skip
+  ENBT, // Enable timer
+  DIST, // Disable timer
+  TALT, // Timer alternative
+  TALTWT // Timer alternative wait
   = newElement()
 }
 
-// ALT state
+// Alternative state
 case class AltState() extends Bundle {
-  val enabled = Bool() // ALT construct enabled
-  val waiting = Bool() // Waiting for guard
-  val selectedGuard = UInt(8 bits) // Selected guard index
-  val guardCount = UInt(8 bits) // Number of guards
+  val inAlt = Bool() // Currently in ALT construct
+  val waiting = Bool() // Waiting for channel ready
+  val selectedChannel = UInt(8 bits) // Which channel was selected
+  val skipEnabled = Bool() // Skip guard enabled
   val timerEnabled = Bool() // Timer guard enabled
 }
 
-// Service interface for ALT operations
-trait AltService {
+// Alternative result
+case class AltResult() extends Bundle {
+  val ready = Bool() // A channel is ready
+  val channelId = UInt(8 bits) // Ready channel ID
+  val isTimer = Bool() // Timer expired
+  val skipTaken = Bool() // Skip guard taken
+  val error = Bool() // Alternative error
+}
 
-  /** Execute an ALT operation
+// Service interface for alternative operations
+trait AlternativeService {
+
+  /** Execute an alternative operation
     * @param op
     *   Operation to perform
-    * @param guardIndex
-    *   Guard index
-    * @param channelAddr
-    *   Channel address
+    * @param channelMask
+    *   Bit mask of enabled channels
+    * @param timerValue
+    *   Timer value for timed alternatives
     * @return
-    *   ALT state
+    *   Alternative result
     */
-  def executeOp(op: AltOp.C, guardIndex: UInt, channelAddr: UInt): AltState
+  def executeOp(op: AltOp.C, channelMask: Bits, timerValue: UInt): AltResult
 
-  /** Check if an opcode is an ALT operation
+  /** Check if an opcode is an alternative operation
     * @param opcode
     *   Instruction opcode to check
     * @return
@@ -55,24 +66,33 @@ trait AltService {
     */
   def isAltOp(opcode: Bits): Bool
 
-  /** Decode opcode to ALT operation
+  /** Decode opcode to alternative operation
     * @param opcode
     *   Instruction opcode
     * @return
-    *   Decoded ALT operation
+    *   Decoded alternative operation
     */
   def getAltOp(opcode: Bits): AltOp.C
+
+  /** Get current alternative state
+    * @return
+    *   Current ALT state
+    */
+  def getState(): AltState
 }
 
 /** T9000 Table 6.24 Instruction Opcodes */
 object Table6_24 {
+  // Secondary opcodes (via OPR 0xF)
   val ALT_OPCODE = 0x43 // alt - start alternative
   val ALTWT_OPCODE = 0x44 // altwt - alternative wait
   val ALTEND_OPCODE = 0x45 // altend - end alternative
   val ENBC_OPCODE = 0x48 // enbc - enable channel
-  val DISC_OPCODE = 0x49 // disc - disable channel
+  val DISC_OPCODE = 0x2f // disc - disable channel
+  val DISS_OPCODE = 0x30 // diss - disable skip
+  val ENBS_OPCODE = 0x49 // enbs - enable skip
   val ENBT_OPCODE = 0x47 // enbt - enable timer
-  val DIST_OPCODE = 0x4c // dist - disable timer
-  val TALT_OPCODE = 0x24f4 // talt - timer alternative
-  val TALTWT_OPCODE = 0x21ec // taltwt - timer alternative wait
+  val DIST_OPCODE = 0x2e // dist - disable timer
+  val TALT_OPCODE = 0x4e // talt - timer alternative
+  val TALTWT_OPCODE = 0x51 // taltwt - timer alternative wait
 }
