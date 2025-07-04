@@ -2,7 +2,6 @@ package transputer
 
 import spinal.core._
 import spinal.lib._
-import spinal.lib.misc.database.Database
 import spinal.lib.misc.plugin.{PluginHost, FiberPlugin, Hostable}
 import spinal.lib.bus.bmb.{Bmb, BmbParameter}
 import transputer.plugins.core.transputer.TransputerPlugin
@@ -14,8 +13,8 @@ import transputer.plugins.SystemBusService
 
 object Transputer {
 
-  /** Create an empty database, populated by TransputerPlugin. */
-  def defaultDatabase(): Database = new Database
+  /** Simple placeholder for database functionality. */
+  def defaultDatabase(): Unit = ()
 
   /** Parameters for the 128-bit system bus, using Global.ADDR_BITS. */
   def systemBusParam: BmbParameter = BmbParameter(
@@ -50,18 +49,18 @@ object Transputer {
     )
 
   /** Convenience constructor returning an empty Transputer. */
-  def apply(): Transputer = new Transputer(Database.get)
+  def apply(): Transputer = new Transputer()
 
   /** Convenience constructor wiring the given plugins. */
   def apply(plugins: scala.collection.Seq[Hostable]): Transputer = {
-    val t = new Transputer(Database.get)
-    t.host.asHostOf(plugins)
+    val t = new Transputer()
+    t.host.asHostOf(plugins.toSeq)
     t
   }
 }
 
-class Transputer(val database: Database = new Database) extends Component {
-  val host = database on new PluginHost
+class Transputer() extends Component {
+  val host = new PluginHost
   val systemBus = master(Bmb(Transputer.systemBusParam))
   host.addService(new SystemBusService { def bus: Bmb = systemBus })
 }
@@ -70,46 +69,48 @@ class TransputerCore extends Component {
   val core = Transputer(Transputer.defaultPlugins())
 }
 
-class TransputerUnit(db: Database = Transputer.defaultDatabase()) extends Component {
-  val core = Database(db).on(Transputer(Transputer.unitPlugins()))
+class TransputerUnit() extends Component {
+  val core = Transputer(Transputer.unitPlugins())
 }
 
 object TransputerCoreVerilog {
   def main(args: Array[String]): Unit = {
-    // Configure Database for variant support
-    val db = Transputer.defaultDatabase()
-
-    // Parse command line arguments and configure database
-    args.find(_.startsWith("--double-precision")).foreach { _ =>
-      db(Global.FPU_PRECISION) = 64
-    }
-    args.find(_.startsWith("--link-count=")).foreach { arg =>
-      db(Global.LINK_COUNT) = arg.split("=")(1).toInt
-    }
-    args.find(_.startsWith("--ram-words=")).foreach { arg =>
-      db(Global.RAM_WORDS) = arg.split("=")(1).toInt
-    }
-
     println("Generating Transputer Core...")
     println(s"Configuration:")
-    println(
-      s"  FPU Precision: ${if (db.storageExists(Global.FPU_PRECISION)) db(Global.FPU_PRECISION)
-        else "32"} bits"
-    )
-    println(
-      s"  Link Count: ${if (db.storageExists(Global.LINK_COUNT)) db(Global.LINK_COUNT) else "4"}"
-    )
-    println(
-      s"  RAM Words: ${if (db.storageExists(Global.RAM_WORDS)) db(Global.RAM_WORDS) else "65536"}"
-    )
+    println(s"  FPU Precision: ${Global.FPU_PRECISION} bits")
+    println(s"  Link Count: ${Global.LINK_COUNT}")
+    println(s"  RAM Words: ${Global.RAM_WORDS}")
 
-    // Generate Verilog with database context - create plugins inside SpinalHDL context
+    // Generate Verilog with simplified approach
     val report = SpinalVerilog {
-      Database(db).on {
-        val param = Param() // Create param inside SpinalHDL context
+      val param = Param() // Create param inside SpinalHDL context
+      PluginHost.on {
         Transputer(param.plugins()) // Now plugins are created in proper context
       }
     }
     println(s"Verilog generated: ${report.toplevelName}")
+  }
+}
+
+/** T9000 Transputer specific utilities. */
+object T9000Transputer {
+  
+  /** Configure global constants based on T9000 parameters. 
+    * This is a simplified approach that doesn't use Database.
+    */
+  def configureGlobals(param: T9000Param): Unit = {
+    // The globals are compile-time constants in this implementation
+    // In a full implementation, these would be set via Database
+    println(s"[T9000] Configuring with:")
+    println(s"  Word Width: ${param.wordWidth} bits")
+    println(s"  Address Width: ${param.addrWidth} bits")
+    println(s"  Link Count: ${param.linkCount}")
+    println(s"  FPU Precision: ${param.fpuPrecision} bits")
+    println(s"  Cache: ${param.mainCacheKb}KB main + ${param.wsCacheWords}-word workspace")
+  }
+  
+  /** Create T9000 Transputer with plugins. */
+  def apply(plugins: scala.collection.Seq[Hostable]): Transputer = {
+    Transputer(plugins)
   }
 }

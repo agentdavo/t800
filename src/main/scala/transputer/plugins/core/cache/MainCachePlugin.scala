@@ -19,6 +19,7 @@ import transputer.plugins.core.cache.{CacheCmd, MainCacheService}
   *   - Peak bandwidth: 800 MB/s at 50MHz
   */
 class MainCachePlugin extends FiberPlugin {
+  override def getDisplayName(): String = "MainCachePlugin"
   setName("mainCache")
 
   // Cache configuration constants per T9000 spec
@@ -52,10 +53,13 @@ class MainCachePlugin extends FiberPlugin {
   private var pmiPort: CachePort = null
 
   during setup new Area {
+    println(s"[${this.getDisplayName()}] setup start")
     // Service will be registered in build phase after hardware creation
+    println(s"[${this.getDisplayName()}] setup end")
   }
 
   during build new Area {
+    println(s"[${this.getDisplayName()}] build start")
     val systemBusService = Plugin[SystemBusService]
 
     // Initialize cache banks (4 banks of 256 lines each)
@@ -171,5 +175,7 @@ class MainCachePlugin extends FiberPlugin {
       }
       override def miss: Bool = !hit
     })
+
+    println(s"[${this.getDisplayName()}] build end")
   }
 }

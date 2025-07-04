@@ -11,6 +11,8 @@ import transputer.plugins.legacy.vcp.{VcpService, MemReadCmd, MemWriteCmd}
   * on T9000 specification chapters 12.4 and 12.5
   */
 class VcpPlugin extends FiberPlugin {
+  override def getDisplayName(): String = "VcpPlugin"
+  setName("vcp")
 
   during setup new Area {
     println(s"[${this.getDisplayName()}] setup start")

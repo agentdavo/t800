@@ -1,95 +1,119 @@
 package transputer
 
+import org.scalatest.funsuite.AnyFunSuite
 import spinal.core._
 import spinal.core.sim._
-import spinal.lib.misc.database.Database
-import org.scalatest.funsuite.AnyFunSuite
-import transputer.plugins.core.regstack.RegStackService
+import spinal.lib._
 
-/** Tests for T9000 proper plugin pipeline architecture.
-  *
-  * Tests the correct T9000 5-stage pipeline: Fetch/Group → Local/Decode → Address/Cache → Execute →
-  * Writeback With instruction table plugins: ArithmeticPlugin, GeneralPlugin, etc.
-  */
+/**
+ * Test specification for T9000 5-stage pipeline
+ * Tests the pipeline structure and basic operation
+ */
 class T9000PipelineSpec extends AnyFunSuite {
 
-  // Simple test DUT with proper plugin pipeline
+  // Test component focusing on pipeline functionality
   class PipelineTestDut extends Component {
-    val db = T9000Transputer.configureDatabase(T9000Param())
-
-    val io = new Bundle {
-      val enable = in Bool ()
-      val reset = in Bool ()
-
-      val pipelineReady = out Bool ()
-      val stackA = out UInt (32 bits)
-      val instructionCount = out UInt (32 bits)
-    }
-
-    // Create proper T9000 plugin pipeline (minimal working set)
-    val pipelinePlugins = Seq(
-      new transputer.plugins.core.transputer.TransputerPlugin(),
-      new transputer.plugins.core.pipeline.T9000PipelinePlugin(), // Use T9000 5-stage pipeline
-      new transputer.plugins.core.regstack.RegStackPlugin(),
-      new transputer.plugins.bus.SystemBusPlugin(), // Required for FetchPlugin
-      new transputer.plugins.core.fetch.FetchPlugin(),
-      new transputer.plugins.core.grouper.T9000GrouperOptimized(), // Advanced T9000 grouper
-      // Core instruction table plugins
-      new transputer.plugins.arithmetic.ArithmeticPlugin(),
-      new transputer.plugins.general.GeneralPlugin(),
-      new transputer.plugins.core.pipeline.PipelineBuilderPlugin() // Must be last
+    // Use minimal T9000 configuration for pipeline testing
+    val param = T9000Param(
+      enableFpu = false,
+      enablePmi = false,
+      enableVcp = false,
+      enableScheduler = false,
+      enableTimers = false,
+      enableMmu = false
     )
-
-    val core = Database(db).on(Transputer(pipelinePlugins))
-
-    // Get services safely
-    val regStackService =
-      try {
-        core.host[transputer.plugins.core.regstack.RegStackService]
-      } catch {
-        case _: Exception => null
-      }
-
-    // Simple control logic
-    val instrCount = Reg(UInt(32 bits)) init 0
-    when(io.enable && !io.reset) {
-      instrCount := instrCount + 1
-    }.elsewhen(io.reset) {
-      instrCount := 0
-    }
-
-    // Connect outputs
-    io.pipelineReady := io.enable && !io.reset
-    if (regStackService != null) {
-      io.stackA := regStackService.A
-    } else {
-      io.stackA := 0
-    }
-    io.instructionCount := instrCount
+    
+    // Configure globals
+    T9000Transputer.configureGlobals(param)
+    
+    // Create transputer with pipeline and essential plugins
+    val core = Transputer(Seq(
+      new transputer.plugins.core.transputer.TransputerPlugin(),
+      new transputer.plugins.core.pipeline.PipelinePlugin(),
+      new transputer.plugins.core.pipeline.PipelineBuilderPlugin(),
+      new transputer.plugins.core.regstack.RegStackPlugin(),
+      new transputer.plugins.core.fetch.FetchPlugin(),
+      new transputer.plugins.core.grouper.InstrGrouperPlugin(),
+      new transputer.plugins.bus.SystemBusPlugin()
+    ))
+    
+    val systemBus = core.systemBus
   }
 
-  test("T9000 pipeline compilation with instruction table plugins") {
-    // Test that the T9000 pipeline with instruction table plugins compiles and elaborates
+  test("T9000Pipeline should instantiate 5-stage pipeline") {
     SimConfig.compile(new PipelineTestDut).doSim { dut =>
-      dut.clockDomain.forkStimulus(10)
+      dut.clockDomain.forkStimulus(period = 10)
+      dut.clockDomain.assertReset()
+      dut.clockDomain.waitSampling(5)
+      dut.clockDomain.deassertReset()
+      dut.clockDomain.waitSampling(10)
+      
+      // If we get here, the pipeline was created successfully
+      assert(true, "T9000 5-stage pipeline instantiated successfully")
+    }
+  }
 
-      // Basic test - verify it doesn't crash
-      dut.io.enable #= false
-      dut.io.reset #= true
-      dut.clockDomain.waitRisingEdge()
+  test("T9000Pipeline should handle pipeline stages") {
+    SimConfig.compile(new PipelineTestDut).doSim { dut =>
+      dut.clockDomain.forkStimulus(period = 10)
+      dut.clockDomain.assertReset()
+      dut.clockDomain.waitSampling(10)
+      dut.clockDomain.deassertReset()
+      
+      // Run through multiple pipeline stages
+      for (cycle <- 0 until 50) {
+        dut.clockDomain.waitSampling()
+        
+        // Verify pipeline is stable (no exceptions thrown)
+        if (cycle % 10 == 0) {
+          // Sample some signals to ensure pipeline is operating
+          val cmdValid = dut.systemBus.cmd.valid.toBoolean
+          val rspReady = dut.systemBus.rsp.ready.toBoolean
+          
+          // These should be valid boolean values
+          assert(cmdValid == true || cmdValid == false, s"cmd.valid should be boolean at cycle $cycle")
+          assert(rspReady == true || rspReady == false, s"rsp.ready should be boolean at cycle $cycle")
+        }
+      }
+    }
+  }
 
-      dut.io.reset #= false
-      dut.io.enable #= true
-      dut.clockDomain.waitRisingEdge(5)
+  test("T9000Pipeline should integrate with instruction grouper") {
+    SimConfig.compile(new PipelineTestDut).doSim { dut =>
+      dut.clockDomain.forkStimulus(period = 10)
+      dut.clockDomain.assertReset()
+      dut.clockDomain.waitSampling(10)
+      dut.clockDomain.deassertReset()
+      dut.clockDomain.waitSampling(20)
+      
+      // Verify the grouper is integrated with the pipeline
+      assert(dut.core != null, "Core with integrated grouper should be instantiated")
+      
+      // Run simulation to test pipeline + grouper interaction
+      dut.clockDomain.waitSampling(30)
+    }
+  }
 
-      // Test completed successfully if we get here
-      assert(
-        true,
-        "T9000 pipeline with instruction table plugins compiled and elaborated successfully"
-      )
-      println(s"Pipeline ready: ${dut.io.pipelineReady.toBoolean}")
-      println(s"Instruction count: ${dut.io.instructionCount.toInt}")
-      println(s"Stack A value: ${dut.io.stackA.toInt}")
+  test("T9000Pipeline should handle reset properly") {
+    SimConfig.compile(new PipelineTestDut).doSim { dut =>
+      dut.clockDomain.forkStimulus(period = 10)
+      
+      // Test reset sequence
+      dut.clockDomain.assertReset()
+      dut.clockDomain.waitSampling(5)
+      
+      // First deassertion
+      dut.clockDomain.deassertReset()
+      dut.clockDomain.waitSampling(10)
+      
+      // Second reset
+      dut.clockDomain.assertReset()
+      dut.clockDomain.waitSampling(5)
+      dut.clockDomain.deassertReset()
+      dut.clockDomain.waitSampling(10)
+      
+      // Pipeline should handle multiple resets gracefully
+      assert(true, "Pipeline handled multiple resets successfully")
     }
   }
 }

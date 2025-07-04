@@ -25,6 +25,7 @@ case class MemoryResponse() extends Bundle {
   *   - Hardware stack extension and protection
   */
 class MemoryManagementPlugin extends FiberPlugin {
+  override def getDisplayName(): String = "MemoryManagementPlugin"
   setName("memoryManagement")
 
   // MMU configuration per T9000 specification

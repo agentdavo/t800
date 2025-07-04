@@ -18,6 +18,8 @@ import transputer.plugins.timers.TimerService
   * operations in the T9000 architecture.
   */
 class TimerPlugin extends FiberPlugin {
+  override def getDisplayName(): String = "TimerPlugin"
+  setName("timer")
   val version = "TimerPlugin v0.2"
   private var clockReg0: UInt = null // Microsecond timer
   private var clockReg1: UInt = null // 64-microsecond timer

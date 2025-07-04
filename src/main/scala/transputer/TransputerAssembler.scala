@@ -55,14 +55,32 @@ object TransputerAssembler {
     "sttimer" -> 0x54, // set timer
     "testerr" -> 0x29, // test error flag
     "clrhalterr" -> 0x57, // clear halt on error
-    "fptesterr" -> 0x5e, // floating point test error
+    "sethalterr" -> 0x58, // set halt on error
+    "fptesterr" -> 0x9c, // floating point test error
     "ldpi" -> 0x1b, // load pointer to instruction
     "gajw" -> 0x3c, // general adjust workspace
     "ret" -> 0x20, // return
     "lend" -> 0x21, // loop end
     "ldtimer" -> 0x22, // load timer
     "pop" -> 0x79, // pop processor stack
-    "terminate" -> 0x71 // terminate
+    "terminate" -> 0x2f, // terminate
+    "xor" -> 0x33, // exclusive or
+    "bcnt" -> 0x34, // byte count
+    "wcnt" -> 0x3f, // word count
+    "or" -> 0x4b, // bitwise or
+    "and" -> 0x46, // bitwise and
+    "not" -> 0x32, // bitwise not
+    "shl" -> 0x41, // shift left
+    "shr" -> 0x40, // shift right
+    "ladd" -> 0x16, // long add
+    "lsub" -> 0x38, // long subtract
+    "lsum" -> 0x52, // long sum
+    "ldiff" -> 0x4f, // long difference
+    "lmul" -> 0x31, // long multiply
+    "ldiv" -> 0x1a, // long divide
+    "rem" -> 0x1f, // remainder
+    "xdble" -> 0x1d, // extend to double
+    "norm" -> 0x1c // normalize
   )
 
   case class AssemblyLine(
@@ -73,25 +91,52 @@ object TransputerAssembler {
     comment: Option[String]
   )
 
+  // Track VAL definitions (constants)
+  val valDefinitions = mutable.Map[String, Int]()
+
   def parseAssembly(code: String): List[AssemblyLine] = {
+    var currentAddress = 0
     val lines = code
       .split("\n")
       .zipWithIndex
-      .map { case (line, idx) =>
+      .flatMap { case (line, idx) =>
         val trimmed = line.trim
-        if (trimmed.isEmpty || trimmed.startsWith(";")) {
-          AssemblyLine(idx * 4, None, None, None, Some(trimmed))
+        // Handle both ; and -- comments
+        if (trimmed.isEmpty || trimmed.startsWith(";") || trimmed.startsWith("--")) {
+          None // Skip comments and empty lines
         } else {
-          parseAssemblyLine(trimmed, idx * 4)
+          val parsed = parseAssemblyLine(trimmed, currentAddress)
+          if (parsed.instruction.isDefined) {
+            currentAddress += estimateInstructionSize(parsed.instruction.get, parsed.operand)
+          }
+          Some(parsed)
         }
       }
       .toList
     lines
   }
 
+  def estimateInstructionSize(instr: String, operand: Option[String]): Int = {
+    instr match {
+      case "db" | "byte" => 
+        operand.map(data => parseDataBytes(data, 0, Map.empty)).map(_.length).getOrElse(1)
+      case "align" => 
+        4 // Assume align to 4 bytes
+      case "global" =>
+        0 // No code generated
+      case _ =>
+        // Most instructions are 1-4 bytes
+        4
+    }
+  }
+
   def parseAssemblyLine(line: String, address: Int): AssemblyLine = {
-    val commentIdx = line.indexOf(';')
-    val (codePart, comment) = if (commentIdx >= 0) {
+    // Handle both ; and -- comments
+    val commentIdx = math.min(
+      if (line.contains(";")) line.indexOf(';') else Int.MaxValue,
+      if (line.contains("--")) line.indexOf("--") else Int.MaxValue
+    )
+    val (codePart, comment) = if (commentIdx < Int.MaxValue) {
       (line.substring(0, commentIdx).trim, Some(line.substring(commentIdx).trim))
     } else {
       (line, None)
@@ -108,9 +153,26 @@ object TransputerAssembler {
     }
 
     // Parse instruction and operand
-    val parts = codePart.split("\\s+", 2)
-    val instruction = parts(0).toLowerCase
-    val operand = if (parts.length > 1) Some(parts(1)) else None
+    // Parse VAL definitions
+    if (codePart.toUpperCase.startsWith("VAL")) {
+      // VAL NAME IS VALUE : comment
+      val valPattern = """VAL\s+(\w+)\s+IS\s+([^:]+)(?::.*)?$""".r
+      codePart match {
+        case valPattern(name, value) =>
+          val intValue = parseOperand(value.trim, address, Map.empty)
+          valDefinitions(name) = intValue
+          return AssemblyLine(address, None, None, None, comment)  // No code generated
+        case _ =>
+          println(s"Warning: Invalid VAL declaration: $codePart")
+      }
+    }
+    
+    val tokens = codePart.split("\\s+", 2)
+    val (instruction, operand) = if (tokens.length >= 2) {
+      (tokens(0).toLowerCase, Some(tokens(1).trim))
+    } else {
+      (tokens(0).toLowerCase, None)
+    }
 
     AssemblyLine(address, None, Some(instruction), operand, comment)
   }
@@ -118,19 +180,28 @@ object TransputerAssembler {
   def assemble(lines: List[AssemblyLine]): List[Byte] = {
     val labels = mutable.Map[String, Int]()
     val binary = mutable.ListBuffer[Byte]()
-    var currentAddress = 0
+    var currentAddress = 0x80000000  // T9000 default start address
 
-    // First pass: collect labels
+    // First pass: collect labels and calculate addresses
     for (line <- lines) {
       line.label.foreach(label => labels(label) = currentAddress)
       if (line.instruction.isDefined) {
-        currentAddress += 4 // Each instruction is 4 bytes for simplicity
+        val estimatedSize = estimateInstructionSize(line.instruction.get, line.operand)
+        currentAddress += estimatedSize
       }
     }
 
     // Second pass: generate binary
-    currentAddress = 0
+    currentAddress = 0x80000000
     for (line <- lines) {
+      line.label.foreach(label => {
+        // Update label if address changed
+        if (labels(label) != currentAddress) {
+          println(s"Warning: Label $label address adjusted from 0x${labels(label).toHexString} to 0x${currentAddress.toHexString}")
+          labels(label) = currentAddress
+        }
+      })
+      
       line.instruction.foreach { instr =>
         val bytes = assembleInstruction(instr, line.operand, currentAddress, labels.toMap)
         binary ++= bytes
@@ -148,14 +219,23 @@ object TransputerAssembler {
     labels: Map[String, Int]
   ): List[Byte] = {
     def encodeInstruction(opcode: Int, operand: Int): List[Byte] = {
-      if (operand >= 0 && operand <= 15) {
+      val operandBits = operand & 0xFFFFFFFF // Handle as unsigned
+      
+      if (operandBits >= 0 && operandBits <= 15) {
         // Direct encoding
-        List(((opcode << 4) | operand).toByte)
+        List(((opcode << 4) | operandBits).toByte)
       } else {
         // Need prefix
         val prefixes = mutable.ListBuffer[Byte]()
-        var value = if (operand < 0) -operand else operand
-        val prefixOp = if (operand < 0) 0x6 else 0x2 // nfix or pfix
+        var value = operandBits
+        
+        // For negative values, use nfix
+        val isNegative = operand < 0
+        if (isNegative) {
+          value = (~operand) & 0xFFFFFFFF  // Two's complement
+        }
+        
+        val prefixOp = if (isNegative) 0x6 else 0x2 // nfix or pfix
 
         // Generate prefix bytes
         while (value > 15) {
@@ -183,91 +263,205 @@ object TransputerAssembler {
           encodeInstruction(0x2, secOp >> 4) ++ encodeInstruction(0xf, secOp & 0xf)
         }
 
-      case "db" =>
+      case "db" | "byte" =>
         // Data bytes
-        operand.map(parseDataBytes).getOrElse(Nil)
+        operand.map(data => parseDataBytes(data, address, labels)).getOrElse(Nil)
+
+      case "align" =>
+        // Align to word boundary (4 bytes)
+        val currentAddr = address
+        val padding = (4 - (currentAddr % 4)) % 4
+        List.fill(padding)(0x00.toByte)
+
+      case "global" =>
+        // Global label declaration - no code generated
+        Nil
+
+      case "val" =>
+        // Value declaration - no code generated
+        Nil
 
       case _ =>
-        println(s"Unknown instruction: $instr")
+        println(s"Warning: Unknown instruction '$instr' at address 0x${address.toHexString}")
         List(0x00.toByte) // NOP
     }
   }
 
   def parseOperand(operand: String, address: Int, labels: Map[String, Int]): Int = {
-    operand.trim match {
-      case hex if hex.startsWith("0x") =>
-        try {
-          java.lang.Long.parseLong(hex.substring(2), 16).toInt
-        } catch {
-          case _: NumberFormatException => 0
+    val trimmed = operand.trim
+    
+    // Handle special constants first
+    trimmed match {
+      case "INITIAL_ADJUSTMENT" => 20  // Common T9000 constant
+      case "_Start" => 0x80000000  // Common start address
+      case name if valDefinitions.contains(name) => valDefinitions(name)  // VAL definitions
+      case _ =>
+        // Try hex numbers (0x... or #...)
+        if (trimmed.startsWith("0x")) {
+          try {
+            java.lang.Long.parseLong(trimmed.substring(2), 16).toInt
+          } catch {
+            case _: NumberFormatException => 0
+          }
+        } else if (trimmed.startsWith("#")) {
+          try {
+            java.lang.Long.parseLong(trimmed.substring(1), 16).toInt
+          } catch {
+            case _: NumberFormatException => 0
+          }
+        } else if (trimmed.forall(c => c.isDigit || c == '-')) {
+          // Decimal number
+          try {
+            trimmed.toInt
+          } catch {
+            case _: NumberFormatException => 0
+          }
+        } else if (labels.contains(trimmed)) {
+          // Label reference - calculate relative offset
+          labels(trimmed) - address - 1  // T9000 uses PC-relative addressing
+        } else if (trimmed.contains("-") || trimmed.contains("+")) {
+          // Expression
+          parseExpression(trimmed, address, labels)
+        } else {
+          // Unknown - might be a forward reference
+          println(s"Warning: Unknown operand '$trimmed' at address 0x${address.toHexString}")
+          0
         }
-      case dec if dec.forall(c => c.isDigit || c == '-') =>
-        try {
-          dec.toInt
-        } catch {
-          case _: NumberFormatException => 0
-        }
-      case label if labels.contains(label) => labels(label) - address - 4 // Relative jump
-      case expr if expr.contains("-") || expr.contains("+") =>
-        // Simple expression evaluation
-        parseExpression(expr, address, labels)
-      case _ => 0
     }
   }
 
   def parseExpression(expr: String, address: Int, labels: Map[String, Int]): Int = {
-    // Simple expression parser for "label - offset" etc.
-    if (expr.contains("-")) {
-      val parts = expr.split("-").map(_.trim)
-      if (parts.length == 2) {
-        val left =
-          if (labels.contains(parts(0))) labels(parts(0))
-          else parseOperand(parts(0), address, labels)
-        val right = parseOperand(parts(1), address, labels)
-        return left - right
-      }
+    // Simple expression parser for "label - label" or "label + offset" etc.
+    val trimmed = expr.trim
+    
+    // Handle subtraction
+    if (trimmed.contains("-") && !trimmed.startsWith("-")) {
+      val idx = trimmed.indexOf("-")
+      val left = trimmed.substring(0, idx).trim
+      val right = trimmed.substring(idx + 1).trim
+      
+      val leftVal = if (labels.contains(left)) labels(left)
+                    else if (left == "Addr0") address  // Special case for current address
+                    else parseOperand(left, address, Map.empty)  // Avoid recursion
+      
+      val rightVal = if (labels.contains(right)) labels(right)
+                     else if (right == "Addr0") address
+                     else parseOperand(right, address, Map.empty)
+      
+      return leftVal - rightVal
     }
-    0
+    
+    // Handle addition
+    if (trimmed.contains("+")) {
+      val idx = trimmed.indexOf("+")
+      val left = trimmed.substring(0, idx).trim
+      val right = trimmed.substring(idx + 1).trim
+      
+      val leftVal = if (labels.contains(left)) labels(left)
+                    else parseOperand(left, address, Map.empty)
+      
+      val rightVal = if (labels.contains(right)) labels(right)
+                     else parseOperand(right, address, Map.empty)
+      
+      return leftVal + rightVal
+    }
+    
+    // No operator, try as simple operand
+    parseOperand(trimmed, address, Map.empty)
   }
 
-  def parseDataBytes(data: String): List[Byte] = {
-    if (data.startsWith("\"") && data.endsWith("\"")) {
-      // String literal
-      val str = data.substring(1, data.length - 1)
-      str.getBytes("ASCII").toList
-    } else {
-      // Hex bytes
-      data
-        .split(",")
-        .map(_.trim)
-        .filter(_.nonEmpty)
-        .map { hex =>
-          if (hex.startsWith("0x")) {
-            Integer.parseInt(hex.substring(2), 16).toByte
-          } else {
-            hex.toInt.toByte
-          }
-        }
-        .toList
+  def parseDataBytes(data: String, currentAddress: Int = 0, labels: Map[String, Int] = Map.empty): List[Byte] = {
+    // Handle expressions like (Endprimary-Primary)
+    if (data.startsWith("(") && data.endsWith(")")) {
+      val expr = data.substring(1, data.length - 1)
+      val value = parseExpression(expr, currentAddress, labels)
+      return List(value.toByte)
     }
+    
+    // Handle mixed format with strings and hex values
+    val parts = data.split(",").map(_.trim).filter(_.nonEmpty)
+    parts.flatMap { part =>
+      if (part.startsWith("\"") && part.endsWith("\"")) {
+        // String literal
+        val str = part.substring(1, part.length - 1)
+        str.getBytes("ASCII").toList
+      } else if (part.startsWith("0x")) {
+        // Hex value
+        List(Integer.parseInt(part.substring(2), 16).toByte)
+      } else if (part.startsWith("#")) {
+        // Hex value with # prefix
+        List(Integer.parseInt(part.substring(1), 16).toByte)
+      } else if (part.forall(c => c.isDigit || c == '-')) {
+        // Decimal value
+        List(part.toInt.toByte)
+      } else {
+        // Expression or label
+        val value = parseOperand(part, currentAddress, labels)
+        List(value.toByte)
+      }
+    }.toList
   }
 
   def generateHexFile(binary: List[Byte], filename: String, baseAddress: Int = 0x80000000): Unit = {
-    val writer = new PrintWriter(new FileWriter(filename))
+    import java.io.File
+    
+    // Ensure scripts/hex directory exists
+    val hexDir = new File("scripts/hex")
+    if (!hexDir.exists()) {
+      hexDir.mkdirs()
+    }
+    
+    val fullPath = s"scripts/hex/$filename"
+    val writer = new PrintWriter(new FileWriter(fullPath))
     try {
       // Generate Intel HEX format
       binary.grouped(16).zipWithIndex.foreach { case (chunk, lineNum) =>
-        val addr = baseAddress + (lineNum * 16)
+        val addr = (baseAddress + (lineNum * 16)) & 0xFFFFFFFF
+        val addrHigh = (addr >> 16) & 0xFFFF
+        val addrLow = addr & 0xFFFF
+        
+        // Extended Linear Address Record if needed
+        if (lineNum == 0 && addrHigh != 0) {
+          val extAddrChecksum = (0x100 - ((0x02 + 0x00 + 0x00 + 0x04 + (addrHigh >> 8) + (addrHigh & 0xFF)) & 0xFF)) & 0xFF
+          writer.println(f":02000004${addrHigh}%04X${extAddrChecksum}%02X")
+        }
+        
         val dataHex = chunk.map(b => f"${b & 0xff}%02X").mkString
-        val checksum = (0x100 - ((chunk.length + ((addr >> 8) & 0xff) + (addr & 0xff) + chunk
+        val checksum = (0x100 - ((chunk.length + ((addrLow >> 8) & 0xff) + (addrLow & 0xff) + chunk
           .map(_ & 0xff)
           .sum) & 0xff)) & 0xff
-        writer.println(f":${chunk.length}%02X${addr & 0xffff}%04X00$dataHex$checksum%02X")
+        writer.println(f":${chunk.length}%02X${addrLow}%04X00$dataHex$checksum%02X")
       }
       writer.println(":00000001FF") // End of file record
     } finally {
       writer.close()
     }
+    println(s"Generated hex file: $fullPath")
+  }
+
+  def assembleFile(inputFile: String, outputFile: String): Unit = {
+    import scala.io.Source
+    
+    try {
+      val source = Source.fromFile(inputFile)
+      val asmCode = try source.mkString finally source.close()
+      
+      val lines = parseAssembly(asmCode)
+      val binary = assemble(lines)
+      generateHexFile(binary, outputFile)
+      
+      println(s"Successfully assembled $inputFile")
+      println(s"  Output: scripts/hex/$outputFile")
+      println(s"  Size: ${binary.length} bytes")
+    } catch {
+      case e: Exception =>
+        println(s"Error assembling $inputFile: ${e.getMessage}")
+        e.printStackTrace()
+    }
+  }
+
+  def assembleBootloader(): Unit = {
+    assembleFile("scripts/asm/bootload.asm", "bootload.hex")
   }
 
   def assembleHelloWorld(): Unit = {
@@ -347,11 +541,59 @@ putConsolePString:
     val binary = assemble(lines)
     generateHexFile(binary, "hello_world_rom.hex")
 
-    println(s"Generated hello_world_rom.hex with ${binary.length} bytes")
+    println(s"Generated scripts/hex/hello_world_rom.hex with ${binary.length} bytes")
     println("Boot ROM ready for T9000!")
   }
 
+  // Instruction trace support
+  case class InstructionTrace(
+    iptr: Long,
+    bytes: List[Byte],
+    mnemonic: String,
+    operand: String,
+    areg: Long = 0,
+    breg: Long = 0,
+    creg: Long = 0,
+    wptr: Long = 0,
+    wptrData: Long = 0
+  ) {
+    def format: String = {
+      val bytesStr = bytes.map(b => f"${b & 0xff}%02X").mkString(" ")
+      val codeField = f"$bytesStr%-30s"
+      val mnemonicField = f"$mnemonic%-8s $operand%-12s"
+      f"${iptr}%08X: $codeField$mnemonicField--   ${areg}%08X ${breg}%08X ${creg}%08X   ${wptr}%08X ${wptrData}%08X"
+    }
+  }
+
+  def generateTraceHeader(): String = {
+    "-IPtr------Code-----------------------Mnemonic------------HE---AReg-----BReg-----CReg-------WPtr-----WPtr[0]-"
+  }
+
   def main(args: Array[String]): Unit = {
-    assembleHelloWorld()
+    if (args.isEmpty) {
+      println("Transputer Assembler")
+      println("Usage:")
+      println("  sbt \"runMain transputer.TransputerAssembler <input.asm> [output.hex]\"")
+      println("  sbt \"runMain transputer.TransputerAssembler --hello\"    (generate hello world ROM)")
+      println("  sbt \"runMain transputer.TransputerAssembler --bootload\" (assemble INMOS bootloader)")
+      println()
+      println("Files are written to scripts/hex/ directory")
+      println()
+      println("To test assembled code:")
+      println("  sbt \"runMain transputer.GenerateWithTest --hex scripts/hex/output.hex --wave\"")
+      return
+    }
+
+    args(0) match {
+      case "--hello" => assembleHelloWorld()
+      case "--bootload" => assembleBootloader()
+      case inputFile =>
+        val outputFile = if (args.length > 1) args(1) 
+                        else {
+                          val baseName = new java.io.File(inputFile).getName
+                          baseName.replaceAll("\\.asm$", "") + ".hex"
+                        }
+        assembleFile(inputFile, outputFile)
+    }
   }
 }

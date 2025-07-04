@@ -15,6 +15,7 @@ import scala.collection.mutable.ArrayBuffer
   *   - The system bus output for external memory access
   */
 class SystemBusPlugin extends FiberPlugin {
+  override def getDisplayName(): String = "SystemBusPlugin"
   setName("systemBus")
 
   case class BusMaster(name: String, port: Bmb)
@@ -64,12 +65,14 @@ class SystemBusPlugin extends FiberPlugin {
     } else {
       // No masters - idle the bus
       systemBus.cmd.valid := False
-      systemBus.cmd.opcode := 0
-      systemBus.cmd.address := 0
-      systemBus.cmd.length := 0
-      systemBus.cmd.data := 0
-      systemBus.cmd.mask := 0
-      systemBus.cmd.last := True
+      systemBus.cmd.payload.fragment.source := 0
+      systemBus.cmd.payload.fragment.opcode := Bmb.Cmd.Opcode.READ
+      systemBus.cmd.payload.fragment.address := 0
+      systemBus.cmd.payload.fragment.length := 0
+      systemBus.cmd.payload.fragment.data := 0
+      systemBus.cmd.payload.fragment.mask := 0
+      systemBus.cmd.payload.fragment.context := 0
+      systemBus.cmd.payload.last := True
       systemBus.rsp.ready := True
     }
   }

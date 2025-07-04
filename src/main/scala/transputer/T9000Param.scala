@@ -24,12 +24,28 @@ case class T9000Param(
 
   // Memory system
   enableMmu: Boolean = true,
-  enablePmi: Boolean = false, // Temporarily disabled - needs plugin restructuring
-  pmiChannels: Int = 4,
-  pmiDevicesPerChannel: Int = 8,
+  enablePmi: Boolean = false, // Temporarily disabled due to hierarchy violation
+  pmiMemorySize: Long = 128 * 1024 * 1024, // 128MB external memory
+  pmiTimingPreset: String = "sram", // "sram", "dram", "flash"
+  pmiEnableDma: Boolean = true,
+  pmiMaxBurstLength: Int = 32,
 
   // Communication system
   enableVcp: Boolean = true,
+  vcpMaxChannels: Int = 256,
+  vcpPhysicalLinks: Int = 4,
+  vcpChannelBufferSize: Int = 2048,
+  vcpPacketBufferDepth: Int = 32,
+  vcpFlowControl: Boolean = true,
+  
+  // Clock domain configuration
+  enableMultiClock: Boolean = true,
+  systemClockMHz: Int = 500,
+  memoryClockMHz: Int = 250,
+  dsLinkClockMHz: Int = 100,
+  timerClockMHz: Int = 1,
+  debugClockMHz: Int = 50,
+  
   spiDdrLinks: Boolean = true,
 
   // Process management
@@ -75,6 +91,11 @@ case class T9000Param(
     // ========================================
     // CORE SYSTEM PLUGINS
     // ========================================
+
+    // Clock domain management (must be first)
+    if (enableMultiClock) {
+      plugins += new T9000ClockServicePlugin()
+    }
 
     // Base transputer core with T9000 configuration
     plugins += new transputer.plugins.core.transputer.TransputerPlugin()
@@ -138,19 +159,30 @@ case class T9000Param(
     //   plugins += new transputer.plugins.legacy.mmu.MemoryManagementPlugin()  // Disabled - testing basic functionality
     // }
 
-    // Programmable memory interface (temporarily disabled)
-    // if (enablePmi) {
-    //   plugins += new transputer.plugins.legacy.pmi.PmiPlugin()  // Disabled - testing basic functionality
-    // }
+    // Programmable memory interface - modern implementation
+    if (enablePmi) {
+      plugins += new transputer.plugins.pmi.PmiPlugin(
+        externalMemorySize = pmiMemorySize,
+        timingPreset = pmiTimingPreset,
+        enableDma = pmiEnableDma,
+        maxBurstLength = pmiMaxBurstLength
+      )
+    }
 
     // ========================================
     // T9000 COMMUNICATION SYSTEM
     // ========================================
 
-    // Virtual channel processor for transputer-to-transputer communication (temporarily disabled)
-    // if (enableVcp) {
-    //   plugins += new transputer.plugins.legacy.vcp.VcpPlugin()  // Disabled - testing basic functionality
-    // }
+    // Virtual channel processor - simplified implementation for compilation
+    if (enableVcp) {
+      plugins += new transputer.plugins.vcp.VcpPluginSimple(
+        maxVirtualChannels = vcpMaxChannels,
+        physicalLinkCount = vcpPhysicalLinks,
+        channelBufferSize = vcpChannelBufferSize,
+        packetBufferDepth = vcpPacketBufferDepth,
+        enableFlowControl = vcpFlowControl
+      )
+    }
 
     // ========================================
     // T9000 SYSTEM SERVICES
@@ -218,11 +250,40 @@ case class T9000Param(
 
     // Validate PMI configuration
     if (enablePmi) {
-      if (pmiChannels < 1 || pmiChannels > 8) {
-        warnings += s"PMI channel count $pmiChannels may be outside supported range (1-8)"
+      if (pmiMemorySize < 1024 * 1024 || pmiMemorySize > 4L * 1024 * 1024 * 1024) {
+        warnings += s"PMI memory size ${pmiMemorySize / (1024*1024)}MB may be outside supported range (1MB-4GB)"
       }
-      if (pmiDevicesPerChannel < 1 || pmiDevicesPerChannel > 16) {
-        warnings += s"PMI devices per channel $pmiDevicesPerChannel may be outside supported range (1-16)"
+      if (!Set("sram", "dram", "flash").contains(pmiTimingPreset)) {
+        warnings += s"PMI timing preset '$pmiTimingPreset' is not supported (use sram, dram, or flash)"
+      }
+      if (pmiMaxBurstLength < 1 || pmiMaxBurstLength > 256) {
+        warnings += s"PMI burst length $pmiMaxBurstLength may be outside supported range (1-256)"
+      }
+    }
+    
+    // Validate VCP configuration
+    if (enableVcp) {
+      if (vcpMaxChannels < 1 || vcpMaxChannels > 256) {
+        warnings += s"VCP max channels $vcpMaxChannels may be outside supported range (1-256)"
+      }
+      if (vcpPhysicalLinks < 1 || vcpPhysicalLinks > 4) {
+        warnings += s"VCP physical links $vcpPhysicalLinks may be outside T9000 specification (1-4)"
+      }
+      if (vcpChannelBufferSize < 256 || vcpChannelBufferSize > 8192) {
+        warnings += s"VCP channel buffer size $vcpChannelBufferSize may be outside optimal range (256-8192 bytes)"
+      }
+    }
+    
+    // Validate clock configuration
+    if (enableMultiClock) {
+      if (systemClockMHz < 100 || systemClockMHz > 1000) {
+        warnings += s"System clock $systemClockMHz MHz may be outside practical range (100-1000 MHz)"
+      }
+      if (memoryClockMHz > systemClockMHz) {
+        warnings += s"Memory clock $memoryClockMHz MHz should not exceed system clock $systemClockMHz MHz"
+      }
+      if (dsLinkClockMHz > systemClockMHz / 2) {
+        warnings += s"DS-Link clock $dsLinkClockMHz MHz may be too fast relative to system clock"
       }
     }
 
@@ -253,10 +314,10 @@ case class T9000Param(
     sb.append(s"  FPU: ${if (enableFpu) s"${fpuPrecision}-bit IEEE 754" else "disabled"}\n")
     sb.append(s"  Cache: ${mainCacheKb}KB + ${wsCacheWords}W workspace\n")
     sb.append(
-      s"  Memory: MMU=${enableMmu}, PMI=${if (enablePmi) s"${pmiChannels}x${pmiDevicesPerChannel}"
-        else "disabled"}\n"
+      s"  Memory: MMU=${enableMmu}, PMI=${if (enablePmi) s"${pmiMemorySize/(1024*1024)}MB ${pmiTimingPreset}" else "disabled"}\n"
     )
-    sb.append(s"  Comm: VCP=${enableVcp}, SPI DDR=${spiDdrLinks}\n")
+    sb.append(s"  Comm: VCP=${if (enableVcp) s"${vcpMaxChannels}ch/${vcpPhysicalLinks}links" else "disabled"}, SPI DDR=${spiDdrLinks}\n")
+    sb.append(s"  Clocks: ${if (enableMultiClock) s"System=${systemClockMHz}MHz, Memory=${memoryClockMHz}MHz, DS-Link=${dsLinkClockMHz}MHz" else "single domain"}\n")
     sb.append(s"  Process: Scheduler=${enableScheduler}, Timers=${enableTimers}\n")
     sb.append(
       s"  Advanced: Profiling=${enableProfiling}, Debug=${enableDebug}, Test=${enableTestFramework}"

@@ -21,6 +21,8 @@ import transputer.plugins.schedule.{SchedCmd, SchedService, ProcessState}
   *   - T9000-compliant process lifecycle management
   */
 class SchedulerPlugin extends FiberPlugin with SchedService {
+  override def getDisplayName(): String = "SchedulerPlugin"
+  setName("scheduler")
   val version = "SchedulerPlugin v0.2"
   private var cmdReg: Flow[SchedCmd] = null
   private var currentProcReg: UInt = null // Currently running process

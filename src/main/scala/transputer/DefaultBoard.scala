@@ -50,7 +50,7 @@ class TransputerBoard(boardCfg: CoreConfig) extends Component {
   // Application-specific clocking area
   val coreArea = new ClockingArea(clkCtrl.coreClockDomain) {
     // Instantiate T9000 core with default plugins
-    val t9000Core = new Transputer(Transputer.defaultDatabase())
+    val t9000Core = new Transputer()
 
     // Placeholder for future I/O expansion
   }

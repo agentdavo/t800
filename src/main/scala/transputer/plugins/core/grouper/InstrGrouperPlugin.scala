@@ -23,6 +23,7 @@ import transputer.plugins.core.fetch.InstrFetchService
   *   - 15: opr (operate - secondary instructions)
   */
 class InstrGrouperPlugin extends FiberPlugin {
+  override def getDisplayName(): String = "InstrGrouperPlugin"
   setName("grouper")
 
   private var groupFlow: Stream[GroupedInstructions] = null

@@ -48,7 +48,7 @@ class EventChannelPlugin extends FiberPlugin {
   }
 
   during setup new Area {
-    println(s"[${getDisplayName()}] setup start")
+    println(s"[${this.getDisplayName()}] setup start")
 
     addService(new EventChannelService {
       override def configureChannel(
@@ -70,7 +70,7 @@ class EventChannelPlugin extends FiberPlugin {
       }
     })
 
-    println(s"[${getDisplayName()}] setup end")
+    println(s"[${this.getDisplayName()}] setup end")
   }
 
   // Hardware will be created in build phase
@@ -80,7 +80,7 @@ class EventChannelPlugin extends FiberPlugin {
   var interruptRequest: Bool = null
 
   during build new Area {
-    println(s"[${getDisplayName()}] build start")
+    println(s"[${this.getDisplayName()}] build start")
 
     // Event channel configuration registers
     eventConfigs = Vec(Reg(EventChannelConfig()), 4)
@@ -104,13 +104,13 @@ class EventChannelPlugin extends FiberPlugin {
     // Interrupt request generation
     interruptRequest = eventPending.orR
 
-    println(s"[${EventChannelPlugin.this.getDisplayName()}] Event channel hardware configured")
-    println(s"[${EventChannelPlugin.this.getDisplayName()}] - 4 configurable Event channels")
+    println(s"[${this.getDisplayName()}] Event channel hardware configured")
+    println(s"[${this.getDisplayName()}] - 4 configurable Event channels")
     println(
-      s"[${EventChannelPlugin.this.getDisplayName()}] - Input (interrupt) and output (handshake) modes"
+      s"[${this.getDisplayName()}] - Input (interrupt) and output (handshake) modes"
     )
-    println(s"[${EventChannelPlugin.this.getDisplayName()}] - Process-based event waiting")
-    println(s"[${EventChannelPlugin.this.getDisplayName()}] build end")
+    println(s"[${this.getDisplayName()}] - Process-based event waiting")
+    println(s"[${this.getDisplayName()}] build end")
   }
 
   /** Configure an Event channel for input or output operation.

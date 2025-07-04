@@ -1,26 +1,25 @@
 // Generator : SpinalHDL v1.12.2    git head : f25edbcee624ef41548345cfb91c42060e33313f
 // Component : T9000Transputer
-// Git hash  : 15a95124445393395dbe241a0477286401945021
+// Git hash  : d9fbc7b12bef853f1b5ebaa23ef49f147d94e250
 
 `timescale 1ns/1ps
 
 module T9000Transputer (
-  input  wire [1:0]    io_dsLinks_0_read,
-  output wire [1:0]    io_dsLinks_0_write,
-  output wire [1:0]    io_dsLinks_0_writeEnable,
-  input  wire [1:0]    io_dsLinks_1_read,
-  output wire [1:0]    io_dsLinks_1_write,
-  output wire [1:0]    io_dsLinks_1_writeEnable,
-  input  wire [1:0]    io_dsLinks_2_read,
-  output wire [1:0]    io_dsLinks_2_write,
-  output wire [1:0]    io_dsLinks_2_writeEnable,
-  input  wire [1:0]    io_dsLinks_3_read,
-  output wire [1:0]    io_dsLinks_3_write,
-  output wire [1:0]    io_dsLinks_3_writeEnable,
-  input  wire [7:0]    io_interrupts,
-  input  wire          io_cpuClk,
-  input  wire          io_linkClk,
-  input  wire          io_reset,
+  output wire          systemBus_cmd_valid,
+  input  wire          systemBus_cmd_ready,
+  output wire          systemBus_cmd_payload_last,
+  output wire [3:0]    systemBus_cmd_payload_fragment_source,
+  output wire [0:0]    systemBus_cmd_payload_fragment_opcode,
+  output wire [31:0]   systemBus_cmd_payload_fragment_address,
+  output wire [3:0]    systemBus_cmd_payload_fragment_length,
+  output wire [127:0]  systemBus_cmd_payload_fragment_data,
+  output wire [15:0]   systemBus_cmd_payload_fragment_mask,
+  input  wire          systemBus_rsp_valid,
+  output wire          systemBus_rsp_ready,
+  input  wire          systemBus_rsp_payload_last,
+  input  wire [3:0]    systemBus_rsp_payload_fragment_source,
+  input  wire [0:0]    systemBus_rsp_payload_fragment_opcode,
+  input  wire [127:0]  systemBus_rsp_payload_fragment_data,
   input  wire          clk,
   input  wire          reset
 );
@@ -43,22 +42,6 @@ module T9000Transputer (
   localparam AluOp_REV = 5'd16;
   localparam AluOp_DUP = 5'd17;
   localparam AluOp_FMUL = 5'd18;
-  localparam PrimaryOpcode_J = 4'd0;
-  localparam PrimaryOpcode_LDLP = 4'd1;
-  localparam PrimaryOpcode_PFIX = 4'd2;
-  localparam PrimaryOpcode_LDNL = 4'd3;
-  localparam PrimaryOpcode_LDC = 4'd4;
-  localparam PrimaryOpcode_LDNLP = 4'd5;
-  localparam PrimaryOpcode_NFIX = 4'd6;
-  localparam PrimaryOpcode_LDL = 4'd7;
-  localparam PrimaryOpcode_ADC = 4'd8;
-  localparam PrimaryOpcode_CALL = 4'd9;
-  localparam PrimaryOpcode_CJ = 4'd10;
-  localparam PrimaryOpcode_AJW = 4'd11;
-  localparam PrimaryOpcode_EQC = 4'd12;
-  localparam PrimaryOpcode_STL = 4'd13;
-  localparam PrimaryOpcode_STNL = 4'd14;
-  localparam PrimaryOpcode_OPR = 4'd15;
   localparam SecondaryOpcode_REV = 9'd0;
   localparam SecondaryOpcode_LB = 9'd1;
   localparam SecondaryOpcode_BSUB = 9'd2;
@@ -276,6 +259,22 @@ module T9000Transputer (
   localparam SecondaryOpcode_FDCA = 9'd304;
   localparam SecondaryOpcode_NOP = 9'd320;
   localparam SecondaryOpcode_LDPRODID = 9'd388;
+  localparam PrimaryOpcode_J = 4'd0;
+  localparam PrimaryOpcode_LDLP = 4'd1;
+  localparam PrimaryOpcode_PFIX = 4'd2;
+  localparam PrimaryOpcode_LDNL = 4'd3;
+  localparam PrimaryOpcode_LDC = 4'd4;
+  localparam PrimaryOpcode_LDNLP = 4'd5;
+  localparam PrimaryOpcode_NFIX = 4'd6;
+  localparam PrimaryOpcode_LDL = 4'd7;
+  localparam PrimaryOpcode_ADC = 4'd8;
+  localparam PrimaryOpcode_CALL = 4'd9;
+  localparam PrimaryOpcode_CJ = 4'd10;
+  localparam PrimaryOpcode_AJW = 4'd11;
+  localparam PrimaryOpcode_EQC = 4'd12;
+  localparam PrimaryOpcode_STL = 4'd13;
+  localparam PrimaryOpcode_STNL = 4'd14;
+  localparam PrimaryOpcode_OPR = 4'd15;
   localparam RegName_Areg = 6'd0;
   localparam RegName_Breg = 6'd1;
   localparam RegName_Creg = 6'd2;
@@ -466,76 +465,70 @@ module T9000Transputer (
   wire       [31:0]   streamFifo_3_io_pop_payload;
   wire       [4:0]    streamFifo_3_io_occupancy;
   wire       [4:0]    streamFifo_3_io_availability;
-  wire       [3:0]    _zz__zz_when_ArithmeticPlugin_l124_3;
-  wire       [8:0]    _zz__zz_when_ArithmeticPlugin_l124_3_1;
-  wire       [3:0]    _zz__zz_when_ArithmeticPlugin_l124_3_2;
-  wire       [8:0]    _zz__zz_when_ArithmeticPlugin_l124_3_3;
-  wire       [3:0]    _zz__zz_when_ArithmeticPlugin_l124_3_4;
-  wire       [8:0]    _zz__zz_when_ArithmeticPlugin_l124_3_5;
-  wire       [3:0]    _zz__zz_when_ArithmeticPlugin_l124_3_6;
-  wire       [8:0]    _zz__zz_when_ArithmeticPlugin_l124_3_7;
-  wire       [3:0]    _zz__zz_when_ArithmeticPlugin_l124_3_8;
-  wire       [8:0]    _zz__zz_when_ArithmeticPlugin_l124_3_9;
-  wire       [3:0]    _zz__zz_when_ArithmeticPlugin_l124_3_10;
-  wire       [8:0]    _zz__zz_when_ArithmeticPlugin_l124_3_11;
-  wire       [3:0]    _zz__zz_when_ArithmeticPlugin_l124_3_12;
-  wire       [8:0]    _zz__zz_when_ArithmeticPlugin_l124_3_13;
-  wire       [3:0]    _zz__zz_when_ArithmeticPlugin_l124_3_14;
-  wire       [8:0]    _zz__zz_when_ArithmeticPlugin_l124_3_15;
-  wire       [3:0]    _zz__zz_when_ArithmeticPlugin_l124_3_16;
-  wire       [8:0]    _zz__zz_when_ArithmeticPlugin_l124_3_17;
-  wire       [3:0]    _zz__zz_when_ArithmeticPlugin_l124_3_18;
-  wire       [8:0]    _zz__zz_when_ArithmeticPlugin_l124_3_19;
-  wire       [3:0]    _zz_7;
-  wire       [8:0]    _zz_8;
-  wire       [3:0]    _zz_9;
-  wire       [8:0]    _zz_10;
-  wire       [3:0]    _zz_11;
-  wire       [8:0]    _zz_12;
-  wire       [3:0]    _zz_13;
-  wire       [8:0]    _zz_14;
-  wire       [3:0]    _zz_15;
-  wire       [8:0]    _zz_16;
-  wire       [3:0]    _zz_17;
-  wire       [8:0]    _zz_18;
-  wire       [3:0]    _zz_19;
-  wire       [8:0]    _zz_20;
-  wire       [3:0]    _zz_21;
-  wire       [8:0]    _zz_22;
-  wire       [3:0]    _zz_23;
-  wire       [8:0]    _zz_24;
-  wire       [3:0]    _zz_25;
-  wire       [8:0]    _zz_26;
-  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_18;
-  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_18_1;
-  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_18_2;
-  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_20;
-  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_20_1;
-  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_20_2;
-  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_29;
-  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_31;
-  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_33;
-  wire       [0:0]    _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_33_1;
-  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_33_2;
-  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_33_3;
-  wire       [3:0]    _zz_27;
-  wire       [8:0]    _zz_28;
-  wire       [3:0]    _zz_29;
-  wire       [8:0]    _zz_30;
-  wire       [3:0]    _zz_31;
-  wire       [8:0]    _zz_32;
-  wire       [3:0]    _zz_33;
-  wire       [8:0]    _zz_34;
-  wire       [3:0]    _zz_35;
-  wire       [8:0]    _zz_36;
-  wire       [3:0]    _zz_37;
-  wire       [8:0]    _zz_38;
-  wire       [3:0]    _zz_39;
-  wire       [8:0]    _zz_40;
-  wire       [3:0]    _zz_41;
-  wire       [8:0]    _zz_42;
-  wire       [3:0]    _zz_43;
-  wire       [8:0]    _zz_44;
+  wire       [3:0]    _zz_8;
+  wire       [8:0]    _zz_9;
+  wire       [3:0]    _zz_10;
+  wire       [8:0]    _zz_11;
+  wire       [3:0]    _zz_12;
+  wire       [8:0]    _zz_13;
+  wire       [3:0]    _zz_14;
+  wire       [8:0]    _zz_15;
+  wire       [3:0]    _zz_16;
+  wire       [8:0]    _zz_17;
+  wire       [3:0]    _zz_18;
+  wire       [8:0]    _zz_19;
+  wire       [3:0]    _zz_20;
+  wire       [8:0]    _zz_21;
+  wire       [3:0]    _zz_22;
+  wire       [8:0]    _zz_23;
+  wire       [3:0]    _zz_24;
+  wire       [8:0]    _zz_25;
+  wire       [3:0]    _zz_26;
+  wire       [8:0]    _zz_27;
+  wire       [3:0]    _zz_when;
+  wire       [8:0]    _zz_when_1;
+  wire       [3:0]    _zz_when_2;
+  wire       [8:0]    _zz_when_3;
+  wire       [3:0]    _zz_when_4;
+  wire       [8:0]    _zz_when_5;
+  wire       [3:0]    _zz_when_6;
+  wire       [8:0]    _zz_when_7;
+  wire       [3:0]    _zz_when_8;
+  wire       [8:0]    _zz_when_9;
+  wire       [3:0]    _zz_when_10;
+  wire       [8:0]    _zz_when_11;
+  wire       [3:0]    _zz_when_12;
+  wire       [8:0]    _zz_when_13;
+  wire       [3:0]    _zz_when_14;
+  wire       [8:0]    _zz_when_15;
+  wire       [3:0]    _zz_when_16;
+  wire       [8:0]    _zz_when_17;
+  wire       [3:0]    _zz_when_18;
+  wire       [8:0]    _zz_when_19;
+  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_15;
+  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_15_1;
+  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_15_2;
+  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_17;
+  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_17_1;
+  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_17_2;
+  wire       [3:0]    _zz_28;
+  wire       [8:0]    _zz_29;
+  wire       [3:0]    _zz_30;
+  wire       [8:0]    _zz_31;
+  wire       [3:0]    _zz_32;
+  wire       [8:0]    _zz_33;
+  wire       [3:0]    _zz_34;
+  wire       [8:0]    _zz_35;
+  wire       [3:0]    _zz_36;
+  wire       [8:0]    _zz_37;
+  wire       [3:0]    _zz_38;
+  wire       [8:0]    _zz_39;
+  wire       [3:0]    _zz_40;
+  wire       [8:0]    _zz_41;
+  wire       [3:0]    _zz_42;
+  wire       [8:0]    _zz_43;
+  wire       [3:0]    _zz_44;
+  wire       [8:0]    _zz_45;
   wire       [3:0]    _zz_when_LongArithPlugin_l142_3;
   wire       [8:0]    _zz_when_LongArithPlugin_l142_4;
   wire       [3:0]    _zz_when_LongArithPlugin_l142_5;
@@ -554,28 +547,28 @@ module T9000Transputer (
   wire       [8:0]    _zz_when_LongArithPlugin_l142_18;
   wire       [3:0]    _zz_when_LongArithPlugin_l142_19;
   wire       [8:0]    _zz_when_LongArithPlugin_l142_20;
-  wire       [32:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_41;
-  wire       [64:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_44;
-  wire       [32:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_44_1;
-  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_44_2;
-  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_44_3;
-  wire       [64:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_44_4;
-  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_44_5;
-  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_45;
-  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_46;
-  wire       [63:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_47;
-  wire       [63:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_47_1;
-  wire       [63:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_51;
-  wire       [63:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_51_1;
-  wire       [63:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_52;
-  wire       [63:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_52_1;
-  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_59;
-  wire       [0:0]    _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_59_1;
-  wire       [63:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_62;
-  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_62_1;
-  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_66;
-  wire       [63:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_66_1;
-  wire       [63:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_66_2;
+  wire       [32:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_32;
+  wire       [64:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_35;
+  wire       [32:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_35_1;
+  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_35_2;
+  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_35_3;
+  wire       [64:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_35_4;
+  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_35_5;
+  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_36;
+  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_37;
+  wire       [63:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_38;
+  wire       [63:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_38_1;
+  wire       [63:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_42;
+  wire       [63:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_42_1;
+  wire       [63:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_43;
+  wire       [63:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_43_1;
+  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_50;
+  wire       [0:0]    _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_50_1;
+  wire       [63:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_53;
+  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_53_1;
+  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_57;
+  wire       [63:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_57_1;
+  wire       [63:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_57_2;
   wire       [3:0]    _zz_when_ControlFlowPlugin_l115_3;
   wire       [8:0]    _zz_when_ControlFlowPlugin_l115_4;
   wire       [3:0]    _zz_when_ControlFlowPlugin_l115_5;
@@ -590,23 +583,23 @@ module T9000Transputer (
   wire       [8:0]    _zz_when_ControlFlowPlugin_l115_14;
   wire       [3:0]    _zz_when_ControlFlowPlugin_l115_15;
   wire       [8:0]    _zz_when_ControlFlowPlugin_l115_16;
-  wire       [3:0]    _zz_45;
-  wire       [8:0]    _zz_46;
-  wire       [3:0]    _zz_47;
-  wire       [8:0]    _zz_48;
-  wire       [3:0]    _zz_49;
-  wire       [8:0]    _zz_50;
-  wire       [3:0]    _zz_51;
-  wire       [8:0]    _zz_52;
-  wire       [3:0]    _zz_53;
-  wire       [8:0]    _zz_54;
-  wire       [3:0]    _zz_55;
-  wire       [8:0]    _zz_56;
-  wire       [3:0]    _zz_57;
-  wire       [8:0]    _zz_58;
-  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_73;
-  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_76;
-  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_78;
+  wire       [3:0]    _zz_46;
+  wire       [8:0]    _zz_47;
+  wire       [3:0]    _zz_48;
+  wire       [8:0]    _zz_49;
+  wire       [3:0]    _zz_50;
+  wire       [8:0]    _zz_51;
+  wire       [3:0]    _zz_52;
+  wire       [8:0]    _zz_53;
+  wire       [3:0]    _zz_54;
+  wire       [8:0]    _zz_55;
+  wire       [3:0]    _zz_56;
+  wire       [8:0]    _zz_57;
+  wire       [3:0]    _zz_58;
+  wire       [8:0]    _zz_59;
+  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_64;
+  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_67;
+  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_69;
   wire       [63:0]   _zz__zz_when_BlockMovePlugin_l165;
   wire                _zz_when_IndexingPlugin_l135_5;
   wire                _zz_when_IndexingPlugin_l135_6;
@@ -626,34 +619,34 @@ module T9000Transputer (
   wire       [8:0]    _zz_when_IndexingPlugin_l135_20;
   wire       [3:0]    _zz_when_IndexingPlugin_l135_21;
   wire       [8:0]    _zz_when_IndexingPlugin_l135_22;
-  wire       [3:0]    _zz_59;
-  wire       [8:0]    _zz_60;
-  wire       [3:0]    _zz_61;
-  wire       [8:0]    _zz_62;
-  wire       [3:0]    _zz_63;
-  wire       [8:0]    _zz_64;
-  wire       [3:0]    _zz_65;
-  wire       [8:0]    _zz_66;
-  wire       [3:0]    _zz_67;
-  wire       [8:0]    _zz_68;
-  wire       [3:0]    _zz_69;
-  wire       [8:0]    _zz_70;
-  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_95;
-  wire       [29:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_86;
-  wire       [29:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_86_1;
-  wire       [29:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_86_2;
-  wire       [29:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_86_3;
-  wire       [29:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_86_4;
-  wire       [29:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_86_5;
-  wire       [33:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_86_6;
-  wire       [33:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_86_7;
-  wire       [33:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_86_8;
+  wire       [3:0]    _zz_60;
+  wire       [8:0]    _zz_61;
+  wire       [3:0]    _zz_62;
+  wire       [8:0]    _zz_63;
+  wire       [3:0]    _zz_64;
+  wire       [8:0]    _zz_65;
+  wire       [3:0]    _zz_66;
+  wire       [8:0]    _zz_67;
+  wire       [3:0]    _zz_68;
+  wire       [8:0]    _zz_69;
+  wire       [3:0]    _zz_70;
+  wire       [8:0]    _zz_71;
+  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_86;
+  wire       [29:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_77;
+  wire       [29:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_77_1;
+  wire       [29:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_77_2;
+  wire       [29:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_77_3;
+  wire       [29:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_77_4;
+  wire       [29:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_77_5;
+  wire       [33:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_77_6;
+  wire       [33:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_77_7;
+  wire       [33:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_77_8;
   wire                _zz_when_RangeCheckPlugin_l124_5;
   wire                _zz_when_RangeCheckPlugin_l124_6;
   wire       [3:0]    _zz_when_RangeCheckPlugin_l124_7;
   wire       [3:0]    _zz_when_RangeCheckPlugin_l124_8;
-  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_112;
-  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_115;
+  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_103;
+  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_106;
   wire       [3:0]    _zz_when_GeneralPlugin_l69_2;
   wire       [8:0]    _zz_when_GeneralPlugin_l69_3;
   wire       [3:0]    _zz_when_GeneralPlugin_l69_4;
@@ -664,52 +657,52 @@ module T9000Transputer (
   wire       [8:0]    _zz_when_GeneralPlugin_l69_9;
   wire       [3:0]    _zz_when_GeneralPlugin_l69_10;
   wire       [8:0]    _zz_when_GeneralPlugin_l69_11;
-  wire       [3:0]    _zz_71;
-  wire       [8:0]    _zz_72;
-  wire       [3:0]    _zz_73;
-  wire       [8:0]    _zz_74;
-  wire       [3:0]    _zz_75;
-  wire       [8:0]    _zz_76;
-  wire       [3:0]    _zz_77;
-  wire       [8:0]    _zz_78;
-  wire       [3:0]    _zz_79;
-  wire       [8:0]    _zz_80;
-  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_130;
-  wire       [0:0]    _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_130_1;
+  wire       [3:0]    _zz_72;
+  wire       [8:0]    _zz_73;
+  wire       [3:0]    _zz_74;
+  wire       [8:0]    _zz_75;
+  wire       [3:0]    _zz_76;
+  wire       [8:0]    _zz_77;
+  wire       [3:0]    _zz_78;
+  wire       [8:0]    _zz_79;
+  wire       [3:0]    _zz_80;
+  wire       [8:0]    _zz_81;
+  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_121;
+  wire       [0:0]    _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_121_1;
   reg                 _zz_when_ChannelPlugin_l129_17;
-  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_154;
-  wire       [1:0]    _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_154_1;
-  reg        [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_161;
-  wire       [7:0]    _zz_81;
-  wire       [8:0]    _zz_82;
-  wire       [7:0]    _zz_83;
-  wire       [8:0]    _zz_84;
-  wire       [7:0]    _zz_85;
-  wire       [8:0]    _zz_86;
-  wire       [7:0]    _zz_87;
-  wire       [8:0]    _zz_88;
-  wire       [7:0]    _zz_89;
-  wire       [8:0]    _zz_90;
-  wire       [7:0]    _zz_91;
-  wire       [8:0]    _zz_92;
-  wire       [7:0]    _zz_93;
-  wire       [8:0]    _zz_94;
-  wire       [7:0]    _zz_95;
-  wire       [8:0]    _zz_96;
-  wire       [7:0]    _zz_97;
-  wire       [8:0]    _zz_98;
-  wire       [7:0]    _zz_99;
-  wire       [8:0]    _zz_100;
-  wire       [7:0]    _zz_101;
-  wire       [8:0]    _zz_102;
-  wire       [7:0]    _zz_103;
-  wire       [8:0]    _zz_104;
-  wire       [7:0]    _zz_105;
-  wire       [8:0]    _zz_106;
-  wire       [7:0]    _zz_107;
-  wire       [8:0]    _zz_108;
-  wire       [7:0]    _zz_109;
-  wire       [8:0]    _zz_110;
+  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_145;
+  wire       [1:0]    _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_145_1;
+  reg        [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_152;
+  wire       [7:0]    _zz_82;
+  wire       [8:0]    _zz_83;
+  wire       [7:0]    _zz_84;
+  wire       [8:0]    _zz_85;
+  wire       [7:0]    _zz_86;
+  wire       [8:0]    _zz_87;
+  wire       [7:0]    _zz_88;
+  wire       [8:0]    _zz_89;
+  wire       [7:0]    _zz_90;
+  wire       [8:0]    _zz_91;
+  wire       [7:0]    _zz_92;
+  wire       [8:0]    _zz_93;
+  wire       [7:0]    _zz_94;
+  wire       [8:0]    _zz_95;
+  wire       [7:0]    _zz_96;
+  wire       [8:0]    _zz_97;
+  wire       [7:0]    _zz_98;
+  wire       [8:0]    _zz_99;
+  wire       [7:0]    _zz_100;
+  wire       [8:0]    _zz_101;
+  wire       [7:0]    _zz_102;
+  wire       [8:0]    _zz_103;
+  wire       [7:0]    _zz_104;
+  wire       [8:0]    _zz_105;
+  wire       [7:0]    _zz_106;
+  wire       [8:0]    _zz_107;
+  wire       [7:0]    _zz_108;
+  wire       [8:0]    _zz_109;
+  wire       [7:0]    _zz_110;
+  wire       [8:0]    _zz_111;
   wire       [7:0]    _zz_fpu_fpPipe_ctrl_0_up_valid_2;
   wire       [8:0]    _zz_fpu_fpPipe_ctrl_0_up_valid_3;
   wire       [7:0]    _zz_fpu_fpPipe_ctrl_0_up_valid_4;
@@ -718,91 +711,91 @@ module T9000Transputer (
   wire       [8:0]    _zz_fpu_fpPipe_ctrl_0_up_valid_7;
   wire       [7:0]    _zz_fpu_fpPipe_ctrl_0_up_valid_8;
   wire       [8:0]    _zz_fpu_fpPipe_ctrl_0_up_valid_9;
-  wire                _zz_when;
-  wire       [7:0]    _zz_111;
-  wire       [8:0]    _zz_112;
-  wire       [7:0]    _zz_113;
-  wire       [8:0]    _zz_114;
-  wire       [7:0]    _zz_115;
-  wire       [8:0]    _zz_116;
-  wire       [7:0]    _zz_117;
-  wire       [8:0]    _zz_118;
-  wire       [7:0]    _zz_119;
-  wire       [8:0]    _zz_120;
-  wire       [7:0]    _zz_121;
-  wire       [8:0]    _zz_122;
-  wire       [7:0]    _zz_123;
-  wire       [8:0]    _zz_124;
-  wire       [7:0]    _zz_125;
-  wire       [8:0]    _zz_126;
-  wire       [7:0]    _zz_127;
-  wire       [8:0]    _zz_128;
-  wire       [7:0]    _zz_129;
-  wire       [8:0]    _zz_130;
-  wire       [7:0]    _zz_131;
-  wire       [8:0]    _zz_132;
-  wire       [7:0]    _zz_133;
-  wire       [8:0]    _zz_134;
-  wire       [7:0]    _zz_135;
-  wire       [8:0]    _zz_136;
-  wire       [7:0]    _zz_137;
-  wire       [8:0]    _zz_138;
-  wire       [7:0]    _zz_139;
-  wire       [8:0]    _zz_140;
-  wire       [7:0]    _zz_141;
-  wire       [8:0]    _zz_142;
-  wire       [7:0]    _zz_143;
-  wire       [8:0]    _zz_144;
-  wire       [7:0]    _zz_145;
-  wire       [8:0]    _zz_146;
-  wire       [7:0]    _zz_147;
-  wire       [8:0]    _zz_148;
-  wire       [7:0]    _zz_149;
-  wire       [8:0]    _zz_150;
-  wire       [7:0]    _zz_151;
-  wire       [8:0]    _zz_152;
-  wire       [7:0]    _zz_153;
-  wire       [8:0]    _zz_154;
-  wire       [7:0]    _zz_155;
-  wire       [8:0]    _zz_156;
-  wire       [7:0]    _zz_157;
-  wire       [8:0]    _zz_158;
-  wire       [7:0]    _zz_159;
-  wire       [8:0]    _zz_160;
-  wire       [7:0]    _zz_161;
-  wire       [8:0]    _zz_162;
-  wire       [7:0]    _zz_163;
-  wire       [8:0]    _zz_164;
-  wire       [7:0]    _zz_165;
-  wire       [8:0]    _zz_166;
-  wire       [7:0]    _zz_167;
-  wire       [8:0]    _zz_168;
-  wire       [7:0]    _zz_169;
-  wire       [8:0]    _zz_170;
-  wire       [7:0]    _zz_171;
-  wire       [8:0]    _zz_172;
-  wire       [7:0]    _zz_173;
-  wire       [8:0]    _zz_174;
+  wire                _zz_when_20;
+  wire       [7:0]    _zz_112;
+  wire       [8:0]    _zz_113;
+  wire       [7:0]    _zz_114;
+  wire       [8:0]    _zz_115;
+  wire       [7:0]    _zz_116;
+  wire       [8:0]    _zz_117;
+  wire       [7:0]    _zz_118;
+  wire       [8:0]    _zz_119;
+  wire       [7:0]    _zz_120;
+  wire       [8:0]    _zz_121;
+  wire       [7:0]    _zz_122;
+  wire       [8:0]    _zz_123;
+  wire       [7:0]    _zz_124;
+  wire       [8:0]    _zz_125;
+  wire       [7:0]    _zz_126;
+  wire       [8:0]    _zz_127;
+  wire       [7:0]    _zz_128;
+  wire       [8:0]    _zz_129;
+  wire       [7:0]    _zz_130;
+  wire       [8:0]    _zz_131;
+  wire       [7:0]    _zz_132;
+  wire       [8:0]    _zz_133;
+  wire       [7:0]    _zz_134;
+  wire       [8:0]    _zz_135;
+  wire       [7:0]    _zz_136;
+  wire       [8:0]    _zz_137;
+  wire       [7:0]    _zz_138;
+  wire       [8:0]    _zz_139;
+  wire       [7:0]    _zz_140;
+  wire       [8:0]    _zz_141;
+  wire       [7:0]    _zz_142;
+  wire       [8:0]    _zz_143;
+  wire       [7:0]    _zz_144;
+  wire       [8:0]    _zz_145;
+  wire       [7:0]    _zz_146;
+  wire       [8:0]    _zz_147;
+  wire       [7:0]    _zz_148;
+  wire       [8:0]    _zz_149;
+  wire       [7:0]    _zz_150;
+  wire       [8:0]    _zz_151;
+  wire       [7:0]    _zz_152;
+  wire       [8:0]    _zz_153;
+  wire       [7:0]    _zz_154;
+  wire       [8:0]    _zz_155;
+  wire       [7:0]    _zz_156;
+  wire       [8:0]    _zz_157;
+  wire       [7:0]    _zz_158;
+  wire       [8:0]    _zz_159;
+  wire       [7:0]    _zz_160;
+  wire       [8:0]    _zz_161;
+  wire       [7:0]    _zz_162;
+  wire       [8:0]    _zz_163;
+  wire       [7:0]    _zz_164;
+  wire       [8:0]    _zz_165;
+  wire       [7:0]    _zz_166;
+  wire       [8:0]    _zz_167;
+  wire       [7:0]    _zz_168;
+  wire       [8:0]    _zz_169;
+  wire       [7:0]    _zz_170;
+  wire       [8:0]    _zz_171;
+  wire       [7:0]    _zz_172;
+  wire       [8:0]    _zz_173;
+  wire       [7:0]    _zz_174;
+  wire       [8:0]    _zz_175;
+  wire       [10:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_229;
+  wire       [9:0]    _zz_fpu_fpPipe_ctrl_0_down_RESULT_230;
+  wire       [9:0]    _zz_fpu_fpPipe_ctrl_0_down_RESULT_231;
+  wire       [9:0]    _zz_fpu_fpPipe_ctrl_0_down_RESULT_232;
+  wire       [9:0]    _zz_fpu_fpPipe_ctrl_0_down_RESULT_233;
+  wire       [7:0]    _zz_fpu_fpPipe_ctrl_0_down_RESULT_234;
+  wire       [63:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_217;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_235;
+  wire       [10:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_236;
+  wire       [10:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_237;
   wire       [10:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_238;
-  wire       [9:0]    _zz_fpu_fpPipe_ctrl_0_down_RESULT_239;
-  wire       [9:0]    _zz_fpu_fpPipe_ctrl_0_down_RESULT_240;
-  wire       [9:0]    _zz_fpu_fpPipe_ctrl_0_down_RESULT_241;
-  wire       [9:0]    _zz_fpu_fpPipe_ctrl_0_down_RESULT_242;
-  wire       [7:0]    _zz_fpu_fpPipe_ctrl_0_down_RESULT_243;
-  wire       [63:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_226;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_244;
-  wire       [10:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_245;
-  wire       [10:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_246;
-  wire       [10:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_247;
-  wire       [22:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_248;
-  wire       [51:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_249;
-  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_228;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_250;
-  wire       [7:0]    _zz_fpu_fpPipe_ctrl_0_down_RESULT_251;
-  wire       [22:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_252;
-  wire       [51:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_253;
-  wire       [51:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_254;
-  wire       [0:0]    _zz_fpu_fpPipe_ctrl_0_down_RESULT_255;
+  wire       [22:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_239;
+  wire       [51:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_240;
+  wire       [31:0]   _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_219;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_241;
+  wire       [7:0]    _zz_fpu_fpPipe_ctrl_0_down_RESULT_242;
+  wire       [22:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_243;
+  wire       [51:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_244;
+  wire       [51:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_245;
+  wire       [0:0]    _zz_fpu_fpPipe_ctrl_0_down_RESULT_246;
   wire       [31:0]   _zz_io_push_payload;
   wire                _zz_io_push_valid;
   wire                _zz_io_push_valid_1;
@@ -842,12 +835,7 @@ module T9000Transputer (
   wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_2;
   wire       [7:0]    _zz_when_ControlFlowPlugin_l115;
   wire       [7:0]    _zz_when_LongArithPlugin_l142;
-  wire       [3:0]    _zz_2;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_3;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_4;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_5;
-  wire                _zz_when_ArithmeticPlugin_l124;
-  wire       [7:0]    _zz_when_ArithmeticPlugin_l124_1;
+  wire       [7:0]    _zz_2;
   wire                writeback_down_isReady;
   wire                writeback_down_isValid;
   wire                execute_down_isReady;
@@ -863,182 +851,121 @@ module T9000Transputer (
   wire                addressCache_down_isFiring;
   wire                localDecode_down_isFiring;
   wire                fetchGroup_down_isFiring;
-  wire                systemBus_cmd_valid;
-  wire                systemBus_cmd_ready;
-  wire                systemBus_cmd_payload_last;
-  wire       [3:0]    systemBus_cmd_payload_fragment_source;
-  wire       [0:0]    systemBus_cmd_payload_fragment_opcode;
-  wire       [31:0]   systemBus_cmd_payload_fragment_address;
-  wire       [5:0]    systemBus_cmd_payload_fragment_length;
-  wire       [127:0]  systemBus_cmd_payload_fragment_data;
-  wire       [15:0]   systemBus_cmd_payload_fragment_mask;
-  wire       [7:0]    systemBus_cmd_payload_fragment_context;
-  wire                systemBus_rsp_valid;
-  wire                systemBus_rsp_ready;
-  wire                systemBus_rsp_payload_last;
-  wire       [3:0]    systemBus_rsp_payload_fragment_source;
-  wire       [0:0]    systemBus_rsp_payload_fragment_opcode;
-  wire       [127:0]  systemBus_rsp_payload_fragment_data;
-  wire       [7:0]    systemBus_rsp_payload_fragment_context;
   wire                _zz_io_input_cmd_valid;
+  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_3;
+  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_4;
+  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_5;
   reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
   reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
   reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
-  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_9;
-  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_10;
-  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_11;
   wire                _zz_io_input_cmd_valid_1;
   wire       [63:0]   _zz_io_input_cmd_payload_fragment_data;
   wire       [7:0]    _zz_io_input_cmd_payload_fragment_mask;
   wire                _zz_io_input_rsp_ready;
   reg        [31:0]   _zz_io_input_cmd_payload_fragment_address;
   reg                 _zz_io_input_cmd_valid_2;
-  wire                when_ArithmeticPlugin_l124;
-  reg        [4:0]    switch_ArithmeticPlugin_l148;
-  wire       [3:0]    _zz_when_ArithmeticPlugin_l124_2;
-  wire                _zz_when_ArithmeticPlugin_l124_3;
+  reg        [4:0]    switch_ArithmeticPlugin_l151;
+  wire       [3:0]    _zz_3;
   wire       [5:0]    switch_Misc_l245;
-  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_12;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_13;
+  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_9;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_10;
   wire       [5:0]    switch_Misc_l245_1;
-  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_14;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_15;
+  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_11;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_12;
   wire       [5:0]    switch_Misc_l245_2;
-  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_16;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_17;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_18;
+  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_13;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_14;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_15;
   wire                when_RegStackPlugin_l144;
   wire                when_RegStackPlugin_l146;
   wire                when_RegStackPlugin_l148;
   wire                when_RegStackPlugin_l150;
   wire                when_RegStackPlugin_l152;
   wire                when_RegStackPlugin_l154;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_19;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_16;
   wire                when_RegStackPlugin_l144_1;
   wire                when_RegStackPlugin_l146_1;
   wire                when_RegStackPlugin_l148_1;
   wire                when_RegStackPlugin_l150_1;
   wire                when_RegStackPlugin_l152_1;
   wire                when_RegStackPlugin_l154_1;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_20;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_17;
   wire                when_RegStackPlugin_l144_2;
   wire                when_RegStackPlugin_l146_2;
   wire                when_RegStackPlugin_l148_2;
   wire                when_RegStackPlugin_l150_2;
   wire                when_RegStackPlugin_l152_2;
   wire                when_RegStackPlugin_l154_2;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_21;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_18;
   wire                when_RegStackPlugin_l144_3;
   wire                when_RegStackPlugin_l146_3;
   wire                when_RegStackPlugin_l148_3;
   wire                when_RegStackPlugin_l150_3;
   wire                when_RegStackPlugin_l152_3;
   wire                when_RegStackPlugin_l154_3;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_22;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_19;
   wire                when_RegStackPlugin_l144_4;
   wire                when_RegStackPlugin_l146_4;
   wire                when_RegStackPlugin_l148_4;
   wire                when_RegStackPlugin_l150_4;
   wire                when_RegStackPlugin_l152_4;
   wire                when_RegStackPlugin_l154_4;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_23;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_20;
   wire                when_RegStackPlugin_l144_5;
   wire                when_RegStackPlugin_l146_5;
   wire                when_RegStackPlugin_l148_5;
   wire                when_RegStackPlugin_l150_5;
   wire                when_RegStackPlugin_l152_5;
   wire                when_RegStackPlugin_l154_5;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_24;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_21;
   wire                when_RegStackPlugin_l144_6;
   wire                when_RegStackPlugin_l146_6;
   wire                when_RegStackPlugin_l148_6;
   wire                when_RegStackPlugin_l150_6;
   wire                when_RegStackPlugin_l152_6;
   wire                when_RegStackPlugin_l154_6;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_25;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_22;
   wire                when_RegStackPlugin_l144_7;
   wire                when_RegStackPlugin_l146_7;
   wire                when_RegStackPlugin_l148_7;
   wire                when_RegStackPlugin_l150_7;
   wire                when_RegStackPlugin_l152_7;
   wire                when_RegStackPlugin_l154_7;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_26;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_23;
   wire                when_RegStackPlugin_l144_8;
   wire                when_RegStackPlugin_l146_8;
   wire                when_RegStackPlugin_l148_8;
   wire                when_RegStackPlugin_l150_8;
   wire                when_RegStackPlugin_l152_8;
   wire                when_RegStackPlugin_l154_8;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_27;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_24;
   wire                when_RegStackPlugin_l144_9;
   wire                when_RegStackPlugin_l146_9;
   wire                when_RegStackPlugin_l148_9;
   wire                when_RegStackPlugin_l150_9;
   wire                when_RegStackPlugin_l152_9;
   wire                when_RegStackPlugin_l154_9;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_28;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_25;
   wire                when_RegStackPlugin_l144_10;
   wire                when_RegStackPlugin_l146_10;
   wire                when_RegStackPlugin_l148_10;
   wire                when_RegStackPlugin_l150_10;
   wire                when_RegStackPlugin_l152_10;
   wire                when_RegStackPlugin_l154_10;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_29;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_26;
   wire                when_RegStackPlugin_l144_11;
   wire                when_RegStackPlugin_l146_11;
   wire                when_RegStackPlugin_l148_11;
   wire                when_RegStackPlugin_l150_11;
   wire                when_RegStackPlugin_l152_11;
   wire                when_RegStackPlugin_l154_11;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_30;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_27;
   wire                when_RegStackPlugin_l144_12;
   wire                when_RegStackPlugin_l146_12;
   wire                when_RegStackPlugin_l148_12;
   wire                when_RegStackPlugin_l150_12;
   wire                when_RegStackPlugin_l152_12;
   wire                when_RegStackPlugin_l154_12;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_31;
-  wire                when_RegStackPlugin_l144_13;
-  wire                when_RegStackPlugin_l146_13;
-  wire                when_RegStackPlugin_l148_13;
-  wire                when_RegStackPlugin_l150_13;
-  wire                when_RegStackPlugin_l152_13;
-  wire                when_RegStackPlugin_l154_13;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_32;
-  wire                when_RegStackPlugin_l144_14;
-  wire                when_RegStackPlugin_l146_14;
-  wire                when_RegStackPlugin_l148_14;
-  wire                when_RegStackPlugin_l150_14;
-  wire                when_RegStackPlugin_l152_14;
-  wire                when_RegStackPlugin_l154_14;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_33;
-  wire                when_RegStackPlugin_l144_15;
-  wire                when_RegStackPlugin_l146_15;
-  wire                when_RegStackPlugin_l148_15;
-  wire                when_RegStackPlugin_l150_15;
-  wire                when_RegStackPlugin_l152_15;
-  wire                when_RegStackPlugin_l154_15;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_34;
-  wire                when_RegStackPlugin_l144_16;
-  wire                when_RegStackPlugin_l146_16;
-  wire                when_RegStackPlugin_l148_16;
-  wire                when_RegStackPlugin_l150_16;
-  wire                when_RegStackPlugin_l152_16;
-  wire                when_RegStackPlugin_l154_16;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_35;
-  wire                when_RegStackPlugin_l144_17;
-  wire                when_RegStackPlugin_l146_17;
-  wire                when_RegStackPlugin_l148_17;
-  wire                when_RegStackPlugin_l150_17;
-  wire                when_RegStackPlugin_l152_17;
-  wire                when_RegStackPlugin_l154_17;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_36;
-  wire                when_RegStackPlugin_l144_18;
-  wire                when_RegStackPlugin_l146_18;
-  wire                when_RegStackPlugin_l148_18;
-  wire                when_RegStackPlugin_l150_18;
-  wire                when_RegStackPlugin_l152_18;
-  wire                when_RegStackPlugin_l154_18;
   reg                 when_LongArithPlugin_l312;
   reg        [3:0]    _zz_when_LongArithPlugin_l312;
   reg        [4:0]    switch_LongArithPlugin_l132;
@@ -1047,15 +974,62 @@ module T9000Transputer (
   wire       [3:0]    _zz_when_LongArithPlugin_l142_2;
   wire                when_LongArithPlugin_l142;
   wire       [5:0]    switch_Misc_l245_3;
-  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_37;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_38;
+  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_28;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_29;
   wire       [5:0]    switch_Misc_l245_4;
-  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_39;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_40;
+  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_30;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_31;
   wire       [5:0]    switch_Misc_l245_5;
   reg        [31:0]   _zz_when_LongArithPlugin_l220;
   wire       [31:0]   _zz_when_LongArithPlugin_l220_1;
-  wire       [64:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_41;
+  wire       [64:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_32;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_33;
+  wire                when_RegStackPlugin_l144_13;
+  wire                when_RegStackPlugin_l146_13;
+  wire                when_RegStackPlugin_l148_13;
+  wire                when_RegStackPlugin_l150_13;
+  wire                when_RegStackPlugin_l152_13;
+  wire                when_RegStackPlugin_l154_13;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_34;
+  wire                when_RegStackPlugin_l144_14;
+  wire                when_RegStackPlugin_l146_14;
+  wire                when_RegStackPlugin_l148_14;
+  wire                when_RegStackPlugin_l150_14;
+  wire                when_RegStackPlugin_l152_14;
+  wire                when_RegStackPlugin_l154_14;
+  wire       [64:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_35;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_36;
+  wire                when_RegStackPlugin_l144_15;
+  wire                when_RegStackPlugin_l146_15;
+  wire                when_RegStackPlugin_l148_15;
+  wire                when_RegStackPlugin_l150_15;
+  wire                when_RegStackPlugin_l152_15;
+  wire                when_RegStackPlugin_l154_15;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_37;
+  wire                when_RegStackPlugin_l144_16;
+  wire                when_RegStackPlugin_l146_16;
+  wire                when_RegStackPlugin_l148_16;
+  wire                when_RegStackPlugin_l150_16;
+  wire                when_RegStackPlugin_l152_16;
+  wire                when_RegStackPlugin_l154_16;
+  wire                when_LongArithPlugin_l203;
+  wire       [127:0]  _zz_fpu_fpPipe_ctrl_0_down_RESULT_38;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_39;
+  wire                when_RegStackPlugin_l144_17;
+  wire                when_RegStackPlugin_l146_17;
+  wire                when_RegStackPlugin_l148_17;
+  wire                when_RegStackPlugin_l150_17;
+  wire                when_RegStackPlugin_l152_17;
+  wire                when_RegStackPlugin_l154_17;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_40;
+  wire                when_RegStackPlugin_l144_18;
+  wire                when_RegStackPlugin_l146_18;
+  wire                when_RegStackPlugin_l148_18;
+  wire                when_RegStackPlugin_l150_18;
+  wire                when_RegStackPlugin_l152_18;
+  wire                when_RegStackPlugin_l154_18;
+  wire                when_LongArithPlugin_l220;
+  wire       [63:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_41;
   wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_42;
   wire                when_RegStackPlugin_l144_19;
   wire                when_RegStackPlugin_l146_19;
@@ -1070,7 +1044,7 @@ module T9000Transputer (
   wire                when_RegStackPlugin_l150_20;
   wire                when_RegStackPlugin_l152_20;
   wire                when_RegStackPlugin_l154_20;
-  wire       [64:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_44;
+  wire       [63:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_44;
   wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_45;
   wire                when_RegStackPlugin_l144_21;
   wire                when_RegStackPlugin_l146_21;
@@ -1085,8 +1059,7 @@ module T9000Transputer (
   wire                when_RegStackPlugin_l150_22;
   wire                when_RegStackPlugin_l152_22;
   wire                when_RegStackPlugin_l154_22;
-  wire                when_LongArithPlugin_l203;
-  wire       [127:0]  _zz_fpu_fpPipe_ctrl_0_down_RESULT_47;
+  wire       [63:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_47;
   wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_48;
   wire                when_RegStackPlugin_l144_23;
   wire                when_RegStackPlugin_l146_23;
@@ -1101,102 +1074,56 @@ module T9000Transputer (
   wire                when_RegStackPlugin_l150_24;
   wire                when_RegStackPlugin_l152_24;
   wire                when_RegStackPlugin_l154_24;
-  wire                when_LongArithPlugin_l220;
-  wire       [63:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_50;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_51;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_50;
   wire                when_RegStackPlugin_l144_25;
   wire                when_RegStackPlugin_l146_25;
   wire                when_RegStackPlugin_l148_25;
   wire                when_RegStackPlugin_l150_25;
   wire                when_RegStackPlugin_l152_25;
   wire                when_RegStackPlugin_l154_25;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_52;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_51;
   wire                when_RegStackPlugin_l144_26;
   wire                when_RegStackPlugin_l146_26;
   wire                when_RegStackPlugin_l148_26;
   wire                when_RegStackPlugin_l150_26;
   wire                when_RegStackPlugin_l152_26;
   wire                when_RegStackPlugin_l154_26;
-  wire       [63:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_53;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_54;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_52;
   wire                when_RegStackPlugin_l144_27;
   wire                when_RegStackPlugin_l146_27;
   wire                when_RegStackPlugin_l148_27;
   wire                when_RegStackPlugin_l150_27;
   wire                when_RegStackPlugin_l152_27;
   wire                when_RegStackPlugin_l154_27;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_55;
+  wire       [63:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_53;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_54;
   wire                when_RegStackPlugin_l144_28;
   wire                when_RegStackPlugin_l146_28;
   wire                when_RegStackPlugin_l148_28;
   wire                when_RegStackPlugin_l150_28;
   wire                when_RegStackPlugin_l152_28;
   wire                when_RegStackPlugin_l154_28;
-  wire       [63:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_56;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_57;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_55;
   wire                when_RegStackPlugin_l144_29;
   wire                when_RegStackPlugin_l146_29;
   wire                when_RegStackPlugin_l148_29;
   wire                when_RegStackPlugin_l150_29;
   wire                when_RegStackPlugin_l152_29;
   wire                when_RegStackPlugin_l154_29;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_58;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_56;
   wire                when_RegStackPlugin_l144_30;
   wire                when_RegStackPlugin_l146_30;
   wire                when_RegStackPlugin_l148_30;
   wire                when_RegStackPlugin_l150_30;
   wire                when_RegStackPlugin_l152_30;
   wire                when_RegStackPlugin_l154_30;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_59;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_57;
   wire                when_RegStackPlugin_l144_31;
   wire                when_RegStackPlugin_l146_31;
   wire                when_RegStackPlugin_l148_31;
   wire                when_RegStackPlugin_l150_31;
   wire                when_RegStackPlugin_l152_31;
   wire                when_RegStackPlugin_l154_31;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_60;
-  wire                when_RegStackPlugin_l144_32;
-  wire                when_RegStackPlugin_l146_32;
-  wire                when_RegStackPlugin_l148_32;
-  wire                when_RegStackPlugin_l150_32;
-  wire                when_RegStackPlugin_l152_32;
-  wire                when_RegStackPlugin_l154_32;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_61;
-  wire                when_RegStackPlugin_l144_33;
-  wire                when_RegStackPlugin_l146_33;
-  wire                when_RegStackPlugin_l148_33;
-  wire                when_RegStackPlugin_l150_33;
-  wire                when_RegStackPlugin_l152_33;
-  wire                when_RegStackPlugin_l154_33;
-  wire       [63:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_62;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_63;
-  wire                when_RegStackPlugin_l144_34;
-  wire                when_RegStackPlugin_l146_34;
-  wire                when_RegStackPlugin_l148_34;
-  wire                when_RegStackPlugin_l150_34;
-  wire                when_RegStackPlugin_l152_34;
-  wire                when_RegStackPlugin_l154_34;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_64;
-  wire                when_RegStackPlugin_l144_35;
-  wire                when_RegStackPlugin_l146_35;
-  wire                when_RegStackPlugin_l148_35;
-  wire                when_RegStackPlugin_l150_35;
-  wire                when_RegStackPlugin_l152_35;
-  wire                when_RegStackPlugin_l154_35;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_65;
-  wire                when_RegStackPlugin_l144_36;
-  wire                when_RegStackPlugin_l146_36;
-  wire                when_RegStackPlugin_l148_36;
-  wire                when_RegStackPlugin_l150_36;
-  wire                when_RegStackPlugin_l152_36;
-  wire                when_RegStackPlugin_l154_36;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_66;
-  wire                when_RegStackPlugin_l144_37;
-  wire                when_RegStackPlugin_l146_37;
-  wire                when_RegStackPlugin_l148_37;
-  wire                when_RegStackPlugin_l150_37;
-  wire                when_RegStackPlugin_l152_37;
-  wire                when_RegStackPlugin_l154_37;
   wire                when_LongArithPlugin_l313;
   wire                when_ControlFlowPlugin_l115;
   reg        [4:0]    switch_ControlFlowPlugin_l132;
@@ -1206,99 +1133,99 @@ module T9000Transputer (
   reg        [31:0]   _zz_when_ControlFlowPlugin_l171;
   wire       [31:0]   _zz_when_ControlFlowPlugin_l171_1;
   wire       [5:0]    switch_Misc_l245_7;
-  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_67;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_68;
+  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_58;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_59;
   wire       [5:0]    switch_Misc_l245_8;
-  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_69;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_70;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_71;
+  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_60;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_61;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_62;
+  wire                when_RegStackPlugin_l144_32;
+  wire                when_RegStackPlugin_l146_32;
+  wire                when_RegStackPlugin_l148_32;
+  wire                when_RegStackPlugin_l150_32;
+  wire                when_RegStackPlugin_l152_32;
+  wire                when_RegStackPlugin_l154_32;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_63;
+  wire                when_RegStackPlugin_l144_33;
+  wire                when_RegStackPlugin_l146_33;
+  wire                when_RegStackPlugin_l148_33;
+  wire                when_RegStackPlugin_l150_33;
+  wire                when_RegStackPlugin_l152_33;
+  wire                when_RegStackPlugin_l154_33;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_64;
+  wire                when_RegStackPlugin_l144_34;
+  wire                when_RegStackPlugin_l146_34;
+  wire                when_RegStackPlugin_l148_34;
+  wire                when_RegStackPlugin_l150_34;
+  wire                when_RegStackPlugin_l152_34;
+  wire                when_RegStackPlugin_l154_34;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_65;
+  wire                when_RegStackPlugin_l144_35;
+  wire                when_RegStackPlugin_l146_35;
+  wire                when_RegStackPlugin_l148_35;
+  wire                when_RegStackPlugin_l150_35;
+  wire                when_RegStackPlugin_l152_35;
+  wire                when_RegStackPlugin_l154_35;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_66;
+  wire                when_RegStackPlugin_l144_36;
+  wire                when_RegStackPlugin_l146_36;
+  wire                when_RegStackPlugin_l148_36;
+  wire                when_RegStackPlugin_l150_36;
+  wire                when_RegStackPlugin_l152_36;
+  wire                when_RegStackPlugin_l154_36;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_67;
+  wire                when_RegStackPlugin_l144_37;
+  wire                when_RegStackPlugin_l146_37;
+  wire                when_RegStackPlugin_l148_37;
+  wire                when_RegStackPlugin_l150_37;
+  wire                when_RegStackPlugin_l152_37;
+  wire                when_RegStackPlugin_l154_37;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_68;
   wire                when_RegStackPlugin_l144_38;
   wire                when_RegStackPlugin_l146_38;
   wire                when_RegStackPlugin_l148_38;
   wire                when_RegStackPlugin_l150_38;
   wire                when_RegStackPlugin_l152_38;
   wire                when_RegStackPlugin_l154_38;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_72;
+  wire                when_ControlFlowPlugin_l171;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_69;
   wire                when_RegStackPlugin_l144_39;
   wire                when_RegStackPlugin_l146_39;
   wire                when_RegStackPlugin_l148_39;
   wire                when_RegStackPlugin_l150_39;
   wire                when_RegStackPlugin_l152_39;
   wire                when_RegStackPlugin_l154_39;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_73;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_70;
   wire                when_RegStackPlugin_l144_40;
   wire                when_RegStackPlugin_l146_40;
   wire                when_RegStackPlugin_l148_40;
   wire                when_RegStackPlugin_l150_40;
   wire                when_RegStackPlugin_l152_40;
   wire                when_RegStackPlugin_l154_40;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_74;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_71;
   wire                when_RegStackPlugin_l144_41;
   wire                when_RegStackPlugin_l146_41;
   wire                when_RegStackPlugin_l148_41;
   wire                when_RegStackPlugin_l150_41;
   wire                when_RegStackPlugin_l152_41;
   wire                when_RegStackPlugin_l154_41;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_75;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_72;
   wire                when_RegStackPlugin_l144_42;
   wire                when_RegStackPlugin_l146_42;
   wire                when_RegStackPlugin_l148_42;
   wire                when_RegStackPlugin_l150_42;
   wire                when_RegStackPlugin_l152_42;
   wire                when_RegStackPlugin_l154_42;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_76;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_73;
   wire                when_RegStackPlugin_l144_43;
   wire                when_RegStackPlugin_l146_43;
   wire                when_RegStackPlugin_l148_43;
   wire                when_RegStackPlugin_l150_43;
   wire                when_RegStackPlugin_l152_43;
   wire                when_RegStackPlugin_l154_43;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_77;
-  wire                when_RegStackPlugin_l144_44;
-  wire                when_RegStackPlugin_l146_44;
-  wire                when_RegStackPlugin_l148_44;
-  wire                when_RegStackPlugin_l150_44;
-  wire                when_RegStackPlugin_l152_44;
-  wire                when_RegStackPlugin_l154_44;
-  wire                when_ControlFlowPlugin_l171;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_78;
-  wire                when_RegStackPlugin_l144_45;
-  wire                when_RegStackPlugin_l146_45;
-  wire                when_RegStackPlugin_l148_45;
-  wire                when_RegStackPlugin_l150_45;
-  wire                when_RegStackPlugin_l152_45;
-  wire                when_RegStackPlugin_l154_45;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_79;
-  wire                when_RegStackPlugin_l144_46;
-  wire                when_RegStackPlugin_l146_46;
-  wire                when_RegStackPlugin_l148_46;
-  wire                when_RegStackPlugin_l150_46;
-  wire                when_RegStackPlugin_l152_46;
-  wire                when_RegStackPlugin_l154_46;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_80;
-  wire                when_RegStackPlugin_l144_47;
-  wire                when_RegStackPlugin_l146_47;
-  wire                when_RegStackPlugin_l148_47;
-  wire                when_RegStackPlugin_l150_47;
-  wire                when_RegStackPlugin_l152_47;
-  wire                when_RegStackPlugin_l154_47;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_81;
-  wire                when_RegStackPlugin_l144_48;
-  wire                when_RegStackPlugin_l146_48;
-  wire                when_RegStackPlugin_l148_48;
-  wire                when_RegStackPlugin_l150_48;
-  wire                when_RegStackPlugin_l152_48;
-  wire                when_RegStackPlugin_l154_48;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_82;
-  wire                when_RegStackPlugin_l144_49;
-  wire                when_RegStackPlugin_l146_49;
-  wire                when_RegStackPlugin_l148_49;
-  wire                when_RegStackPlugin_l150_49;
-  wire                when_RegStackPlugin_l152_49;
-  wire                when_RegStackPlugin_l154_49;
   reg        [2:0]    switch_BlockMovePlugin_l118;
   reg                 when_BlockMovePlugin_l165;
-  reg        [2:0]    _zz_3;
+  reg        [2:0]    _zz_4;
   reg        [31:0]   _zz_when_BlockMovePlugin_l165;
   reg        [31:0]   _zz_when_BlockMovePlugin_l165_1;
   reg        [31:0]   _zz_when_BlockMovePlugin_l165_2;
@@ -1312,63 +1239,119 @@ module T9000Transputer (
   wire       [5:0]    switch_Misc_l245_11;
   reg        [31:0]   _zz_when_BlockMovePlugin_l165_5;
   wire       [31:0]   _zz_when_BlockMovePlugin_l165_6;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_83;
-  wire                when_RegStackPlugin_l144_50;
-  wire                when_RegStackPlugin_l146_50;
-  wire                when_RegStackPlugin_l148_50;
-  wire                when_RegStackPlugin_l150_50;
-  wire                when_RegStackPlugin_l152_50;
-  wire                when_RegStackPlugin_l154_50;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_84;
-  wire                when_RegStackPlugin_l144_51;
-  wire                when_RegStackPlugin_l146_51;
-  wire                when_RegStackPlugin_l148_51;
-  wire                when_RegStackPlugin_l150_51;
-  wire                when_RegStackPlugin_l152_51;
-  wire                when_RegStackPlugin_l154_51;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_85;
-  wire                when_RegStackPlugin_l144_52;
-  wire                when_RegStackPlugin_l146_52;
-  wire                when_RegStackPlugin_l148_52;
-  wire                when_RegStackPlugin_l150_52;
-  wire                when_RegStackPlugin_l152_52;
-  wire                when_RegStackPlugin_l154_52;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_74;
+  wire                when_RegStackPlugin_l144_44;
+  wire                when_RegStackPlugin_l146_44;
+  wire                when_RegStackPlugin_l148_44;
+  wire                when_RegStackPlugin_l150_44;
+  wire                when_RegStackPlugin_l152_44;
+  wire                when_RegStackPlugin_l154_44;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_75;
+  wire                when_RegStackPlugin_l144_45;
+  wire                when_RegStackPlugin_l146_45;
+  wire                when_RegStackPlugin_l148_45;
+  wire                when_RegStackPlugin_l150_45;
+  wire                when_RegStackPlugin_l152_45;
+  wire                when_RegStackPlugin_l154_45;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_76;
+  wire                when_RegStackPlugin_l144_46;
+  wire                when_RegStackPlugin_l146_46;
+  wire                when_RegStackPlugin_l148_46;
+  wire                when_RegStackPlugin_l150_46;
+  wire                when_RegStackPlugin_l152_46;
+  wire                when_RegStackPlugin_l154_46;
   wire                when_BlockMovePlugin_l171;
   wire                when_BlockMovePlugin_l187;
-  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_86;
+  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_77;
   wire                when_IndexingPlugin_l135;
   reg        [4:0]    switch_IndexingPlugin_l155;
   wire                _zz_when_IndexingPlugin_l135_1;
   wire                _zz_when_IndexingPlugin_l135_2;
   wire       [3:0]    _zz_when_IndexingPlugin_l135_3;
   wire       [3:0]    _zz_when_IndexingPlugin_l135_4;
-  wire       [3:0]    _zz_fpu_fpPipe_ctrl_0_down_RESULT_87;
+  wire       [3:0]    _zz_fpu_fpPipe_ctrl_0_down_RESULT_78;
   wire       [5:0]    switch_Misc_l245_12;
-  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_88;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_89;
+  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_79;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_80;
   wire       [5:0]    switch_Misc_l245_13;
-  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_90;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_91;
+  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_81;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_82;
   wire       [5:0]    switch_Misc_l245_14;
-  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_92;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_93;
+  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_83;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_84;
   wire       [5:0]    switch_Misc_l245_15;
-  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_94;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_95;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_96;
+  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_85;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_86;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_87;
+  wire                when_RegStackPlugin_l144_47;
+  wire                when_RegStackPlugin_l146_47;
+  wire                when_RegStackPlugin_l148_47;
+  wire                when_RegStackPlugin_l150_47;
+  wire                when_RegStackPlugin_l152_47;
+  wire                when_RegStackPlugin_l154_47;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_88;
+  wire                when_RegStackPlugin_l144_48;
+  wire                when_RegStackPlugin_l146_48;
+  wire                when_RegStackPlugin_l148_48;
+  wire                when_RegStackPlugin_l150_48;
+  wire                when_RegStackPlugin_l152_48;
+  wire                when_RegStackPlugin_l154_48;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_89;
+  wire                when_RegStackPlugin_l144_49;
+  wire                when_RegStackPlugin_l146_49;
+  wire                when_RegStackPlugin_l148_49;
+  wire                when_RegStackPlugin_l150_49;
+  wire                when_RegStackPlugin_l152_49;
+  wire                when_RegStackPlugin_l154_49;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_90;
+  wire                when_RegStackPlugin_l144_50;
+  wire                when_RegStackPlugin_l146_50;
+  wire                when_RegStackPlugin_l148_50;
+  wire                when_RegStackPlugin_l150_50;
+  wire                when_RegStackPlugin_l152_50;
+  wire                when_RegStackPlugin_l154_50;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_91;
+  wire                when_RegStackPlugin_l144_51;
+  wire                when_RegStackPlugin_l146_51;
+  wire                when_RegStackPlugin_l148_51;
+  wire                when_RegStackPlugin_l150_51;
+  wire                when_RegStackPlugin_l152_51;
+  wire                when_RegStackPlugin_l154_51;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_92;
+  wire                when_RegStackPlugin_l144_52;
+  wire                when_RegStackPlugin_l146_52;
+  wire                when_RegStackPlugin_l148_52;
+  wire                when_RegStackPlugin_l150_52;
+  wire                when_RegStackPlugin_l152_52;
+  wire                when_RegStackPlugin_l154_52;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_93;
   wire                when_RegStackPlugin_l144_53;
   wire                when_RegStackPlugin_l146_53;
   wire                when_RegStackPlugin_l148_53;
   wire                when_RegStackPlugin_l150_53;
   wire                when_RegStackPlugin_l152_53;
   wire                when_RegStackPlugin_l154_53;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_97;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_94;
   wire                when_RegStackPlugin_l144_54;
   wire                when_RegStackPlugin_l146_54;
   wire                when_RegStackPlugin_l148_54;
   wire                when_RegStackPlugin_l150_54;
   wire                when_RegStackPlugin_l152_54;
   wire                when_RegStackPlugin_l154_54;
+  wire                when_RangeCheckPlugin_l124;
+  reg        [3:0]    switch_RangeCheckPlugin_l137;
+  wire                _zz_when_RangeCheckPlugin_l124_1;
+  wire                _zz_when_RangeCheckPlugin_l124_2;
+  wire       [3:0]    _zz_when_RangeCheckPlugin_l124_3;
+  wire       [3:0]    _zz_when_RangeCheckPlugin_l124_4;
+  wire       [5:0]    switch_Misc_l245_16;
+  reg        [31:0]   _zz_when_RangeCheckPlugin_l191;
+  wire       [31:0]   _zz_when_RangeCheckPlugin_l191_1;
+  wire       [5:0]    switch_Misc_l245_17;
+  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_95;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_96;
+  wire       [5:0]    switch_Misc_l245_18;
+  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_97;
   wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_98;
   wire                when_RegStackPlugin_l144_55;
   wire                when_RegStackPlugin_l146_55;
@@ -1404,6 +1387,7 @@ module T9000Transputer (
   wire                when_RegStackPlugin_l150_59;
   wire                when_RegStackPlugin_l152_59;
   wire                when_RegStackPlugin_l154_59;
+  wire                when_RangeCheckPlugin_l191;
   wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_103;
   wire                when_RegStackPlugin_l144_60;
   wire                when_RegStackPlugin_l146_60;
@@ -1411,181 +1395,133 @@ module T9000Transputer (
   wire                when_RegStackPlugin_l150_60;
   wire                when_RegStackPlugin_l152_60;
   wire                when_RegStackPlugin_l154_60;
-  wire                when_RangeCheckPlugin_l124;
-  reg        [3:0]    switch_RangeCheckPlugin_l137;
-  wire                _zz_when_RangeCheckPlugin_l124_1;
-  wire                _zz_when_RangeCheckPlugin_l124_2;
-  wire       [3:0]    _zz_when_RangeCheckPlugin_l124_3;
-  wire       [3:0]    _zz_when_RangeCheckPlugin_l124_4;
-  wire       [5:0]    switch_Misc_l245_16;
-  reg        [31:0]   _zz_when_RangeCheckPlugin_l191;
-  wire       [31:0]   _zz_when_RangeCheckPlugin_l191_1;
-  wire       [5:0]    switch_Misc_l245_17;
-  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_104;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_105;
-  wire       [5:0]    switch_Misc_l245_18;
-  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_106;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_107;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_104;
   wire                when_RegStackPlugin_l144_61;
   wire                when_RegStackPlugin_l146_61;
   wire                when_RegStackPlugin_l148_61;
   wire                when_RegStackPlugin_l150_61;
   wire                when_RegStackPlugin_l152_61;
   wire                when_RegStackPlugin_l154_61;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_108;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_105;
   wire                when_RegStackPlugin_l144_62;
   wire                when_RegStackPlugin_l146_62;
   wire                when_RegStackPlugin_l148_62;
   wire                when_RegStackPlugin_l150_62;
   wire                when_RegStackPlugin_l152_62;
   wire                when_RegStackPlugin_l154_62;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_109;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_106;
   wire                when_RegStackPlugin_l144_63;
   wire                when_RegStackPlugin_l146_63;
   wire                when_RegStackPlugin_l148_63;
   wire                when_RegStackPlugin_l150_63;
   wire                when_RegStackPlugin_l152_63;
   wire                when_RegStackPlugin_l154_63;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_110;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_107;
   wire                when_RegStackPlugin_l144_64;
   wire                when_RegStackPlugin_l146_64;
   wire                when_RegStackPlugin_l148_64;
   wire                when_RegStackPlugin_l150_64;
   wire                when_RegStackPlugin_l152_64;
   wire                when_RegStackPlugin_l154_64;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_111;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_108;
   wire                when_RegStackPlugin_l144_65;
   wire                when_RegStackPlugin_l146_65;
   wire                when_RegStackPlugin_l148_65;
   wire                when_RegStackPlugin_l150_65;
   wire                when_RegStackPlugin_l152_65;
   wire                when_RegStackPlugin_l154_65;
-  wire                when_RangeCheckPlugin_l191;
+  wire                when_GeneralPlugin_l69;
+  wire       [3:0]    _zz_when_GeneralPlugin_l69_1;
+  wire       [5:0]    switch_Misc_l245_19;
+  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_109;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_110;
+  wire       [5:0]    switch_Misc_l245_20;
+  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_111;
   wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_112;
+  wire       [5:0]    switch_Misc_l245_21;
+  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_113;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_114;
   wire                when_RegStackPlugin_l144_66;
   wire                when_RegStackPlugin_l146_66;
   wire                when_RegStackPlugin_l148_66;
   wire                when_RegStackPlugin_l150_66;
   wire                when_RegStackPlugin_l152_66;
   wire                when_RegStackPlugin_l154_66;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_113;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_115;
   wire                when_RegStackPlugin_l144_67;
   wire                when_RegStackPlugin_l146_67;
   wire                when_RegStackPlugin_l148_67;
   wire                when_RegStackPlugin_l150_67;
   wire                when_RegStackPlugin_l152_67;
   wire                when_RegStackPlugin_l154_67;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_114;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_116;
   wire                when_RegStackPlugin_l144_68;
   wire                when_RegStackPlugin_l146_68;
   wire                when_RegStackPlugin_l148_68;
   wire                when_RegStackPlugin_l150_68;
   wire                when_RegStackPlugin_l152_68;
   wire                when_RegStackPlugin_l154_68;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_115;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_117;
   wire                when_RegStackPlugin_l144_69;
   wire                when_RegStackPlugin_l146_69;
   wire                when_RegStackPlugin_l148_69;
   wire                when_RegStackPlugin_l150_69;
   wire                when_RegStackPlugin_l152_69;
   wire                when_RegStackPlugin_l154_69;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_116;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_118;
   wire                when_RegStackPlugin_l144_70;
   wire                when_RegStackPlugin_l146_70;
   wire                when_RegStackPlugin_l148_70;
   wire                when_RegStackPlugin_l150_70;
   wire                when_RegStackPlugin_l152_70;
   wire                when_RegStackPlugin_l154_70;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_117;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_119;
   wire                when_RegStackPlugin_l144_71;
   wire                when_RegStackPlugin_l146_71;
   wire                when_RegStackPlugin_l148_71;
   wire                when_RegStackPlugin_l150_71;
   wire                when_RegStackPlugin_l152_71;
   wire                when_RegStackPlugin_l154_71;
-  wire                when_GeneralPlugin_l69;
-  wire       [3:0]    _zz_when_GeneralPlugin_l69_1;
-  wire       [5:0]    switch_Misc_l245_19;
-  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_118;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_119;
-  wire       [5:0]    switch_Misc_l245_20;
-  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_120;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_121;
-  wire       [5:0]    switch_Misc_l245_21;
-  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_122;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_123;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_120;
   wire                when_RegStackPlugin_l144_72;
   wire                when_RegStackPlugin_l146_72;
   wire                when_RegStackPlugin_l148_72;
   wire                when_RegStackPlugin_l150_72;
   wire                when_RegStackPlugin_l152_72;
   wire                when_RegStackPlugin_l154_72;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_124;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_121;
   wire                when_RegStackPlugin_l144_73;
   wire                when_RegStackPlugin_l146_73;
   wire                when_RegStackPlugin_l148_73;
   wire                when_RegStackPlugin_l150_73;
   wire                when_RegStackPlugin_l152_73;
   wire                when_RegStackPlugin_l154_73;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_125;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_122;
   wire                when_RegStackPlugin_l144_74;
   wire                when_RegStackPlugin_l146_74;
   wire                when_RegStackPlugin_l148_74;
   wire                when_RegStackPlugin_l150_74;
   wire                when_RegStackPlugin_l152_74;
   wire                when_RegStackPlugin_l154_74;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_126;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_123;
   wire                when_RegStackPlugin_l144_75;
   wire                when_RegStackPlugin_l146_75;
   wire                when_RegStackPlugin_l148_75;
   wire                when_RegStackPlugin_l150_75;
   wire                when_RegStackPlugin_l152_75;
   wire                when_RegStackPlugin_l154_75;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_127;
-  wire                when_RegStackPlugin_l144_76;
-  wire                when_RegStackPlugin_l146_76;
-  wire                when_RegStackPlugin_l148_76;
-  wire                when_RegStackPlugin_l150_76;
-  wire                when_RegStackPlugin_l152_76;
-  wire                when_RegStackPlugin_l154_76;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_128;
-  wire                when_RegStackPlugin_l144_77;
-  wire                when_RegStackPlugin_l146_77;
-  wire                when_RegStackPlugin_l148_77;
-  wire                when_RegStackPlugin_l150_77;
-  wire                when_RegStackPlugin_l152_77;
-  wire                when_RegStackPlugin_l154_77;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_129;
-  wire                when_RegStackPlugin_l144_78;
-  wire                when_RegStackPlugin_l146_78;
-  wire                when_RegStackPlugin_l148_78;
-  wire                when_RegStackPlugin_l150_78;
-  wire                when_RegStackPlugin_l152_78;
-  wire                when_RegStackPlugin_l154_78;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_130;
-  wire                when_RegStackPlugin_l144_79;
-  wire                when_RegStackPlugin_l146_79;
-  wire                when_RegStackPlugin_l148_79;
-  wire                when_RegStackPlugin_l150_79;
-  wire                when_RegStackPlugin_l152_79;
-  wire                when_RegStackPlugin_l154_79;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_131;
-  wire                when_RegStackPlugin_l144_80;
-  wire                when_RegStackPlugin_l146_80;
-  wire                when_RegStackPlugin_l148_80;
-  wire                when_RegStackPlugin_l150_80;
-  wire                when_RegStackPlugin_l152_80;
-  wire                when_RegStackPlugin_l154_80;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_132;
-  wire                when_RegStackPlugin_l144_81;
-  wire                when_RegStackPlugin_l146_81;
-  wire                when_RegStackPlugin_l148_81;
-  wire                when_RegStackPlugin_l150_81;
-  wire                when_RegStackPlugin_l152_81;
-  wire                when_RegStackPlugin_l154_81;
-  reg        [1:0]    _zz_fpu_fpPipe_ctrl_0_down_RESULT_133;
+  reg        [1:0]    _zz_fpu_fpPipe_ctrl_0_down_RESULT_124;
   wire                when_ChannelPlugin_l111;
   reg        [3:0]    switch_ChannelPlugin_l121;
+  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_125;
+  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_126;
+  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_127;
+  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_128;
+  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_129;
+  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_130;
+  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_131;
+  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_132;
+  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_133;
   reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_134;
   reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_135;
   reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_136;
@@ -1593,15 +1529,6 @@ module T9000Transputer (
   reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_138;
   reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_139;
   reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_140;
-  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_141;
-  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_142;
-  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_143;
-  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_144;
-  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_145;
-  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_146;
-  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_147;
-  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_148;
-  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_149;
   reg                 _zz_when_ChannelPlugin_l129;
   reg                 _zz_when_ChannelPlugin_l129_1;
   reg                 _zz_when_ChannelPlugin_l129_2;
@@ -1626,276 +1553,276 @@ module T9000Transputer (
   reg        [31:0]   _zz_when_ChannelPlugin_l127_1;
   wire       [31:0]   _zz_when_ChannelPlugin_l127_2;
   wire       [5:0]    switch_Misc_l245_23;
-  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_150;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_151;
+  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_141;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_142;
   wire       [5:0]    switch_Misc_l245_24;
-  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_152;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_153;
+  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_143;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_144;
   wire       [3:0]    _zz_when_ChannelPlugin_l127_3;
   wire                when_ChannelPlugin_l127;
-  wire       [15:0]   _zz_4;
+  wire       [15:0]   _zz_5;
   wire                when_ChannelPlugin_l129;
   wire                when_ChannelPlugin_l131;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_154;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_145;
+  wire                when_RegStackPlugin_l144_76;
+  wire                when_RegStackPlugin_l146_76;
+  wire                when_RegStackPlugin_l148_76;
+  wire                when_RegStackPlugin_l150_76;
+  wire                when_RegStackPlugin_l152_76;
+  wire                when_RegStackPlugin_l154_76;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_146;
+  wire                when_RegStackPlugin_l144_77;
+  wire                when_RegStackPlugin_l146_77;
+  wire                when_RegStackPlugin_l148_77;
+  wire                when_RegStackPlugin_l150_77;
+  wire                when_RegStackPlugin_l152_77;
+  wire                when_RegStackPlugin_l154_77;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_147;
+  wire                when_RegStackPlugin_l144_78;
+  wire                when_RegStackPlugin_l146_78;
+  wire                when_RegStackPlugin_l148_78;
+  wire                when_RegStackPlugin_l150_78;
+  wire                when_RegStackPlugin_l152_78;
+  wire                when_RegStackPlugin_l154_78;
+  wire                when_ChannelPlugin_l154;
+  wire                _zz_when_ChannelPlugin_l129_16;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_148;
+  wire                when_RegStackPlugin_l144_79;
+  wire                when_RegStackPlugin_l146_79;
+  wire                when_RegStackPlugin_l148_79;
+  wire                when_RegStackPlugin_l150_79;
+  wire                when_RegStackPlugin_l152_79;
+  wire                when_RegStackPlugin_l154_79;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_149;
+  wire                when_RegStackPlugin_l144_80;
+  wire                when_RegStackPlugin_l146_80;
+  wire                when_RegStackPlugin_l148_80;
+  wire                when_RegStackPlugin_l150_80;
+  wire                when_RegStackPlugin_l152_80;
+  wire                when_RegStackPlugin_l154_80;
+  wire                when_ChannelPlugin_l167;
+  wire       [15:0]   _zz_6;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_150;
+  wire                when_RegStackPlugin_l144_81;
+  wire                when_RegStackPlugin_l146_81;
+  wire                when_RegStackPlugin_l148_81;
+  wire                when_RegStackPlugin_l150_81;
+  wire                when_RegStackPlugin_l152_81;
+  wire                when_RegStackPlugin_l154_81;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_151;
   wire                when_RegStackPlugin_l144_82;
   wire                when_RegStackPlugin_l146_82;
   wire                when_RegStackPlugin_l148_82;
   wire                when_RegStackPlugin_l150_82;
   wire                when_RegStackPlugin_l152_82;
   wire                when_RegStackPlugin_l154_82;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_155;
+  wire                when_ChannelPlugin_l177;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_152;
   wire                when_RegStackPlugin_l144_83;
   wire                when_RegStackPlugin_l146_83;
   wire                when_RegStackPlugin_l148_83;
   wire                when_RegStackPlugin_l150_83;
   wire                when_RegStackPlugin_l152_83;
   wire                when_RegStackPlugin_l154_83;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_156;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_153;
   wire                when_RegStackPlugin_l144_84;
   wire                when_RegStackPlugin_l146_84;
   wire                when_RegStackPlugin_l148_84;
   wire                when_RegStackPlugin_l150_84;
   wire                when_RegStackPlugin_l152_84;
   wire                when_RegStackPlugin_l154_84;
-  wire                when_ChannelPlugin_l154;
-  wire                _zz_when_ChannelPlugin_l129_16;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_157;
+  wire                when_ChannelPlugin_l190;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_154;
   wire                when_RegStackPlugin_l144_85;
   wire                when_RegStackPlugin_l146_85;
   wire                when_RegStackPlugin_l148_85;
   wire                when_RegStackPlugin_l150_85;
   wire                when_RegStackPlugin_l152_85;
   wire                when_RegStackPlugin_l154_85;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_158;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_155;
   wire                when_RegStackPlugin_l144_86;
   wire                when_RegStackPlugin_l146_86;
   wire                when_RegStackPlugin_l148_86;
   wire                when_RegStackPlugin_l150_86;
   wire                when_RegStackPlugin_l152_86;
   wire                when_RegStackPlugin_l154_86;
-  wire                when_ChannelPlugin_l167;
-  wire       [15:0]   _zz_5;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_159;
+  wire                when_ChannelPlugin_l200;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_156;
   wire                when_RegStackPlugin_l144_87;
   wire                when_RegStackPlugin_l146_87;
   wire                when_RegStackPlugin_l148_87;
   wire                when_RegStackPlugin_l150_87;
   wire                when_RegStackPlugin_l152_87;
   wire                when_RegStackPlugin_l154_87;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_160;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_157;
   wire                when_RegStackPlugin_l144_88;
   wire                when_RegStackPlugin_l146_88;
   wire                when_RegStackPlugin_l148_88;
   wire                when_RegStackPlugin_l150_88;
   wire                when_RegStackPlugin_l152_88;
   wire                when_RegStackPlugin_l154_88;
-  wire                when_ChannelPlugin_l177;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_161;
+  wire                when_ChannelPlugin_l222;
+  wire                when_InterruptPlugin_l118;
+  reg        [2:0]    switch_InterruptPlugin_l123;
+  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_158;
+  wire                _zz_when_InterruptPlugin_l118_1;
+  wire       [3:0]    _zz_when_InterruptPlugin_l118_2;
+  wire       [5:0]    switch_Misc_l245_25;
+  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_159;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_160;
+  wire       [5:0]    switch_Misc_l245_26;
+  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_161;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_162;
+  wire       [5:0]    switch_Misc_l245_27;
+  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_163;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_164;
   wire                when_RegStackPlugin_l144_89;
   wire                when_RegStackPlugin_l146_89;
   wire                when_RegStackPlugin_l148_89;
   wire                when_RegStackPlugin_l150_89;
   wire                when_RegStackPlugin_l152_89;
   wire                when_RegStackPlugin_l154_89;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_162;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_165;
   wire                when_RegStackPlugin_l144_90;
   wire                when_RegStackPlugin_l146_90;
   wire                when_RegStackPlugin_l148_90;
   wire                when_RegStackPlugin_l150_90;
   wire                when_RegStackPlugin_l152_90;
   wire                when_RegStackPlugin_l154_90;
-  wire                when_ChannelPlugin_l190;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_163;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_166;
   wire                when_RegStackPlugin_l144_91;
   wire                when_RegStackPlugin_l146_91;
   wire                when_RegStackPlugin_l148_91;
   wire                when_RegStackPlugin_l150_91;
   wire                when_RegStackPlugin_l152_91;
   wire                when_RegStackPlugin_l154_91;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_164;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_167;
   wire                when_RegStackPlugin_l144_92;
   wire                when_RegStackPlugin_l146_92;
   wire                when_RegStackPlugin_l148_92;
   wire                when_RegStackPlugin_l150_92;
   wire                when_RegStackPlugin_l152_92;
   wire                when_RegStackPlugin_l154_92;
-  wire                when_ChannelPlugin_l200;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_165;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_168;
   wire                when_RegStackPlugin_l144_93;
   wire                when_RegStackPlugin_l146_93;
   wire                when_RegStackPlugin_l148_93;
   wire                when_RegStackPlugin_l150_93;
   wire                when_RegStackPlugin_l152_93;
   wire                when_RegStackPlugin_l154_93;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_166;
+  wire                when_ResourcePlugin_l114;
+  reg        [3:0]    switch_ResourcePlugin_l119;
+  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_169;
+  wire                _zz_when_ResourcePlugin_l114_1;
+  wire       [3:0]    _zz_when_ResourcePlugin_l114_2;
+  wire       [5:0]    switch_Misc_l245_28;
+  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_170;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_171;
+  wire       [5:0]    switch_Misc_l245_29;
+  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_172;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_173;
+  wire       [5:0]    switch_Misc_l245_30;
+  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_174;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_175;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_176;
   wire                when_RegStackPlugin_l144_94;
   wire                when_RegStackPlugin_l146_94;
   wire                when_RegStackPlugin_l148_94;
   wire                when_RegStackPlugin_l150_94;
   wire                when_RegStackPlugin_l152_94;
   wire                when_RegStackPlugin_l154_94;
-  wire                when_ChannelPlugin_l222;
-  wire                when_InterruptPlugin_l118;
-  reg        [2:0]    switch_InterruptPlugin_l123;
-  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_167;
-  wire                _zz_when_InterruptPlugin_l118_1;
-  wire       [3:0]    _zz_when_InterruptPlugin_l118_2;
-  wire       [5:0]    switch_Misc_l245_25;
-  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_168;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_169;
-  wire       [5:0]    switch_Misc_l245_26;
-  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_170;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_171;
-  wire       [5:0]    switch_Misc_l245_27;
-  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_172;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_173;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_177;
   wire                when_RegStackPlugin_l144_95;
   wire                when_RegStackPlugin_l146_95;
   wire                when_RegStackPlugin_l148_95;
   wire                when_RegStackPlugin_l150_95;
   wire                when_RegStackPlugin_l152_95;
   wire                when_RegStackPlugin_l154_95;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_174;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_178;
   wire                when_RegStackPlugin_l144_96;
   wire                when_RegStackPlugin_l146_96;
   wire                when_RegStackPlugin_l148_96;
   wire                when_RegStackPlugin_l150_96;
   wire                when_RegStackPlugin_l152_96;
   wire                when_RegStackPlugin_l154_96;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_175;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_179;
   wire                when_RegStackPlugin_l144_97;
   wire                when_RegStackPlugin_l146_97;
   wire                when_RegStackPlugin_l148_97;
   wire                when_RegStackPlugin_l150_97;
   wire                when_RegStackPlugin_l152_97;
   wire                when_RegStackPlugin_l154_97;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_176;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_180;
   wire                when_RegStackPlugin_l144_98;
   wire                when_RegStackPlugin_l146_98;
   wire                when_RegStackPlugin_l148_98;
   wire                when_RegStackPlugin_l150_98;
   wire                when_RegStackPlugin_l152_98;
   wire                when_RegStackPlugin_l154_98;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_177;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_181;
   wire                when_RegStackPlugin_l144_99;
   wire                when_RegStackPlugin_l146_99;
   wire                when_RegStackPlugin_l148_99;
   wire                when_RegStackPlugin_l150_99;
   wire                when_RegStackPlugin_l152_99;
   wire                when_RegStackPlugin_l154_99;
-  wire                when_ResourcePlugin_l114;
-  reg        [3:0]    switch_ResourcePlugin_l119;
-  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_178;
-  wire                _zz_when_ResourcePlugin_l114_1;
-  wire       [3:0]    _zz_when_ResourcePlugin_l114_2;
-  wire       [5:0]    switch_Misc_l245_28;
-  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_179;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_180;
-  wire       [5:0]    switch_Misc_l245_29;
-  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_181;
   wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_182;
-  wire       [5:0]    switch_Misc_l245_30;
-  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_183;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_184;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_185;
   wire                when_RegStackPlugin_l144_100;
   wire                when_RegStackPlugin_l146_100;
   wire                when_RegStackPlugin_l148_100;
   wire                when_RegStackPlugin_l150_100;
   wire                when_RegStackPlugin_l152_100;
   wire                when_RegStackPlugin_l154_100;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_186;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_183;
   wire                when_RegStackPlugin_l144_101;
   wire                when_RegStackPlugin_l146_101;
   wire                when_RegStackPlugin_l148_101;
   wire                when_RegStackPlugin_l150_101;
   wire                when_RegStackPlugin_l152_101;
   wire                when_RegStackPlugin_l154_101;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_187;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_184;
   wire                when_RegStackPlugin_l144_102;
   wire                when_RegStackPlugin_l146_102;
   wire                when_RegStackPlugin_l148_102;
   wire                when_RegStackPlugin_l150_102;
   wire                when_RegStackPlugin_l152_102;
   wire                when_RegStackPlugin_l154_102;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_188;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_185;
   wire                when_RegStackPlugin_l144_103;
   wire                when_RegStackPlugin_l146_103;
   wire                when_RegStackPlugin_l148_103;
   wire                when_RegStackPlugin_l150_103;
   wire                when_RegStackPlugin_l152_103;
   wire                when_RegStackPlugin_l154_103;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_189;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_186;
   wire                when_RegStackPlugin_l144_104;
   wire                when_RegStackPlugin_l146_104;
   wire                when_RegStackPlugin_l148_104;
   wire                when_RegStackPlugin_l150_104;
   wire                when_RegStackPlugin_l152_104;
   wire                when_RegStackPlugin_l154_104;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_190;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_187;
   wire                when_RegStackPlugin_l144_105;
   wire                when_RegStackPlugin_l146_105;
   wire                when_RegStackPlugin_l148_105;
   wire                when_RegStackPlugin_l150_105;
   wire                when_RegStackPlugin_l152_105;
   wire                when_RegStackPlugin_l154_105;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_191;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_188;
   wire                when_RegStackPlugin_l144_106;
   wire                when_RegStackPlugin_l146_106;
   wire                when_RegStackPlugin_l148_106;
   wire                when_RegStackPlugin_l150_106;
   wire                when_RegStackPlugin_l152_106;
   wire                when_RegStackPlugin_l154_106;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_192;
-  wire                when_RegStackPlugin_l144_107;
-  wire                when_RegStackPlugin_l146_107;
-  wire                when_RegStackPlugin_l148_107;
-  wire                when_RegStackPlugin_l150_107;
-  wire                when_RegStackPlugin_l152_107;
-  wire                when_RegStackPlugin_l154_107;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_193;
-  wire                when_RegStackPlugin_l144_108;
-  wire                when_RegStackPlugin_l146_108;
-  wire                when_RegStackPlugin_l148_108;
-  wire                when_RegStackPlugin_l150_108;
-  wire                when_RegStackPlugin_l152_108;
-  wire                when_RegStackPlugin_l154_108;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_194;
-  wire                when_RegStackPlugin_l144_109;
-  wire                when_RegStackPlugin_l146_109;
-  wire                when_RegStackPlugin_l148_109;
-  wire                when_RegStackPlugin_l150_109;
-  wire                when_RegStackPlugin_l152_109;
-  wire                when_RegStackPlugin_l154_109;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_195;
-  wire                when_RegStackPlugin_l144_110;
-  wire                when_RegStackPlugin_l146_110;
-  wire                when_RegStackPlugin_l148_110;
-  wire                when_RegStackPlugin_l150_110;
-  wire                when_RegStackPlugin_l152_110;
-  wire                when_RegStackPlugin_l154_110;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_196;
-  wire                when_RegStackPlugin_l144_111;
-  wire                when_RegStackPlugin_l146_111;
-  wire                when_RegStackPlugin_l148_111;
-  wire                when_RegStackPlugin_l150_111;
-  wire                when_RegStackPlugin_l152_111;
-  wire                when_RegStackPlugin_l154_111;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_197;
-  wire                when_RegStackPlugin_l144_112;
-  wire                when_RegStackPlugin_l146_112;
-  wire                when_RegStackPlugin_l148_112;
-  wire                when_RegStackPlugin_l150_112;
-  wire                when_RegStackPlugin_l152_112;
-  wire                when_RegStackPlugin_l154_112;
-  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_198;
+  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_189;
   wire                when_SystemPlugin_l123;
   reg        [2:0]    switch_SystemPlugin_l128;
-  reg        [7:0]    _zz_fpu_fpPipe_ctrl_0_down_RESULT_199;
-  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_200;
-  reg        [15:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_201;
-  reg        [15:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_202;
-  reg        [15:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_203;
+  reg        [7:0]    _zz_fpu_fpPipe_ctrl_0_down_RESULT_190;
+  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_191;
+  reg        [15:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_192;
+  reg        [15:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_193;
+  reg        [15:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_194;
   wire                _zz_when_SystemPlugin_l123_1;
   wire       [3:0]    _zz_when_SystemPlugin_l123_2;
   wire       [5:0]    switch_Misc_l245_31;
@@ -1905,149 +1832,149 @@ module T9000Transputer (
   reg        [31:0]   _zz_switch_SystemPlugin_l163;
   wire       [31:0]   _zz_switch_SystemPlugin_l163_1;
   wire       [5:0]    switch_Misc_l245_33;
-  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_204;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_205;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_206;
+  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_195;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_196;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_197;
+  wire                when_RegStackPlugin_l144_107;
+  wire                when_RegStackPlugin_l146_107;
+  wire                when_RegStackPlugin_l148_107;
+  wire                when_RegStackPlugin_l150_107;
+  wire                when_RegStackPlugin_l152_107;
+  wire                when_RegStackPlugin_l154_107;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_198;
+  wire                when_RegStackPlugin_l144_108;
+  wire                when_RegStackPlugin_l146_108;
+  wire                when_RegStackPlugin_l148_108;
+  wire                when_RegStackPlugin_l150_108;
+  wire                when_RegStackPlugin_l152_108;
+  wire                when_RegStackPlugin_l154_108;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_199;
+  wire                when_RegStackPlugin_l144_109;
+  wire                when_RegStackPlugin_l146_109;
+  wire                when_RegStackPlugin_l148_109;
+  wire                when_RegStackPlugin_l150_109;
+  wire                when_RegStackPlugin_l152_109;
+  wire                when_RegStackPlugin_l154_109;
+  wire       [3:0]    switch_SystemPlugin_l145;
+  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_200;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_201;
+  wire                when_RegStackPlugin_l144_110;
+  wire                when_RegStackPlugin_l146_110;
+  wire                when_RegStackPlugin_l148_110;
+  wire                when_RegStackPlugin_l150_110;
+  wire                when_RegStackPlugin_l152_110;
+  wire                when_RegStackPlugin_l154_110;
+  wire       [3:0]    switch_SystemPlugin_l163;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_202;
+  wire                when_RegStackPlugin_l144_111;
+  wire                when_RegStackPlugin_l146_111;
+  wire                when_RegStackPlugin_l148_111;
+  wire                when_RegStackPlugin_l150_111;
+  wire                when_RegStackPlugin_l152_111;
+  wire                when_RegStackPlugin_l154_111;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_203;
+  wire                when_RegStackPlugin_l144_112;
+  wire                when_RegStackPlugin_l146_112;
+  wire                when_RegStackPlugin_l148_112;
+  wire                when_RegStackPlugin_l150_112;
+  wire                when_RegStackPlugin_l152_112;
+  wire                when_RegStackPlugin_l154_112;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_204;
   wire                when_RegStackPlugin_l144_113;
   wire                when_RegStackPlugin_l146_113;
   wire                when_RegStackPlugin_l148_113;
   wire                when_RegStackPlugin_l150_113;
   wire                when_RegStackPlugin_l152_113;
   wire                when_RegStackPlugin_l154_113;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_207;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_205;
   wire                when_RegStackPlugin_l144_114;
   wire                when_RegStackPlugin_l146_114;
   wire                when_RegStackPlugin_l148_114;
   wire                when_RegStackPlugin_l150_114;
   wire                when_RegStackPlugin_l152_114;
   wire                when_RegStackPlugin_l154_114;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_208;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_206;
   wire                when_RegStackPlugin_l144_115;
   wire                when_RegStackPlugin_l146_115;
   wire                when_RegStackPlugin_l148_115;
   wire                when_RegStackPlugin_l150_115;
   wire                when_RegStackPlugin_l152_115;
   wire                when_RegStackPlugin_l154_115;
-  wire       [3:0]    switch_SystemPlugin_l145;
-  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_209;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_210;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_207;
   wire                when_RegStackPlugin_l144_116;
   wire                when_RegStackPlugin_l146_116;
   wire                when_RegStackPlugin_l148_116;
   wire                when_RegStackPlugin_l150_116;
   wire                when_RegStackPlugin_l152_116;
   wire                when_RegStackPlugin_l154_116;
-  wire       [3:0]    switch_SystemPlugin_l163;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_211;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_208;
   wire                when_RegStackPlugin_l144_117;
   wire                when_RegStackPlugin_l146_117;
   wire                when_RegStackPlugin_l148_117;
   wire                when_RegStackPlugin_l150_117;
   wire                when_RegStackPlugin_l152_117;
   wire                when_RegStackPlugin_l154_117;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_212;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_209;
   wire                when_RegStackPlugin_l144_118;
   wire                when_RegStackPlugin_l146_118;
   wire                when_RegStackPlugin_l148_118;
   wire                when_RegStackPlugin_l150_118;
   wire                when_RegStackPlugin_l152_118;
   wire                when_RegStackPlugin_l154_118;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_213;
+  wire       [3:0]    switch_SystemPlugin_l217;
+  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_210;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_211;
   wire                when_RegStackPlugin_l144_119;
   wire                when_RegStackPlugin_l146_119;
   wire                when_RegStackPlugin_l148_119;
   wire                when_RegStackPlugin_l150_119;
   wire                when_RegStackPlugin_l152_119;
   wire                when_RegStackPlugin_l154_119;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_214;
-  wire                when_RegStackPlugin_l144_120;
-  wire                when_RegStackPlugin_l146_120;
-  wire                when_RegStackPlugin_l148_120;
-  wire                when_RegStackPlugin_l150_120;
-  wire                when_RegStackPlugin_l152_120;
-  wire                when_RegStackPlugin_l154_120;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_215;
-  wire                when_RegStackPlugin_l144_121;
-  wire                when_RegStackPlugin_l146_121;
-  wire                when_RegStackPlugin_l148_121;
-  wire                when_RegStackPlugin_l150_121;
-  wire                when_RegStackPlugin_l152_121;
-  wire                when_RegStackPlugin_l154_121;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_216;
-  wire                when_RegStackPlugin_l144_122;
-  wire                when_RegStackPlugin_l146_122;
-  wire                when_RegStackPlugin_l148_122;
-  wire                when_RegStackPlugin_l150_122;
-  wire                when_RegStackPlugin_l152_122;
-  wire                when_RegStackPlugin_l154_122;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_217;
-  wire                when_RegStackPlugin_l144_123;
-  wire                when_RegStackPlugin_l146_123;
-  wire                when_RegStackPlugin_l148_123;
-  wire                when_RegStackPlugin_l150_123;
-  wire                when_RegStackPlugin_l152_123;
-  wire                when_RegStackPlugin_l154_123;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_218;
-  wire                when_RegStackPlugin_l144_124;
-  wire                when_RegStackPlugin_l146_124;
-  wire                when_RegStackPlugin_l148_124;
-  wire                when_RegStackPlugin_l150_124;
-  wire                when_RegStackPlugin_l152_124;
-  wire                when_RegStackPlugin_l154_124;
-  wire       [3:0]    switch_SystemPlugin_l217;
-  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_219;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_220;
-  wire                when_RegStackPlugin_l144_125;
-  wire                when_RegStackPlugin_l146_125;
-  wire                when_RegStackPlugin_l148_125;
-  wire                when_RegStackPlugin_l150_125;
-  wire                when_RegStackPlugin_l152_125;
-  wire                when_RegStackPlugin_l154_125;
-  reg        [63:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_221;
-  reg        [63:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_222;
-  reg        [63:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_223;
+  reg        [63:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_212;
+  reg        [63:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_213;
+  reg        [63:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_214;
   reg        [1:0]    _zz_switch_Misc_l245_1;
   reg        [9:0]    _zz_fpu_fpPipe_ctrl_0_down_CYCLE_CNT;
   wire       [55:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_AFIX;
-  wire       [7:0]    _zz_6;
+  wire       [7:0]    _zz_7;
   reg        [9:0]    _zz_fpu_fpPipe_ctrl_0_down_MAX_CYCLES;
   wire                fpu_fpPipe_ctrl_0_haltRequest_FpuPlugin_l222;
-  wire       [63:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_224;
+  wire       [63:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_215;
   wire       [63:0]   _zz_io_cmd_payload_b_1;
   wire       [1:0]    switch_Misc_l245_34;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_225;
-  wire       [63:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_226;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_216;
+  wire       [63:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_217;
   wire       [5:0]    switch_Misc_l245_35;
-  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_227;
-  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_228;
-  wire                _zz_fpu_fpPipe_ctrl_0_down_RESULT_229;
-  wire       [51:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_230;
-  wire                _zz_fpu_fpPipe_ctrl_0_down_RESULT_231;
-  wire                _zz_fpu_fpPipe_ctrl_0_down_RESULT_232;
-  wire                _zz_fpu_fpPipe_ctrl_0_down_RESULT_233;
-  reg                 _zz_fpu_fpPipe_ctrl_0_down_RESULT_234;
-  wire                _zz_fpu_fpPipe_ctrl_0_down_RESULT_235;
-  wire       [10:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_236;
+  reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_218;
+  wire       [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_219;
+  wire                _zz_fpu_fpPipe_ctrl_0_down_RESULT_220;
+  wire       [51:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_221;
+  wire                _zz_fpu_fpPipe_ctrl_0_down_RESULT_222;
+  wire                _zz_fpu_fpPipe_ctrl_0_down_RESULT_223;
+  wire                _zz_fpu_fpPipe_ctrl_0_down_RESULT_224;
+  reg                 _zz_fpu_fpPipe_ctrl_0_down_RESULT_225;
+  wire                _zz_fpu_fpPipe_ctrl_0_down_RESULT_226;
+  wire       [10:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_227;
   wire                when_FpuPlugin_l421;
-  wire       [10:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_237;
+  wire       [10:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_228;
   wire                when_FpuPlugin_l434;
   wire                when_FpuPlugin_l492;
   wire                when_FpuPlugin_l512;
   wire                when_CtrlLink_l150;
-  reg        [31:0]   _zz_when_SchedulerPlugin_l168;
-  reg        [31:0]   _zz_when_SchedulerPlugin_l168_1;
-  reg                 _zz_when_SchedulerPlugin_l129;
-  reg                 _zz_when_SchedulerPlugin_l129_1;
-  reg                 _zz_when_SchedulerPlugin_l129_2;
-  reg        [1:0]    _zz_when_SchedulerPlugin_l166;
+  reg        [31:0]   _zz_when_SchedulerPlugin_l170;
+  reg        [31:0]   _zz_when_SchedulerPlugin_l170_1;
+  reg                 _zz_when_SchedulerPlugin_l131;
+  reg                 _zz_when_SchedulerPlugin_l131_1;
+  reg                 _zz_when_SchedulerPlugin_l131_2;
+  reg        [1:0]    _zz_when_SchedulerPlugin_l168;
   wire                io_push_fire;
   wire                io_push_fire_1;
-  wire                when_SchedulerPlugin_l129;
-  wire                when_SchedulerPlugin_l161;
-  wire                when_SchedulerPlugin_l166;
+  wire                when_SchedulerPlugin_l131;
+  wire                when_SchedulerPlugin_l163;
   wire                when_SchedulerPlugin_l168;
+  wire                when_SchedulerPlugin_l170;
   `ifndef SYNTHESIS
-  reg [39:0] switch_ArithmeticPlugin_l148_string;
+  reg [39:0] switch_ArithmeticPlugin_l151_string;
   reg [95:0] switch_Misc_l245_string;
   reg [95:0] switch_Misc_l245_1_string;
   reg [95:0] switch_Misc_l245_2_string;
@@ -2075,7 +2002,7 @@ module T9000Transputer (
   reg [95:0] switch_Misc_l245_19_string;
   reg [95:0] switch_Misc_l245_20_string;
   reg [95:0] switch_Misc_l245_21_string;
-  reg [71:0] _zz_fpu_fpPipe_ctrl_0_down_RESULT_133_string;
+  reg [71:0] _zz_fpu_fpPipe_ctrl_0_down_RESULT_124_string;
   reg [71:0] switch_ChannelPlugin_l121_string;
   reg [95:0] switch_Misc_l245_22_string;
   reg [95:0] switch_Misc_l245_23_string;
@@ -2093,81 +2020,75 @@ module T9000Transputer (
   reg [95:0] switch_Misc_l245_32_string;
   reg [95:0] switch_Misc_l245_33_string;
   reg [95:0] switch_Misc_l245_35_string;
-  reg [79:0] _zz_when_SchedulerPlugin_l166_string;
+  reg [79:0] _zz_when_SchedulerPlugin_l168_string;
   `endif
 
 
-  assign _zz_when = 1'b0;
-  assign _zz__zz_when_ArithmeticPlugin_l124_3_1 = SecondaryOpcode_ADD;
-  assign _zz__zz_when_ArithmeticPlugin_l124_3 = _zz__zz_when_ArithmeticPlugin_l124_3_1[3:0];
-  assign _zz__zz_when_ArithmeticPlugin_l124_3_3 = SecondaryOpcode_SUB;
-  assign _zz__zz_when_ArithmeticPlugin_l124_3_2 = _zz__zz_when_ArithmeticPlugin_l124_3_3[3:0];
-  assign _zz__zz_when_ArithmeticPlugin_l124_3_5 = SecondaryOpcode_AND_1;
-  assign _zz__zz_when_ArithmeticPlugin_l124_3_4 = _zz__zz_when_ArithmeticPlugin_l124_3_5[3:0];
-  assign _zz__zz_when_ArithmeticPlugin_l124_3_7 = SecondaryOpcode_OR_1;
-  assign _zz__zz_when_ArithmeticPlugin_l124_3_6 = _zz__zz_when_ArithmeticPlugin_l124_3_7[3:0];
-  assign _zz__zz_when_ArithmeticPlugin_l124_3_9 = SecondaryOpcode_XOR_1;
-  assign _zz__zz_when_ArithmeticPlugin_l124_3_8 = _zz__zz_when_ArithmeticPlugin_l124_3_9[3:0];
-  assign _zz__zz_when_ArithmeticPlugin_l124_3_11 = SecondaryOpcode_NOT_1;
-  assign _zz__zz_when_ArithmeticPlugin_l124_3_10 = _zz__zz_when_ArithmeticPlugin_l124_3_11[3:0];
-  assign _zz__zz_when_ArithmeticPlugin_l124_3_13 = SecondaryOpcode_SHL;
-  assign _zz__zz_when_ArithmeticPlugin_l124_3_12 = _zz__zz_when_ArithmeticPlugin_l124_3_13[3:0];
-  assign _zz__zz_when_ArithmeticPlugin_l124_3_15 = SecondaryOpcode_SHR;
-  assign _zz__zz_when_ArithmeticPlugin_l124_3_14 = _zz__zz_when_ArithmeticPlugin_l124_3_15[3:0];
-  assign _zz__zz_when_ArithmeticPlugin_l124_3_17 = SecondaryOpcode_GT;
-  assign _zz__zz_when_ArithmeticPlugin_l124_3_16 = _zz__zz_when_ArithmeticPlugin_l124_3_17[3:0];
-  assign _zz__zz_when_ArithmeticPlugin_l124_3_19 = SecondaryOpcode_REV;
-  assign _zz__zz_when_ArithmeticPlugin_l124_3_18 = _zz__zz_when_ArithmeticPlugin_l124_3_19[3:0];
-  assign _zz_8 = SecondaryOpcode_ADD;
-  assign _zz_7 = _zz_8[3:0];
-  assign _zz_10 = SecondaryOpcode_SUB;
-  assign _zz_9 = _zz_10[3:0];
-  assign _zz_12 = SecondaryOpcode_AND_1;
-  assign _zz_11 = _zz_12[3:0];
-  assign _zz_14 = SecondaryOpcode_OR_1;
-  assign _zz_13 = _zz_14[3:0];
-  assign _zz_16 = SecondaryOpcode_XOR_1;
-  assign _zz_15 = _zz_16[3:0];
-  assign _zz_18 = SecondaryOpcode_NOT_1;
-  assign _zz_17 = _zz_18[3:0];
-  assign _zz_20 = SecondaryOpcode_SHL;
-  assign _zz_19 = _zz_20[3:0];
-  assign _zz_22 = SecondaryOpcode_SHR;
-  assign _zz_21 = _zz_22[3:0];
-  assign _zz_24 = SecondaryOpcode_GT;
-  assign _zz_23 = _zz_24[3:0];
-  assign _zz_26 = SecondaryOpcode_REV;
-  assign _zz_25 = _zz_26[3:0];
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_18 = ($signed(_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_18_1) + $signed(_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_18_2));
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_18_1 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_15;
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_18_2 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_13;
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_20 = ($signed(_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_20_1) - $signed(_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_20_2));
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_20_1 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_15;
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_20_2 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_13;
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_29 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_15 <<< _zz_fpu_fpPipe_ctrl_0_down_RESULT_13[4 : 0]);
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_31 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_15 >>> _zz_fpu_fpPipe_ctrl_0_down_RESULT_13[4 : 0]);
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_33_1 = ($signed(_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_33_2) < $signed(_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_33_3));
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_33 = {31'd0, _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_33_1};
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_33_2 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_13;
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_33_3 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_15;
-  assign _zz_28 = SecondaryOpcode_LADD;
-  assign _zz_27 = _zz_28[3:0];
-  assign _zz_30 = SecondaryOpcode_LSUB;
-  assign _zz_29 = _zz_30[3:0];
-  assign _zz_32 = SecondaryOpcode_LMUL;
-  assign _zz_31 = _zz_32[3:0];
-  assign _zz_34 = SecondaryOpcode_LDIV;
-  assign _zz_33 = _zz_34[3:0];
-  assign _zz_36 = SecondaryOpcode_LSHL;
-  assign _zz_35 = _zz_36[3:0];
-  assign _zz_38 = SecondaryOpcode_LSHR;
-  assign _zz_37 = _zz_38[3:0];
-  assign _zz_40 = SecondaryOpcode_MINT;
-  assign _zz_39 = _zz_40[3:0];
-  assign _zz_42 = SecondaryOpcode_XSWORD;
-  assign _zz_41 = _zz_42[3:0];
-  assign _zz_44 = SecondaryOpcode_PROD;
-  assign _zz_43 = _zz_44[3:0];
+  assign _zz_when_20 = 1'b0;
+  assign _zz_9 = SecondaryOpcode_ADD;
+  assign _zz_8 = _zz_9[3:0];
+  assign _zz_11 = SecondaryOpcode_SUB;
+  assign _zz_10 = _zz_11[3:0];
+  assign _zz_13 = SecondaryOpcode_AND_1;
+  assign _zz_12 = _zz_13[3:0];
+  assign _zz_15 = SecondaryOpcode_OR_1;
+  assign _zz_14 = _zz_15[3:0];
+  assign _zz_17 = SecondaryOpcode_XOR_1;
+  assign _zz_16 = _zz_17[3:0];
+  assign _zz_19 = SecondaryOpcode_NOT_1;
+  assign _zz_18 = _zz_19[3:0];
+  assign _zz_21 = SecondaryOpcode_SHL;
+  assign _zz_20 = _zz_21[3:0];
+  assign _zz_23 = SecondaryOpcode_SHR;
+  assign _zz_22 = _zz_23[3:0];
+  assign _zz_25 = SecondaryOpcode_GT;
+  assign _zz_24 = _zz_25[3:0];
+  assign _zz_27 = SecondaryOpcode_REV;
+  assign _zz_26 = _zz_27[3:0];
+  assign _zz_when_1 = SecondaryOpcode_ADD;
+  assign _zz_when = _zz_when_1[3:0];
+  assign _zz_when_3 = SecondaryOpcode_SUB;
+  assign _zz_when_2 = _zz_when_3[3:0];
+  assign _zz_when_5 = SecondaryOpcode_AND_1;
+  assign _zz_when_4 = _zz_when_5[3:0];
+  assign _zz_when_7 = SecondaryOpcode_OR_1;
+  assign _zz_when_6 = _zz_when_7[3:0];
+  assign _zz_when_9 = SecondaryOpcode_XOR_1;
+  assign _zz_when_8 = _zz_when_9[3:0];
+  assign _zz_when_11 = SecondaryOpcode_NOT_1;
+  assign _zz_when_10 = _zz_when_11[3:0];
+  assign _zz_when_13 = SecondaryOpcode_SHL;
+  assign _zz_when_12 = _zz_when_13[3:0];
+  assign _zz_when_15 = SecondaryOpcode_SHR;
+  assign _zz_when_14 = _zz_when_15[3:0];
+  assign _zz_when_17 = SecondaryOpcode_GT;
+  assign _zz_when_16 = _zz_when_17[3:0];
+  assign _zz_when_19 = SecondaryOpcode_REV;
+  assign _zz_when_18 = _zz_when_19[3:0];
+  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_15 = ($signed(_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_15_1) + $signed(_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_15_2));
+  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_15_1 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_12;
+  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_15_2 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_10;
+  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_17 = ($signed(_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_17_1) - $signed(_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_17_2));
+  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_17_1 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_12;
+  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_17_2 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_10;
+  assign _zz_29 = SecondaryOpcode_LADD;
+  assign _zz_28 = _zz_29[3:0];
+  assign _zz_31 = SecondaryOpcode_LSUB;
+  assign _zz_30 = _zz_31[3:0];
+  assign _zz_33 = SecondaryOpcode_LMUL;
+  assign _zz_32 = _zz_33[3:0];
+  assign _zz_35 = SecondaryOpcode_LDIV;
+  assign _zz_34 = _zz_35[3:0];
+  assign _zz_37 = SecondaryOpcode_LSHL;
+  assign _zz_36 = _zz_37[3:0];
+  assign _zz_39 = SecondaryOpcode_LSHR;
+  assign _zz_38 = _zz_39[3:0];
+  assign _zz_41 = SecondaryOpcode_MINT;
+  assign _zz_40 = _zz_41[3:0];
+  assign _zz_43 = SecondaryOpcode_XSWORD;
+  assign _zz_42 = _zz_43[3:0];
+  assign _zz_45 = SecondaryOpcode_PROD;
+  assign _zz_44 = _zz_45[3:0];
   assign _zz_when_LongArithPlugin_l142_4 = SecondaryOpcode_LADD;
   assign _zz_when_LongArithPlugin_l142_3 = _zz_when_LongArithPlugin_l142_4[3:0];
   assign _zz_when_LongArithPlugin_l142_6 = SecondaryOpcode_LSUB;
@@ -2186,28 +2107,28 @@ module T9000Transputer (
   assign _zz_when_LongArithPlugin_l142_17 = _zz_when_LongArithPlugin_l142_18[3:0];
   assign _zz_when_LongArithPlugin_l142_20 = SecondaryOpcode_PROD;
   assign _zz_when_LongArithPlugin_l142_19 = _zz_when_LongArithPlugin_l142_20[3:0];
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_41 = {1'd0, _zz_fpu_fpPipe_ctrl_0_down_RESULT_40};
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_44 = {_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_44_1,_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_44_3};
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_44_2 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_40;
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_44_1 = {{1{_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_44_2[31]}}, _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_44_2};
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_44_3 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_38;
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_44_4 = {33'h0,_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_44_5};
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_44_5 = _zz_when_LongArithPlugin_l220_1;
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_45 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_44[31 : 0];
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_46 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_44[63 : 32];
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_47 = {32'd0, _zz_fpu_fpPipe_ctrl_0_down_RESULT_38};
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_47_1 = {32'd0, _zz_when_LongArithPlugin_l220_1};
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_51 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_50 / _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_51_1);
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_51_1 = {32'd0, _zz_when_LongArithPlugin_l220_1};
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_52 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_50 % _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_52_1);
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_52_1 = {32'd0, _zz_when_LongArithPlugin_l220_1};
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_59 = ({31'd0,_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_59_1} <<< 5'd31);
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_59_1 = (1'b0 - 1'b1);
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_62_1 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_38;
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_62 = {{32{_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_62_1[31]}}, _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_62_1};
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_66_1 = _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_66_2;
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_66 = _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_66_1[31:0];
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_66_2 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_38 * _zz_when_LongArithPlugin_l220_1);
+  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_32 = {1'd0, _zz_fpu_fpPipe_ctrl_0_down_RESULT_31};
+  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_35 = {_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_35_1,_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_35_3};
+  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_35_2 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_31;
+  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_35_1 = {{1{_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_35_2[31]}}, _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_35_2};
+  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_35_3 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_29;
+  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_35_4 = {33'h0,_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_35_5};
+  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_35_5 = _zz_when_LongArithPlugin_l220_1;
+  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_36 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_35[31 : 0];
+  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_37 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_35[63 : 32];
+  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_38 = {32'd0, _zz_fpu_fpPipe_ctrl_0_down_RESULT_29};
+  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_38_1 = {32'd0, _zz_when_LongArithPlugin_l220_1};
+  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_42 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_41 / _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_42_1);
+  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_42_1 = {32'd0, _zz_when_LongArithPlugin_l220_1};
+  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_43 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_41 % _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_43_1);
+  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_43_1 = {32'd0, _zz_when_LongArithPlugin_l220_1};
+  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_50 = ({31'd0,_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_50_1} <<< 5'd31);
+  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_50_1 = (1'b0 - 1'b1);
+  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_53_1 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_29;
+  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_53 = {{32{_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_53_1[31]}}, _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_53_1};
+  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_57_1 = _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_57_2;
+  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_57 = _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_57_1[31:0];
+  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_57_2 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_29 * _zz_when_LongArithPlugin_l220_1);
   assign _zz_when_ControlFlowPlugin_l115_4 = SecondaryOpcode_RET;
   assign _zz_when_ControlFlowPlugin_l115_3 = _zz_when_ControlFlowPlugin_l115_4[3:0];
   assign _zz_when_ControlFlowPlugin_l115_6 = SecondaryOpcode_LDPI;
@@ -2222,23 +2143,23 @@ module T9000Transputer (
   assign _zz_when_ControlFlowPlugin_l115_13 = _zz_when_ControlFlowPlugin_l115_14[3:0];
   assign _zz_when_ControlFlowPlugin_l115_16 = SecondaryOpcode_DISS;
   assign _zz_when_ControlFlowPlugin_l115_15 = _zz_when_ControlFlowPlugin_l115_16[3:0];
-  assign _zz_46 = SecondaryOpcode_RET;
-  assign _zz_45 = _zz_46[3:0];
-  assign _zz_48 = SecondaryOpcode_LDPI;
-  assign _zz_47 = _zz_48[3:0];
-  assign _zz_50 = SecondaryOpcode_GAJW;
-  assign _zz_49 = _zz_50[3:0];
-  assign _zz_52 = SecondaryOpcode_GCALL;
-  assign _zz_51 = _zz_52[3:0];
-  assign _zz_54 = SecondaryOpcode_LEND;
-  assign _zz_53 = _zz_54[3:0];
-  assign _zz_56 = SecondaryOpcode_ENDP;
-  assign _zz_55 = _zz_56[3:0];
-  assign _zz_58 = SecondaryOpcode_DISS;
-  assign _zz_57 = _zz_58[3:0];
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_73 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_2 + _zz_when_ControlFlowPlugin_l171_1);
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_76 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_2 + 32'h00000001);
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_78 = (_zz_when_ControlFlowPlugin_l171_1 - 32'h00000001);
+  assign _zz_47 = SecondaryOpcode_RET;
+  assign _zz_46 = _zz_47[3:0];
+  assign _zz_49 = SecondaryOpcode_LDPI;
+  assign _zz_48 = _zz_49[3:0];
+  assign _zz_51 = SecondaryOpcode_GAJW;
+  assign _zz_50 = _zz_51[3:0];
+  assign _zz_53 = SecondaryOpcode_GCALL;
+  assign _zz_52 = _zz_53[3:0];
+  assign _zz_55 = SecondaryOpcode_LEND;
+  assign _zz_54 = _zz_55[3:0];
+  assign _zz_57 = SecondaryOpcode_ENDP;
+  assign _zz_56 = _zz_57[3:0];
+  assign _zz_59 = SecondaryOpcode_DISS;
+  assign _zz_58 = _zz_59[3:0];
+  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_64 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_2 + _zz_when_ControlFlowPlugin_l171_1);
+  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_67 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_2 + 32'h00000001);
+  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_69 = (_zz_when_ControlFlowPlugin_l171_1 - 32'h00000001);
   assign _zz__zz_when_BlockMovePlugin_l165 = (_zz_when_BlockMovePlugin_l165_1 * _zz_when_BlockMovePlugin_l165_2);
   assign _zz_when_IndexingPlugin_l135_11 = SecondaryOpcode_BSUB;
   assign _zz_when_IndexingPlugin_l135_10 = _zz_when_IndexingPlugin_l135_11[3:0];
@@ -2252,30 +2173,30 @@ module T9000Transputer (
   assign _zz_when_IndexingPlugin_l135_19 = _zz_when_IndexingPlugin_l135_20[3:0];
   assign _zz_when_IndexingPlugin_l135_22 = SecondaryOpcode_SS;
   assign _zz_when_IndexingPlugin_l135_21 = _zz_when_IndexingPlugin_l135_22[3:0];
-  assign _zz_60 = SecondaryOpcode_BSUB;
-  assign _zz_59 = _zz_60[3:0];
-  assign _zz_62 = SecondaryOpcode_WSUB;
-  assign _zz_61 = _zz_62[3:0];
-  assign _zz_64 = SecondaryOpcode_LB;
-  assign _zz_63 = _zz_64[3:0];
-  assign _zz_66 = SecondaryOpcode_SB;
-  assign _zz_65 = _zz_66[3:0];
-  assign _zz_68 = SecondaryOpcode_LSX;
-  assign _zz_67 = _zz_68[3:0];
-  assign _zz_70 = SecondaryOpcode_SS;
-  assign _zz_69 = _zz_70[3:0];
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_95 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_94 & 32'hffffffff);
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_86 = {26'd0, _zz_fpu_fpPipe_ctrl_0_down_RESULT_87};
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_86_1 = {26'd0, _zz_fpu_fpPipe_ctrl_0_down_RESULT_87};
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_86_2 = {26'd0, _zz_fpu_fpPipe_ctrl_0_down_RESULT_87};
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_86_3 = {26'd0, _zz_fpu_fpPipe_ctrl_0_down_RESULT_87};
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_86_4 = {26'd0, _zz_fpu_fpPipe_ctrl_0_down_RESULT_87};
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_86_5 = {26'd0, _zz_fpu_fpPipe_ctrl_0_down_RESULT_87};
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_86_6 = (_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_86_7 + _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_86_8);
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_86_7 = {2'd0, _zz_fpu_fpPipe_ctrl_0_down_RESULT_91};
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_86_8 = ({2'd0,_zz_fpu_fpPipe_ctrl_0_down_RESULT_89} <<< 2'd2);
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_112 = (_zz_when_RangeCheckPlugin_l191_1 - 32'h00000001);
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_115 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_1 + 32'h00000001);
+  assign _zz_61 = SecondaryOpcode_BSUB;
+  assign _zz_60 = _zz_61[3:0];
+  assign _zz_63 = SecondaryOpcode_WSUB;
+  assign _zz_62 = _zz_63[3:0];
+  assign _zz_65 = SecondaryOpcode_LB;
+  assign _zz_64 = _zz_65[3:0];
+  assign _zz_67 = SecondaryOpcode_SB;
+  assign _zz_66 = _zz_67[3:0];
+  assign _zz_69 = SecondaryOpcode_LSX;
+  assign _zz_68 = _zz_69[3:0];
+  assign _zz_71 = SecondaryOpcode_SS;
+  assign _zz_70 = _zz_71[3:0];
+  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_86 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_85 & 32'hffffffff);
+  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_77 = {26'd0, _zz_fpu_fpPipe_ctrl_0_down_RESULT_78};
+  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_77_1 = {26'd0, _zz_fpu_fpPipe_ctrl_0_down_RESULT_78};
+  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_77_2 = {26'd0, _zz_fpu_fpPipe_ctrl_0_down_RESULT_78};
+  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_77_3 = {26'd0, _zz_fpu_fpPipe_ctrl_0_down_RESULT_78};
+  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_77_4 = {26'd0, _zz_fpu_fpPipe_ctrl_0_down_RESULT_78};
+  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_77_5 = {26'd0, _zz_fpu_fpPipe_ctrl_0_down_RESULT_78};
+  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_77_6 = (_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_77_7 + _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_77_8);
+  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_77_7 = {2'd0, _zz_fpu_fpPipe_ctrl_0_down_RESULT_82};
+  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_77_8 = ({2'd0,_zz_fpu_fpPipe_ctrl_0_down_RESULT_80} <<< 2'd2);
+  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_103 = (_zz_when_RangeCheckPlugin_l191_1 - 32'h00000001);
+  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_106 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_1 + 32'h00000001);
   assign _zz_when_GeneralPlugin_l69_3 = SecondaryOpcode_REV;
   assign _zz_when_GeneralPlugin_l69_2 = _zz_when_GeneralPlugin_l69_3[3:0];
   assign _zz_when_GeneralPlugin_l69_5 = SecondaryOpcode_DUP;
@@ -2286,50 +2207,50 @@ module T9000Transputer (
   assign _zz_when_GeneralPlugin_l69_8 = _zz_when_GeneralPlugin_l69_9[3:0];
   assign _zz_when_GeneralPlugin_l69_11 = SecondaryOpcode_MINT;
   assign _zz_when_GeneralPlugin_l69_10 = _zz_when_GeneralPlugin_l69_11[3:0];
-  assign _zz_72 = SecondaryOpcode_REV;
-  assign _zz_71 = _zz_72[3:0];
-  assign _zz_74 = SecondaryOpcode_DUP;
-  assign _zz_73 = _zz_74[3:0];
-  assign _zz_76 = SecondaryOpcode_POP;
-  assign _zz_75 = _zz_76[3:0];
-  assign _zz_78 = SecondaryOpcode_NOP;
-  assign _zz_77 = _zz_78[3:0];
-  assign _zz_80 = SecondaryOpcode_MINT;
-  assign _zz_79 = _zz_80[3:0];
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_130 = ({31'd0,_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_130_1} <<< 5'd31);
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_130_1 = (1'b0 - 1'b1);
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_154_1 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_133;
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_154 = {30'd0, _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_154_1};
-  assign _zz_82 = SecondaryOpcode_FPADD;
-  assign _zz_81 = _zz_82[7:0];
-  assign _zz_84 = SecondaryOpcode_FPSUB;
-  assign _zz_83 = _zz_84[7:0];
-  assign _zz_86 = SecondaryOpcode_FPMUL;
-  assign _zz_85 = _zz_86[7:0];
-  assign _zz_88 = SecondaryOpcode_FPDIV;
-  assign _zz_87 = _zz_88[7:0];
-  assign _zz_90 = SecondaryOpcode_FPSQRT;
-  assign _zz_89 = _zz_90[7:0];
-  assign _zz_92 = SecondaryOpcode_FPREM;
-  assign _zz_91 = _zz_92[7:0];
-  assign _zz_94 = SecondaryOpcode_FPRANGE;
-  assign _zz_93 = _zz_94[7:0];
-  assign _zz_96 = SecondaryOpcode_FPABS;
-  assign _zz_95 = _zz_96[7:0];
-  assign _zz_98 = SecondaryOpcode_FPINT;
-  assign _zz_97 = _zz_98[7:0];
-  assign _zz_100 = SecondaryOpcode_FPMULBY2;
-  assign _zz_99 = _zz_100[7:0];
-  assign _zz_102 = SecondaryOpcode_FPDIVBY2;
-  assign _zz_101 = _zz_102[7:0];
-  assign _zz_104 = SecondaryOpcode_FPRN;
-  assign _zz_103 = _zz_104[7:0];
-  assign _zz_106 = SecondaryOpcode_FPRP;
-  assign _zz_105 = _zz_106[7:0];
-  assign _zz_108 = SecondaryOpcode_FPRM;
-  assign _zz_107 = _zz_108[7:0];
-  assign _zz_110 = SecondaryOpcode_FPRZ;
-  assign _zz_109 = _zz_110[7:0];
+  assign _zz_73 = SecondaryOpcode_REV;
+  assign _zz_72 = _zz_73[3:0];
+  assign _zz_75 = SecondaryOpcode_DUP;
+  assign _zz_74 = _zz_75[3:0];
+  assign _zz_77 = SecondaryOpcode_POP;
+  assign _zz_76 = _zz_77[3:0];
+  assign _zz_79 = SecondaryOpcode_NOP;
+  assign _zz_78 = _zz_79[3:0];
+  assign _zz_81 = SecondaryOpcode_MINT;
+  assign _zz_80 = _zz_81[3:0];
+  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_121 = ({31'd0,_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_121_1} <<< 5'd31);
+  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_121_1 = (1'b0 - 1'b1);
+  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_145_1 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_124;
+  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_145 = {30'd0, _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_145_1};
+  assign _zz_83 = SecondaryOpcode_FPADD;
+  assign _zz_82 = _zz_83[7:0];
+  assign _zz_85 = SecondaryOpcode_FPSUB;
+  assign _zz_84 = _zz_85[7:0];
+  assign _zz_87 = SecondaryOpcode_FPMUL;
+  assign _zz_86 = _zz_87[7:0];
+  assign _zz_89 = SecondaryOpcode_FPDIV;
+  assign _zz_88 = _zz_89[7:0];
+  assign _zz_91 = SecondaryOpcode_FPSQRT;
+  assign _zz_90 = _zz_91[7:0];
+  assign _zz_93 = SecondaryOpcode_FPREM;
+  assign _zz_92 = _zz_93[7:0];
+  assign _zz_95 = SecondaryOpcode_FPRANGE;
+  assign _zz_94 = _zz_95[7:0];
+  assign _zz_97 = SecondaryOpcode_FPABS;
+  assign _zz_96 = _zz_97[7:0];
+  assign _zz_99 = SecondaryOpcode_FPINT;
+  assign _zz_98 = _zz_99[7:0];
+  assign _zz_101 = SecondaryOpcode_FPMULBY2;
+  assign _zz_100 = _zz_101[7:0];
+  assign _zz_103 = SecondaryOpcode_FPDIVBY2;
+  assign _zz_102 = _zz_103[7:0];
+  assign _zz_105 = SecondaryOpcode_FPRN;
+  assign _zz_104 = _zz_105[7:0];
+  assign _zz_107 = SecondaryOpcode_FPRP;
+  assign _zz_106 = _zz_107[7:0];
+  assign _zz_109 = SecondaryOpcode_FPRM;
+  assign _zz_108 = _zz_109[7:0];
+  assign _zz_111 = SecondaryOpcode_FPRZ;
+  assign _zz_110 = _zz_111[7:0];
   assign _zz_fpu_fpPipe_ctrl_0_up_valid_3 = SecondaryOpcode_FPADD;
   assign _zz_fpu_fpPipe_ctrl_0_up_valid_2 = _zz_fpu_fpPipe_ctrl_0_up_valid_3[7:0];
   assign _zz_fpu_fpPipe_ctrl_0_up_valid_5 = SecondaryOpcode_FPSUB;
@@ -2338,90 +2259,90 @@ module T9000Transputer (
   assign _zz_fpu_fpPipe_ctrl_0_up_valid_6 = _zz_fpu_fpPipe_ctrl_0_up_valid_7[7:0];
   assign _zz_fpu_fpPipe_ctrl_0_up_valid_9 = SecondaryOpcode_FPDIV;
   assign _zz_fpu_fpPipe_ctrl_0_up_valid_8 = _zz_fpu_fpPipe_ctrl_0_up_valid_9[7:0];
-  assign _zz_112 = SecondaryOpcode_FPREV;
-  assign _zz_111 = _zz_112[7:0];
-  assign _zz_114 = SecondaryOpcode_FPDUP;
-  assign _zz_113 = _zz_114[7:0];
-  assign _zz_116 = SecondaryOpcode_FPRN;
-  assign _zz_115 = _zz_116[7:0];
-  assign _zz_118 = SecondaryOpcode_FPRZ;
-  assign _zz_117 = _zz_118[7:0];
-  assign _zz_120 = SecondaryOpcode_FPRP;
-  assign _zz_119 = _zz_120[7:0];
-  assign _zz_122 = SecondaryOpcode_FPRM;
-  assign _zz_121 = _zz_122[7:0];
-  assign _zz_124 = SecondaryOpcode_FPGT;
-  assign _zz_123 = _zz_124[7:0];
-  assign _zz_126 = SecondaryOpcode_FPEQ;
-  assign _zz_125 = _zz_126[7:0];
-  assign _zz_128 = SecondaryOpcode_FPGE;
-  assign _zz_127 = _zz_128[7:0];
-  assign _zz_130 = SecondaryOpcode_FPLG;
-  assign _zz_129 = _zz_130[7:0];
-  assign _zz_132 = SecondaryOpcode_FPORDERED;
-  assign _zz_131 = _zz_132[7:0];
-  assign _zz_134 = SecondaryOpcode_FPNAN;
-  assign _zz_133 = _zz_134[7:0];
-  assign _zz_136 = SecondaryOpcode_FPNOTFINITE;
-  assign _zz_135 = _zz_136[7:0];
-  assign _zz_138 = SecondaryOpcode_FPR32TOR64;
-  assign _zz_137 = _zz_138[7:0];
-  assign _zz_140 = SecondaryOpcode_FPR64TOR32;
-  assign _zz_139 = _zz_140[7:0];
-  assign _zz_142 = SecondaryOpcode_FPRTOI32;
-  assign _zz_141 = _zz_142[7:0];
-  assign _zz_144 = SecondaryOpcode_FPI32TOR32;
-  assign _zz_143 = _zz_144[7:0];
-  assign _zz_146 = SecondaryOpcode_FPADD;
-  assign _zz_145 = _zz_146[7:0];
-  assign _zz_148 = SecondaryOpcode_FPSUB;
-  assign _zz_147 = _zz_148[7:0];
-  assign _zz_150 = SecondaryOpcode_FPMUL;
-  assign _zz_149 = _zz_150[7:0];
-  assign _zz_152 = SecondaryOpcode_FPDIV;
-  assign _zz_151 = _zz_152[7:0];
-  assign _zz_154 = SecondaryOpcode_FPSQRT;
-  assign _zz_153 = _zz_154[7:0];
-  assign _zz_156 = SecondaryOpcode_FPREM;
-  assign _zz_155 = _zz_156[7:0];
-  assign _zz_158 = SecondaryOpcode_FPRANGE;
-  assign _zz_157 = _zz_158[7:0];
-  assign _zz_160 = SecondaryOpcode_FPABS;
-  assign _zz_159 = _zz_160[7:0];
-  assign _zz_162 = SecondaryOpcode_FPINT;
-  assign _zz_161 = _zz_162[7:0];
-  assign _zz_164 = SecondaryOpcode_FPMULBY2;
-  assign _zz_163 = _zz_164[7:0];
-  assign _zz_166 = SecondaryOpcode_FPDIVBY2;
-  assign _zz_165 = _zz_166[7:0];
-  assign _zz_168 = SecondaryOpcode_FPRN;
-  assign _zz_167 = _zz_168[7:0];
-  assign _zz_170 = SecondaryOpcode_FPRP;
-  assign _zz_169 = _zz_170[7:0];
-  assign _zz_172 = SecondaryOpcode_FPRM;
-  assign _zz_171 = _zz_172[7:0];
-  assign _zz_174 = SecondaryOpcode_FPRZ;
-  assign _zz_173 = _zz_174[7:0];
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_239 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_240;
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_238 = {1'd0, _zz_fpu_fpPipe_ctrl_0_down_RESULT_239};
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_240 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_241 - 10'h07f);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_241 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_242 + 10'h3ff);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_243 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_225[30 : 23];
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_242 = {2'd0, _zz_fpu_fpPipe_ctrl_0_down_RESULT_243};
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_226 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_221;
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_244 = {{_zz_fpu_fpPipe_ctrl_0_down_RESULT_226[63],_zz_fpu_fpPipe_ctrl_0_down_RESULT_245[7 : 0]},_zz_fpu_fpPipe_ctrl_0_down_RESULT_248[22 : 0]};
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_245 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_246;
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_246 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_247 + 11'h07f);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_247 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_226[62 : 52] - 11'h3ff);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_248 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_249[51 : 29];
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_249 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_226[51 : 0];
-  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_228 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_227 & 32'hffffffff);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_250 = {{_zz_fpu_fpPipe_ctrl_0_down_RESULT_228[31],_zz_fpu_fpPipe_ctrl_0_down_RESULT_251[7 : 0]},_zz_fpu_fpPipe_ctrl_0_down_RESULT_252[22 : 0]};
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_251 = 8'h7f;
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_252 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_228[31 : 9];
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_253 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_230 + _zz_fpu_fpPipe_ctrl_0_down_RESULT_254);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_255 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_234;
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_254 = {51'd0, _zz_fpu_fpPipe_ctrl_0_down_RESULT_255};
+  assign _zz_113 = SecondaryOpcode_FPREV;
+  assign _zz_112 = _zz_113[7:0];
+  assign _zz_115 = SecondaryOpcode_FPDUP;
+  assign _zz_114 = _zz_115[7:0];
+  assign _zz_117 = SecondaryOpcode_FPRN;
+  assign _zz_116 = _zz_117[7:0];
+  assign _zz_119 = SecondaryOpcode_FPRZ;
+  assign _zz_118 = _zz_119[7:0];
+  assign _zz_121 = SecondaryOpcode_FPRP;
+  assign _zz_120 = _zz_121[7:0];
+  assign _zz_123 = SecondaryOpcode_FPRM;
+  assign _zz_122 = _zz_123[7:0];
+  assign _zz_125 = SecondaryOpcode_FPGT;
+  assign _zz_124 = _zz_125[7:0];
+  assign _zz_127 = SecondaryOpcode_FPEQ;
+  assign _zz_126 = _zz_127[7:0];
+  assign _zz_129 = SecondaryOpcode_FPGE;
+  assign _zz_128 = _zz_129[7:0];
+  assign _zz_131 = SecondaryOpcode_FPLG;
+  assign _zz_130 = _zz_131[7:0];
+  assign _zz_133 = SecondaryOpcode_FPORDERED;
+  assign _zz_132 = _zz_133[7:0];
+  assign _zz_135 = SecondaryOpcode_FPNAN;
+  assign _zz_134 = _zz_135[7:0];
+  assign _zz_137 = SecondaryOpcode_FPNOTFINITE;
+  assign _zz_136 = _zz_137[7:0];
+  assign _zz_139 = SecondaryOpcode_FPR32TOR64;
+  assign _zz_138 = _zz_139[7:0];
+  assign _zz_141 = SecondaryOpcode_FPR64TOR32;
+  assign _zz_140 = _zz_141[7:0];
+  assign _zz_143 = SecondaryOpcode_FPRTOI32;
+  assign _zz_142 = _zz_143[7:0];
+  assign _zz_145 = SecondaryOpcode_FPI32TOR32;
+  assign _zz_144 = _zz_145[7:0];
+  assign _zz_147 = SecondaryOpcode_FPADD;
+  assign _zz_146 = _zz_147[7:0];
+  assign _zz_149 = SecondaryOpcode_FPSUB;
+  assign _zz_148 = _zz_149[7:0];
+  assign _zz_151 = SecondaryOpcode_FPMUL;
+  assign _zz_150 = _zz_151[7:0];
+  assign _zz_153 = SecondaryOpcode_FPDIV;
+  assign _zz_152 = _zz_153[7:0];
+  assign _zz_155 = SecondaryOpcode_FPSQRT;
+  assign _zz_154 = _zz_155[7:0];
+  assign _zz_157 = SecondaryOpcode_FPREM;
+  assign _zz_156 = _zz_157[7:0];
+  assign _zz_159 = SecondaryOpcode_FPRANGE;
+  assign _zz_158 = _zz_159[7:0];
+  assign _zz_161 = SecondaryOpcode_FPABS;
+  assign _zz_160 = _zz_161[7:0];
+  assign _zz_163 = SecondaryOpcode_FPINT;
+  assign _zz_162 = _zz_163[7:0];
+  assign _zz_165 = SecondaryOpcode_FPMULBY2;
+  assign _zz_164 = _zz_165[7:0];
+  assign _zz_167 = SecondaryOpcode_FPDIVBY2;
+  assign _zz_166 = _zz_167[7:0];
+  assign _zz_169 = SecondaryOpcode_FPRN;
+  assign _zz_168 = _zz_169[7:0];
+  assign _zz_171 = SecondaryOpcode_FPRP;
+  assign _zz_170 = _zz_171[7:0];
+  assign _zz_173 = SecondaryOpcode_FPRM;
+  assign _zz_172 = _zz_173[7:0];
+  assign _zz_175 = SecondaryOpcode_FPRZ;
+  assign _zz_174 = _zz_175[7:0];
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_230 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_231;
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_229 = {1'd0, _zz_fpu_fpPipe_ctrl_0_down_RESULT_230};
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_231 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_232 - 10'h07f);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_232 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_233 + 10'h3ff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_234 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_216[30 : 23];
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_233 = {2'd0, _zz_fpu_fpPipe_ctrl_0_down_RESULT_234};
+  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_217 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_212;
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_235 = {{_zz_fpu_fpPipe_ctrl_0_down_RESULT_217[63],_zz_fpu_fpPipe_ctrl_0_down_RESULT_236[7 : 0]},_zz_fpu_fpPipe_ctrl_0_down_RESULT_239[22 : 0]};
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_236 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_237;
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_237 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_238 + 11'h07f);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_238 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_217[62 : 52] - 11'h3ff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_239 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_240[51 : 29];
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_240 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_217[51 : 0];
+  assign _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_219 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_218 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_241 = {{_zz_fpu_fpPipe_ctrl_0_down_RESULT_219[31],_zz_fpu_fpPipe_ctrl_0_down_RESULT_242[7 : 0]},_zz_fpu_fpPipe_ctrl_0_down_RESULT_243[22 : 0]};
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_242 = 8'h7f;
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_243 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_219[31 : 9];
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_244 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_221 + _zz_fpu_fpPipe_ctrl_0_down_RESULT_245);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_246 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_225;
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_245 = {51'd0, _zz_fpu_fpPipe_ctrl_0_down_RESULT_246};
   assign _zz_when_IndexingPlugin_l135_5 = (_zz_when_IndexingPlugin_l135_4 == PrimaryOpcode_LDL);
   assign _zz_when_IndexingPlugin_l135_6 = (_zz_when_IndexingPlugin_l135_4 == PrimaryOpcode_STL);
   assign _zz_when_IndexingPlugin_l135_7 = PrimaryOpcode_LDNL;
@@ -2511,94 +2432,94 @@ module T9000Transputer (
     case(_zz_when_ChannelPlugin_l127_3)
       4'b0000 : begin
         _zz_when_ChannelPlugin_l129_17 = _zz_when_ChannelPlugin_l129;
-        _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_161 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_134;
+        _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_152 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_125;
       end
       4'b0001 : begin
         _zz_when_ChannelPlugin_l129_17 = _zz_when_ChannelPlugin_l129_1;
-        _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_161 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_135;
+        _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_152 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_126;
       end
       4'b0010 : begin
         _zz_when_ChannelPlugin_l129_17 = _zz_when_ChannelPlugin_l129_2;
-        _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_161 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_136;
+        _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_152 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_127;
       end
       4'b0011 : begin
         _zz_when_ChannelPlugin_l129_17 = _zz_when_ChannelPlugin_l129_3;
-        _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_161 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_137;
+        _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_152 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_128;
       end
       4'b0100 : begin
         _zz_when_ChannelPlugin_l129_17 = _zz_when_ChannelPlugin_l129_4;
-        _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_161 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_138;
+        _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_152 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_129;
       end
       4'b0101 : begin
         _zz_when_ChannelPlugin_l129_17 = _zz_when_ChannelPlugin_l129_5;
-        _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_161 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_139;
+        _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_152 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_130;
       end
       4'b0110 : begin
         _zz_when_ChannelPlugin_l129_17 = _zz_when_ChannelPlugin_l129_6;
-        _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_161 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_140;
+        _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_152 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_131;
       end
       4'b0111 : begin
         _zz_when_ChannelPlugin_l129_17 = _zz_when_ChannelPlugin_l129_7;
-        _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_161 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_141;
+        _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_152 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_132;
       end
       4'b1000 : begin
         _zz_when_ChannelPlugin_l129_17 = _zz_when_ChannelPlugin_l129_8;
-        _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_161 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_142;
+        _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_152 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_133;
       end
       4'b1001 : begin
         _zz_when_ChannelPlugin_l129_17 = _zz_when_ChannelPlugin_l129_9;
-        _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_161 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_143;
+        _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_152 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_134;
       end
       4'b1010 : begin
         _zz_when_ChannelPlugin_l129_17 = _zz_when_ChannelPlugin_l129_10;
-        _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_161 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_144;
+        _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_152 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_135;
       end
       4'b1011 : begin
         _zz_when_ChannelPlugin_l129_17 = _zz_when_ChannelPlugin_l129_11;
-        _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_161 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_145;
+        _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_152 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_136;
       end
       4'b1100 : begin
         _zz_when_ChannelPlugin_l129_17 = _zz_when_ChannelPlugin_l129_12;
-        _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_161 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_146;
+        _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_152 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_137;
       end
       4'b1101 : begin
         _zz_when_ChannelPlugin_l129_17 = _zz_when_ChannelPlugin_l129_13;
-        _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_161 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_147;
+        _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_152 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_138;
       end
       4'b1110 : begin
         _zz_when_ChannelPlugin_l129_17 = _zz_when_ChannelPlugin_l129_14;
-        _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_161 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_148;
+        _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_152 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_139;
       end
       default : begin
         _zz_when_ChannelPlugin_l129_17 = _zz_when_ChannelPlugin_l129_15;
-        _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_161 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_149;
+        _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_152 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_140;
       end
     endcase
   end
 
   `ifndef SYNTHESIS
   always @(*) begin
-    case(switch_ArithmeticPlugin_l148)
-      AluOp_ADD : switch_ArithmeticPlugin_l148_string = "ADD  ";
-      AluOp_SUB : switch_ArithmeticPlugin_l148_string = "SUB  ";
-      AluOp_MUL : switch_ArithmeticPlugin_l148_string = "MUL  ";
-      AluOp_DIV : switch_ArithmeticPlugin_l148_string = "DIV  ";
-      AluOp_REM_1 : switch_ArithmeticPlugin_l148_string = "REM_1";
-      AluOp_AND_1 : switch_ArithmeticPlugin_l148_string = "AND_1";
-      AluOp_OR_1 : switch_ArithmeticPlugin_l148_string = "OR_1 ";
-      AluOp_XOR_1 : switch_ArithmeticPlugin_l148_string = "XOR_1";
-      AluOp_NOT_1 : switch_ArithmeticPlugin_l148_string = "NOT_1";
-      AluOp_SHL : switch_ArithmeticPlugin_l148_string = "SHL  ";
-      AluOp_SHR : switch_ArithmeticPlugin_l148_string = "SHR  ";
-      AluOp_GT : switch_ArithmeticPlugin_l148_string = "GT   ";
-      AluOp_GTU : switch_ArithmeticPlugin_l148_string = "GTU  ";
-      AluOp_DIFF : switch_ArithmeticPlugin_l148_string = "DIFF ";
-      AluOp_SUM : switch_ArithmeticPlugin_l148_string = "SUM  ";
-      AluOp_PROD : switch_ArithmeticPlugin_l148_string = "PROD ";
-      AluOp_REV : switch_ArithmeticPlugin_l148_string = "REV  ";
-      AluOp_DUP : switch_ArithmeticPlugin_l148_string = "DUP  ";
-      AluOp_FMUL : switch_ArithmeticPlugin_l148_string = "FMUL ";
-      default : switch_ArithmeticPlugin_l148_string = "?????";
+    case(switch_ArithmeticPlugin_l151)
+      AluOp_ADD : switch_ArithmeticPlugin_l151_string = "ADD  ";
+      AluOp_SUB : switch_ArithmeticPlugin_l151_string = "SUB  ";
+      AluOp_MUL : switch_ArithmeticPlugin_l151_string = "MUL  ";
+      AluOp_DIV : switch_ArithmeticPlugin_l151_string = "DIV  ";
+      AluOp_REM_1 : switch_ArithmeticPlugin_l151_string = "REM_1";
+      AluOp_AND_1 : switch_ArithmeticPlugin_l151_string = "AND_1";
+      AluOp_OR_1 : switch_ArithmeticPlugin_l151_string = "OR_1 ";
+      AluOp_XOR_1 : switch_ArithmeticPlugin_l151_string = "XOR_1";
+      AluOp_NOT_1 : switch_ArithmeticPlugin_l151_string = "NOT_1";
+      AluOp_SHL : switch_ArithmeticPlugin_l151_string = "SHL  ";
+      AluOp_SHR : switch_ArithmeticPlugin_l151_string = "SHR  ";
+      AluOp_GT : switch_ArithmeticPlugin_l151_string = "GT   ";
+      AluOp_GTU : switch_ArithmeticPlugin_l151_string = "GTU  ";
+      AluOp_DIFF : switch_ArithmeticPlugin_l151_string = "DIFF ";
+      AluOp_SUM : switch_ArithmeticPlugin_l151_string = "SUM  ";
+      AluOp_PROD : switch_ArithmeticPlugin_l151_string = "PROD ";
+      AluOp_REV : switch_ArithmeticPlugin_l151_string = "REV  ";
+      AluOp_DUP : switch_ArithmeticPlugin_l151_string = "DUP  ";
+      AluOp_FMUL : switch_ArithmeticPlugin_l151_string = "FMUL ";
+      default : switch_ArithmeticPlugin_l151_string = "?????";
     endcase
   end
   always @(*) begin
@@ -3582,12 +3503,12 @@ module T9000Transputer (
     endcase
   end
   always @(*) begin
-    case(_zz_fpu_fpPipe_ctrl_0_down_RESULT_133)
-      ChannelType_PHYSICAL : _zz_fpu_fpPipe_ctrl_0_down_RESULT_133_string = "PHYSICAL ";
-      ChannelType_VIRTUAL_1 : _zz_fpu_fpPipe_ctrl_0_down_RESULT_133_string = "VIRTUAL_1";
-      ChannelType_RESOURCE : _zz_fpu_fpPipe_ctrl_0_down_RESULT_133_string = "RESOURCE ";
-      ChannelType_INVALID : _zz_fpu_fpPipe_ctrl_0_down_RESULT_133_string = "INVALID  ";
-      default : _zz_fpu_fpPipe_ctrl_0_down_RESULT_133_string = "?????????";
+    case(_zz_fpu_fpPipe_ctrl_0_down_RESULT_124)
+      ChannelType_PHYSICAL : _zz_fpu_fpPipe_ctrl_0_down_RESULT_124_string = "PHYSICAL ";
+      ChannelType_VIRTUAL_1 : _zz_fpu_fpPipe_ctrl_0_down_RESULT_124_string = "VIRTUAL_1";
+      ChannelType_RESOURCE : _zz_fpu_fpPipe_ctrl_0_down_RESULT_124_string = "RESOURCE ";
+      ChannelType_INVALID : _zz_fpu_fpPipe_ctrl_0_down_RESULT_124_string = "INVALID  ";
+      default : _zz_fpu_fpPipe_ctrl_0_down_RESULT_124_string = "?????????";
     endcase
   end
   always @(*) begin
@@ -4164,31 +4085,16 @@ module T9000Transputer (
     endcase
   end
   always @(*) begin
-    case(_zz_when_SchedulerPlugin_l166)
-      ProcessState_RUNNING : _zz_when_SchedulerPlugin_l166_string = "RUNNING   ";
-      ProcessState_READY : _zz_when_SchedulerPlugin_l166_string = "READY     ";
-      ProcessState_WAITING : _zz_when_SchedulerPlugin_l166_string = "WAITING   ";
-      ProcessState_TERMINATED : _zz_when_SchedulerPlugin_l166_string = "TERMINATED";
-      default : _zz_when_SchedulerPlugin_l166_string = "??????????";
+    case(_zz_when_SchedulerPlugin_l168)
+      ProcessState_RUNNING : _zz_when_SchedulerPlugin_l168_string = "RUNNING   ";
+      ProcessState_READY : _zz_when_SchedulerPlugin_l168_string = "READY     ";
+      ProcessState_WAITING : _zz_when_SchedulerPlugin_l168_string = "WAITING   ";
+      ProcessState_TERMINATED : _zz_when_SchedulerPlugin_l168_string = "TERMINATED";
+      default : _zz_when_SchedulerPlugin_l168_string = "??????????";
     endcase
   end
   `endif
 
-  assign systemBus_cmd_ready = 1'b1;
-  assign systemBus_rsp_valid = 1'b0;
-  assign systemBus_rsp_payload_fragment_opcode = 1'b0;
-  assign systemBus_rsp_payload_fragment_data = 128'h0;
-  assign systemBus_rsp_payload_fragment_source = 4'b0000;
-  assign systemBus_rsp_payload_fragment_context = 8'h0;
-  assign systemBus_rsp_payload_last = 1'b1;
-  assign io_dsLinks_0_write = 2'b00;
-  assign io_dsLinks_0_writeEnable = 2'b00;
-  assign io_dsLinks_1_write = 2'b00;
-  assign io_dsLinks_1_writeEnable = 2'b00;
-  assign io_dsLinks_2_write = 2'b00;
-  assign io_dsLinks_2_writeEnable = 2'b00;
-  assign io_dsLinks_3_write = 2'b00;
-  assign io_dsLinks_3_writeEnable = 2'b00;
   assign fetchGroup_down_isFiring = (fetchGroup_down_isValid && fetchGroup_down_isReady);
   assign fetchGroup_down_isValid = 1'b1;
   assign fetchGroup_down_isReady = 1'b1;
@@ -4205,79 +4111,39 @@ module T9000Transputer (
   assign writeback_down_isValid = 1'b1;
   assign writeback_down_isReady = 1'b1;
   assign systemBus_cmd_valid = 1'b0;
+  assign systemBus_cmd_payload_fragment_source = 4'b0000;
   assign systemBus_cmd_payload_fragment_opcode = 1'b0;
   assign systemBus_cmd_payload_fragment_address = 32'h0;
-  assign systemBus_cmd_payload_fragment_length = 6'h0;
+  assign systemBus_cmd_payload_fragment_length = 4'b0000;
   assign systemBus_cmd_payload_fragment_data = 128'h0;
   assign systemBus_cmd_payload_fragment_mask = 16'h0;
   assign systemBus_cmd_payload_last = 1'b1;
   assign systemBus_rsp_ready = 1'b1;
   assign _zz_io_input_cmd_valid_1 = (_zz_io_input_cmd_valid && (! _zz_io_input_cmd_valid_2));
   assign _zz_io_input_rsp_ready = _zz_io_input_cmd_valid;
-  assign _zz_when_ArithmeticPlugin_l124_2 = _zz_when_ArithmeticPlugin_l124_1[3 : 0];
-  assign _zz_when_ArithmeticPlugin_l124_3 = ((_zz_when_ArithmeticPlugin_l124_1[7 : 4] == PrimaryOpcode_OPR) && ((((((((((_zz_when_ArithmeticPlugin_l124_2 == _zz__zz_when_ArithmeticPlugin_l124_3) || (_zz_when_ArithmeticPlugin_l124_2 == _zz__zz_when_ArithmeticPlugin_l124_3_2)) || (_zz_when_ArithmeticPlugin_l124_2 == _zz__zz_when_ArithmeticPlugin_l124_3_4)) || (_zz_when_ArithmeticPlugin_l124_2 == _zz__zz_when_ArithmeticPlugin_l124_3_6)) || (_zz_when_ArithmeticPlugin_l124_2 == _zz__zz_when_ArithmeticPlugin_l124_3_8)) || (_zz_when_ArithmeticPlugin_l124_2 == _zz__zz_when_ArithmeticPlugin_l124_3_10)) || (_zz_when_ArithmeticPlugin_l124_2 == _zz__zz_when_ArithmeticPlugin_l124_3_12)) || (_zz_when_ArithmeticPlugin_l124_2 == _zz__zz_when_ArithmeticPlugin_l124_3_14)) || (_zz_when_ArithmeticPlugin_l124_2 == _zz__zz_when_ArithmeticPlugin_l124_3_16)) || (_zz_when_ArithmeticPlugin_l124_2 == _zz__zz_when_ArithmeticPlugin_l124_3_18)));
-  assign when_ArithmeticPlugin_l124 = (_zz_when_ArithmeticPlugin_l124 || _zz_when_ArithmeticPlugin_l124_3);
+  assign _zz_3 = _zz_2[3 : 0];
   always @(*) begin
-    switch_ArithmeticPlugin_l148 = AluOp_ADD;
-    if(_zz_when_ArithmeticPlugin_l124) begin
-      case(_zz_2)
-        4'b0001 : begin
-          switch_ArithmeticPlugin_l148 = AluOp_ADD;
-        end
-        4'b0010 : begin
-          switch_ArithmeticPlugin_l148 = AluOp_SUB;
-        end
-        4'b0110 : begin
-          switch_ArithmeticPlugin_l148 = AluOp_AND_1;
-        end
-        4'b0111 : begin
-          switch_ArithmeticPlugin_l148 = AluOp_OR_1;
-        end
-        4'b1000 : begin
-          switch_ArithmeticPlugin_l148 = AluOp_XOR_1;
-        end
-        4'b1001 : begin
-          switch_ArithmeticPlugin_l148 = AluOp_NOT_1;
-        end
-        4'b1010 : begin
-          switch_ArithmeticPlugin_l148 = AluOp_SHL;
-        end
-        4'b1011 : begin
-          switch_ArithmeticPlugin_l148 = AluOp_SHR;
-        end
-        4'b1100 : begin
-          switch_ArithmeticPlugin_l148 = AluOp_GT;
-        end
-        4'b1111 : begin
-          switch_ArithmeticPlugin_l148 = AluOp_REV;
-        end
-        default : begin
-        end
-      endcase
-    end else begin
-      if(_zz_when_ArithmeticPlugin_l124_3) begin
-        if((_zz_when_ArithmeticPlugin_l124_2 == _zz_7)) begin
-            switch_ArithmeticPlugin_l148 = AluOp_ADD;
-        end else if((_zz_when_ArithmeticPlugin_l124_2 == _zz_9)) begin
-            switch_ArithmeticPlugin_l148 = AluOp_SUB;
-        end else if((_zz_when_ArithmeticPlugin_l124_2 == _zz_11)) begin
-            switch_ArithmeticPlugin_l148 = AluOp_AND_1;
-        end else if((_zz_when_ArithmeticPlugin_l124_2 == _zz_13)) begin
-            switch_ArithmeticPlugin_l148 = AluOp_OR_1;
-        end else if((_zz_when_ArithmeticPlugin_l124_2 == _zz_15)) begin
-            switch_ArithmeticPlugin_l148 = AluOp_XOR_1;
-        end else if((_zz_when_ArithmeticPlugin_l124_2 == _zz_17)) begin
-            switch_ArithmeticPlugin_l148 = AluOp_NOT_1;
-        end else if((_zz_when_ArithmeticPlugin_l124_2 == _zz_19)) begin
-            switch_ArithmeticPlugin_l148 = AluOp_SHL;
-        end else if((_zz_when_ArithmeticPlugin_l124_2 == _zz_21)) begin
-            switch_ArithmeticPlugin_l148 = AluOp_SHR;
-        end else if((_zz_when_ArithmeticPlugin_l124_2 == _zz_23)) begin
-            switch_ArithmeticPlugin_l148 = AluOp_GT;
-        end else if((_zz_when_ArithmeticPlugin_l124_2 == _zz_25)) begin
-            switch_ArithmeticPlugin_l148 = AluOp_REV;
-        end
-      end
+    switch_ArithmeticPlugin_l151 = AluOp_ADD;
+    if((_zz_3 == _zz_8)) begin
+        switch_ArithmeticPlugin_l151 = AluOp_ADD;
+    end else if((_zz_3 == _zz_10)) begin
+        switch_ArithmeticPlugin_l151 = AluOp_SUB;
+    end else if((_zz_3 == _zz_12)) begin
+        switch_ArithmeticPlugin_l151 = AluOp_AND_1;
+    end else if((_zz_3 == _zz_14)) begin
+        switch_ArithmeticPlugin_l151 = AluOp_OR_1;
+    end else if((_zz_3 == _zz_16)) begin
+        switch_ArithmeticPlugin_l151 = AluOp_XOR_1;
+    end else if((_zz_3 == _zz_18)) begin
+        switch_ArithmeticPlugin_l151 = AluOp_NOT_1;
+    end else if((_zz_3 == _zz_20)) begin
+        switch_ArithmeticPlugin_l151 = AluOp_SHL;
+    end else if((_zz_3 == _zz_22)) begin
+        switch_ArithmeticPlugin_l151 = AluOp_SHR;
+    end else if((_zz_3 == _zz_24)) begin
+        switch_ArithmeticPlugin_l151 = AluOp_GT;
+    end else if((_zz_3 == _zz_26)) begin
+        switch_ArithmeticPlugin_l151 = AluOp_REV;
     end
   end
 
@@ -4285,241 +4151,199 @@ module T9000Transputer (
   always @(*) begin
     case(switch_Misc_l245)
       RegName_Areg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_12 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_3;
       end
       RegName_Breg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_12 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_4;
       end
       RegName_Creg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_12 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_5;
       end
       RegName_WdescReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_12 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_9;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
       end
       RegName_IptrReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_12 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_10;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
       end
       RegName_StatusReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_12 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_11;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
       end
       default : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_12 = 32'h0;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 = 32'h0;
       end
     endcase
   end
 
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_13 = (_zz_when_ArithmeticPlugin_l124 ? _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 : (_zz_fpu_fpPipe_ctrl_0_down_RESULT_12 & 32'hffffffff));
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_9 & 32'hffffffff);
   assign switch_Misc_l245_1 = RegName_Breg;
   always @(*) begin
     case(switch_Misc_l245_1)
       RegName_Areg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_14 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_3;
       end
       RegName_Breg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_14 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_4;
       end
       RegName_Creg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_14 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_5;
       end
       RegName_WdescReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_14 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_9;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
       end
       RegName_IptrReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_14 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_10;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
       end
       RegName_StatusReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_14 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_11;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
       end
       default : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_14 = 32'h0;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 = 32'h0;
       end
     endcase
   end
 
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_15 = (_zz_when_ArithmeticPlugin_l124 ? _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 : (_zz_fpu_fpPipe_ctrl_0_down_RESULT_14 & 32'hffffffff));
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_12 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_11 & 32'hffffffff);
   assign switch_Misc_l245_2 = RegName_Creg;
   always @(*) begin
     case(switch_Misc_l245_2)
       RegName_Areg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_16 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_13 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_3;
       end
       RegName_Breg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_16 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_13 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_4;
       end
       RegName_Creg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_16 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_13 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_5;
       end
       RegName_WdescReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_16 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_9;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_13 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
       end
       RegName_IptrReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_16 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_10;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_13 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
       end
       RegName_StatusReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_16 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_11;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_13 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
       end
       default : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_16 = 32'h0;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_13 = 32'h0;
       end
     endcase
   end
 
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_17 = (_zz_when_ArithmeticPlugin_l124 ? _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 : (_zz_fpu_fpPipe_ctrl_0_down_RESULT_16 & 32'hffffffff));
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_18 = (_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_18 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_14 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_13 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_15 = (_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_15 & 32'hffffffff);
   assign when_RegStackPlugin_l144 = (RegName_Areg == RegName_Areg);
   assign when_RegStackPlugin_l146 = (RegName_Breg == RegName_Areg);
   assign when_RegStackPlugin_l148 = (RegName_Creg == RegName_Areg);
   assign when_RegStackPlugin_l150 = (RegName_WdescReg == RegName_Areg);
   assign when_RegStackPlugin_l152 = (RegName_IptrReg == RegName_Areg);
   assign when_RegStackPlugin_l154 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_19 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_17 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_16 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_14 & 32'hffffffff);
   assign when_RegStackPlugin_l144_1 = (RegName_Areg == RegName_Breg);
   assign when_RegStackPlugin_l146_1 = (RegName_Breg == RegName_Breg);
   assign when_RegStackPlugin_l148_1 = (RegName_Creg == RegName_Breg);
   assign when_RegStackPlugin_l150_1 = (RegName_WdescReg == RegName_Breg);
   assign when_RegStackPlugin_l152_1 = (RegName_IptrReg == RegName_Breg);
   assign when_RegStackPlugin_l154_1 = (RegName_StatusReg == RegName_Breg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_20 = (_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_20 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_17 = (_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_17 & 32'hffffffff);
   assign when_RegStackPlugin_l144_2 = (RegName_Areg == RegName_Areg);
   assign when_RegStackPlugin_l146_2 = (RegName_Breg == RegName_Areg);
   assign when_RegStackPlugin_l148_2 = (RegName_Creg == RegName_Areg);
   assign when_RegStackPlugin_l150_2 = (RegName_WdescReg == RegName_Areg);
   assign when_RegStackPlugin_l152_2 = (RegName_IptrReg == RegName_Areg);
   assign when_RegStackPlugin_l154_2 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_21 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_17 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_18 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_14 & 32'hffffffff);
   assign when_RegStackPlugin_l144_3 = (RegName_Areg == RegName_Breg);
   assign when_RegStackPlugin_l146_3 = (RegName_Breg == RegName_Breg);
   assign when_RegStackPlugin_l148_3 = (RegName_Creg == RegName_Breg);
   assign when_RegStackPlugin_l150_3 = (RegName_WdescReg == RegName_Breg);
   assign when_RegStackPlugin_l152_3 = (RegName_IptrReg == RegName_Breg);
   assign when_RegStackPlugin_l154_3 = (RegName_StatusReg == RegName_Breg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_22 = ((_zz_fpu_fpPipe_ctrl_0_down_RESULT_15 & _zz_fpu_fpPipe_ctrl_0_down_RESULT_13) & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_19 = ((_zz_fpu_fpPipe_ctrl_0_down_RESULT_12 & _zz_fpu_fpPipe_ctrl_0_down_RESULT_10) & 32'hffffffff);
   assign when_RegStackPlugin_l144_4 = (RegName_Areg == RegName_Areg);
   assign when_RegStackPlugin_l146_4 = (RegName_Breg == RegName_Areg);
   assign when_RegStackPlugin_l148_4 = (RegName_Creg == RegName_Areg);
   assign when_RegStackPlugin_l150_4 = (RegName_WdescReg == RegName_Areg);
   assign when_RegStackPlugin_l152_4 = (RegName_IptrReg == RegName_Areg);
   assign when_RegStackPlugin_l154_4 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_23 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_17 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_20 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_14 & 32'hffffffff);
   assign when_RegStackPlugin_l144_5 = (RegName_Areg == RegName_Breg);
   assign when_RegStackPlugin_l146_5 = (RegName_Breg == RegName_Breg);
   assign when_RegStackPlugin_l148_5 = (RegName_Creg == RegName_Breg);
   assign when_RegStackPlugin_l150_5 = (RegName_WdescReg == RegName_Breg);
   assign when_RegStackPlugin_l152_5 = (RegName_IptrReg == RegName_Breg);
   assign when_RegStackPlugin_l154_5 = (RegName_StatusReg == RegName_Breg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_24 = ((_zz_fpu_fpPipe_ctrl_0_down_RESULT_15 | _zz_fpu_fpPipe_ctrl_0_down_RESULT_13) & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_21 = ((_zz_fpu_fpPipe_ctrl_0_down_RESULT_12 | _zz_fpu_fpPipe_ctrl_0_down_RESULT_10) & 32'hffffffff);
   assign when_RegStackPlugin_l144_6 = (RegName_Areg == RegName_Areg);
   assign when_RegStackPlugin_l146_6 = (RegName_Breg == RegName_Areg);
   assign when_RegStackPlugin_l148_6 = (RegName_Creg == RegName_Areg);
   assign when_RegStackPlugin_l150_6 = (RegName_WdescReg == RegName_Areg);
   assign when_RegStackPlugin_l152_6 = (RegName_IptrReg == RegName_Areg);
   assign when_RegStackPlugin_l154_6 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_25 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_17 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_22 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_14 & 32'hffffffff);
   assign when_RegStackPlugin_l144_7 = (RegName_Areg == RegName_Breg);
   assign when_RegStackPlugin_l146_7 = (RegName_Breg == RegName_Breg);
   assign when_RegStackPlugin_l148_7 = (RegName_Creg == RegName_Breg);
   assign when_RegStackPlugin_l150_7 = (RegName_WdescReg == RegName_Breg);
   assign when_RegStackPlugin_l152_7 = (RegName_IptrReg == RegName_Breg);
   assign when_RegStackPlugin_l154_7 = (RegName_StatusReg == RegName_Breg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_26 = ((_zz_fpu_fpPipe_ctrl_0_down_RESULT_15 ^ _zz_fpu_fpPipe_ctrl_0_down_RESULT_13) & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_23 = ((_zz_fpu_fpPipe_ctrl_0_down_RESULT_12 ^ _zz_fpu_fpPipe_ctrl_0_down_RESULT_10) & 32'hffffffff);
   assign when_RegStackPlugin_l144_8 = (RegName_Areg == RegName_Areg);
   assign when_RegStackPlugin_l146_8 = (RegName_Breg == RegName_Areg);
   assign when_RegStackPlugin_l148_8 = (RegName_Creg == RegName_Areg);
   assign when_RegStackPlugin_l150_8 = (RegName_WdescReg == RegName_Areg);
   assign when_RegStackPlugin_l152_8 = (RegName_IptrReg == RegName_Areg);
   assign when_RegStackPlugin_l154_8 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_27 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_17 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_24 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_14 & 32'hffffffff);
   assign when_RegStackPlugin_l144_9 = (RegName_Areg == RegName_Breg);
   assign when_RegStackPlugin_l146_9 = (RegName_Breg == RegName_Breg);
   assign when_RegStackPlugin_l148_9 = (RegName_Creg == RegName_Breg);
   assign when_RegStackPlugin_l150_9 = (RegName_WdescReg == RegName_Breg);
   assign when_RegStackPlugin_l152_9 = (RegName_IptrReg == RegName_Breg);
   assign when_RegStackPlugin_l154_9 = (RegName_StatusReg == RegName_Breg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_28 = ((~ _zz_fpu_fpPipe_ctrl_0_down_RESULT_13) & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_25 = ((~ _zz_fpu_fpPipe_ctrl_0_down_RESULT_10) & 32'hffffffff);
   assign when_RegStackPlugin_l144_10 = (RegName_Areg == RegName_Areg);
   assign when_RegStackPlugin_l146_10 = (RegName_Breg == RegName_Areg);
   assign when_RegStackPlugin_l148_10 = (RegName_Creg == RegName_Areg);
   assign when_RegStackPlugin_l150_10 = (RegName_WdescReg == RegName_Areg);
   assign when_RegStackPlugin_l152_10 = (RegName_IptrReg == RegName_Areg);
   assign when_RegStackPlugin_l154_10 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_29 = (_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_29 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_26 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_12 & 32'hffffffff);
   assign when_RegStackPlugin_l144_11 = (RegName_Areg == RegName_Areg);
   assign when_RegStackPlugin_l146_11 = (RegName_Breg == RegName_Areg);
   assign when_RegStackPlugin_l148_11 = (RegName_Creg == RegName_Areg);
   assign when_RegStackPlugin_l150_11 = (RegName_WdescReg == RegName_Areg);
   assign when_RegStackPlugin_l152_11 = (RegName_IptrReg == RegName_Areg);
   assign when_RegStackPlugin_l154_11 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_30 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_17 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_27 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_10 & 32'hffffffff);
   assign when_RegStackPlugin_l144_12 = (RegName_Areg == RegName_Breg);
   assign when_RegStackPlugin_l146_12 = (RegName_Breg == RegName_Breg);
   assign when_RegStackPlugin_l148_12 = (RegName_Creg == RegName_Breg);
   assign when_RegStackPlugin_l150_12 = (RegName_WdescReg == RegName_Breg);
   assign when_RegStackPlugin_l152_12 = (RegName_IptrReg == RegName_Breg);
   assign when_RegStackPlugin_l154_12 = (RegName_StatusReg == RegName_Breg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_31 = (_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_31 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_13 = (RegName_Areg == RegName_Areg);
-  assign when_RegStackPlugin_l146_13 = (RegName_Breg == RegName_Areg);
-  assign when_RegStackPlugin_l148_13 = (RegName_Creg == RegName_Areg);
-  assign when_RegStackPlugin_l150_13 = (RegName_WdescReg == RegName_Areg);
-  assign when_RegStackPlugin_l152_13 = (RegName_IptrReg == RegName_Areg);
-  assign when_RegStackPlugin_l154_13 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_32 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_17 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_14 = (RegName_Areg == RegName_Breg);
-  assign when_RegStackPlugin_l146_14 = (RegName_Breg == RegName_Breg);
-  assign when_RegStackPlugin_l148_14 = (RegName_Creg == RegName_Breg);
-  assign when_RegStackPlugin_l150_14 = (RegName_WdescReg == RegName_Breg);
-  assign when_RegStackPlugin_l152_14 = (RegName_IptrReg == RegName_Breg);
-  assign when_RegStackPlugin_l154_14 = (RegName_StatusReg == RegName_Breg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_33 = (_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_33 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_15 = (RegName_Areg == RegName_Areg);
-  assign when_RegStackPlugin_l146_15 = (RegName_Breg == RegName_Areg);
-  assign when_RegStackPlugin_l148_15 = (RegName_Creg == RegName_Areg);
-  assign when_RegStackPlugin_l150_15 = (RegName_WdescReg == RegName_Areg);
-  assign when_RegStackPlugin_l152_15 = (RegName_IptrReg == RegName_Areg);
-  assign when_RegStackPlugin_l154_15 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_34 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_17 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_16 = (RegName_Areg == RegName_Breg);
-  assign when_RegStackPlugin_l146_16 = (RegName_Breg == RegName_Breg);
-  assign when_RegStackPlugin_l148_16 = (RegName_Creg == RegName_Breg);
-  assign when_RegStackPlugin_l150_16 = (RegName_WdescReg == RegName_Breg);
-  assign when_RegStackPlugin_l152_16 = (RegName_IptrReg == RegName_Breg);
-  assign when_RegStackPlugin_l154_16 = (RegName_StatusReg == RegName_Breg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_35 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_15 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_17 = (RegName_Areg == RegName_Areg);
-  assign when_RegStackPlugin_l146_17 = (RegName_Breg == RegName_Areg);
-  assign when_RegStackPlugin_l148_17 = (RegName_Creg == RegName_Areg);
-  assign when_RegStackPlugin_l150_17 = (RegName_WdescReg == RegName_Areg);
-  assign when_RegStackPlugin_l152_17 = (RegName_IptrReg == RegName_Areg);
-  assign when_RegStackPlugin_l154_17 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_36 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_13 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_18 = (RegName_Areg == RegName_Breg);
-  assign when_RegStackPlugin_l146_18 = (RegName_Breg == RegName_Breg);
-  assign when_RegStackPlugin_l148_18 = (RegName_Creg == RegName_Breg);
-  assign when_RegStackPlugin_l150_18 = (RegName_WdescReg == RegName_Breg);
-  assign when_RegStackPlugin_l152_18 = (RegName_IptrReg == RegName_Breg);
-  assign when_RegStackPlugin_l154_18 = (RegName_StatusReg == RegName_Breg);
   assign _zz_when_LongArithPlugin_l142_1 = (_zz_when_LongArithPlugin_l142[7 : 4] == PrimaryOpcode_OPR);
   assign _zz_when_LongArithPlugin_l142_2 = _zz_when_LongArithPlugin_l142[3 : 0];
   always @(*) begin
     switch_LongArithPlugin_l132 = LongArithOp_LADD;
     if(_zz_when_LongArithPlugin_l142_1) begin
-      if((_zz_when_LongArithPlugin_l142_2 == _zz_27)) begin
+      if((_zz_when_LongArithPlugin_l142_2 == _zz_28)) begin
           switch_LongArithPlugin_l132 = LongArithOp_LADD;
-      end else if((_zz_when_LongArithPlugin_l142_2 == _zz_29)) begin
+      end else if((_zz_when_LongArithPlugin_l142_2 == _zz_30)) begin
           switch_LongArithPlugin_l132 = LongArithOp_LSUB;
-      end else if((_zz_when_LongArithPlugin_l142_2 == _zz_31)) begin
+      end else if((_zz_when_LongArithPlugin_l142_2 == _zz_32)) begin
           switch_LongArithPlugin_l132 = LongArithOp_LMUL;
-      end else if((_zz_when_LongArithPlugin_l142_2 == _zz_33)) begin
+      end else if((_zz_when_LongArithPlugin_l142_2 == _zz_34)) begin
           switch_LongArithPlugin_l132 = LongArithOp_LDIV;
-      end else if((_zz_when_LongArithPlugin_l142_2 == _zz_35)) begin
+      end else if((_zz_when_LongArithPlugin_l142_2 == _zz_36)) begin
           switch_LongArithPlugin_l132 = LongArithOp_LSHL;
-      end else if((_zz_when_LongArithPlugin_l142_2 == _zz_37)) begin
+      end else if((_zz_when_LongArithPlugin_l142_2 == _zz_38)) begin
           switch_LongArithPlugin_l132 = LongArithOp_LSHR;
-      end else if((_zz_when_LongArithPlugin_l142_2 == _zz_39)) begin
+      end else if((_zz_when_LongArithPlugin_l142_2 == _zz_40)) begin
           switch_LongArithPlugin_l132 = LongArithOp_MINT;
-      end else if((_zz_when_LongArithPlugin_l142_2 == _zz_41)) begin
+      end else if((_zz_when_LongArithPlugin_l142_2 == _zz_42)) begin
           switch_LongArithPlugin_l132 = LongArithOp_XSWORD;
-      end else if((_zz_when_LongArithPlugin_l142_2 == _zz_43)) begin
+      end else if((_zz_when_LongArithPlugin_l142_2 == _zz_44)) begin
           switch_LongArithPlugin_l132 = LongArithOp_PROD;
       end
     end
@@ -4556,78 +4380,78 @@ module T9000Transputer (
   always @(*) begin
     case(switch_Misc_l245_3)
       RegName_Areg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_37 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_28 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_3;
       end
       RegName_Breg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_37 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_28 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_4;
       end
       RegName_Creg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_37 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_28 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_5;
       end
       RegName_WdescReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_37 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_9;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_28 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
       end
       RegName_IptrReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_37 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_10;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_28 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
       end
       RegName_StatusReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_37 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_11;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_28 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
       end
       default : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_37 = 32'h0;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_28 = 32'h0;
       end
     endcase
   end
 
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_38 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_37 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_29 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_28 & 32'hffffffff);
   assign switch_Misc_l245_4 = RegName_Breg;
   always @(*) begin
     case(switch_Misc_l245_4)
       RegName_Areg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_39 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_30 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_3;
       end
       RegName_Breg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_39 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_30 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_4;
       end
       RegName_Creg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_39 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_30 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_5;
       end
       RegName_WdescReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_39 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_9;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_30 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
       end
       RegName_IptrReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_39 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_10;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_30 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
       end
       RegName_StatusReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_39 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_11;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_30 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
       end
       default : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_39 = 32'h0;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_30 = 32'h0;
       end
     endcase
   end
 
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_40 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_39 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_31 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_30 & 32'hffffffff);
   assign switch_Misc_l245_5 = RegName_Creg;
   always @(*) begin
     case(switch_Misc_l245_5)
       RegName_Areg : begin
-        _zz_when_LongArithPlugin_l220 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
+        _zz_when_LongArithPlugin_l220 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_3;
       end
       RegName_Breg : begin
-        _zz_when_LongArithPlugin_l220 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
+        _zz_when_LongArithPlugin_l220 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_4;
       end
       RegName_Creg : begin
-        _zz_when_LongArithPlugin_l220 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
+        _zz_when_LongArithPlugin_l220 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_5;
       end
       RegName_WdescReg : begin
-        _zz_when_LongArithPlugin_l220 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_9;
+        _zz_when_LongArithPlugin_l220 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
       end
       RegName_IptrReg : begin
-        _zz_when_LongArithPlugin_l220 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_10;
+        _zz_when_LongArithPlugin_l220 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
       end
       RegName_StatusReg : begin
-        _zz_when_LongArithPlugin_l220 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_11;
+        _zz_when_LongArithPlugin_l220 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
       end
       default : begin
         _zz_when_LongArithPlugin_l220 = 32'h0;
@@ -4636,38 +4460,84 @@ module T9000Transputer (
   end
 
   assign _zz_when_LongArithPlugin_l220_1 = (_zz_when_LongArithPlugin_l220 & 32'hffffffff);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_41 = ({_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_41,_zz_fpu_fpPipe_ctrl_0_down_RESULT_38} + {33'h0,_zz_when_LongArithPlugin_l220_1});
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_42 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_41[31 : 0] & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_32 = ({_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_32,_zz_fpu_fpPipe_ctrl_0_down_RESULT_29} + {33'h0,_zz_when_LongArithPlugin_l220_1});
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_33 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_32[31 : 0] & 32'hffffffff);
+  assign when_RegStackPlugin_l144_13 = (RegName_Areg == RegName_Areg);
+  assign when_RegStackPlugin_l146_13 = (RegName_Breg == RegName_Areg);
+  assign when_RegStackPlugin_l148_13 = (RegName_Creg == RegName_Areg);
+  assign when_RegStackPlugin_l150_13 = (RegName_WdescReg == RegName_Areg);
+  assign when_RegStackPlugin_l152_13 = (RegName_IptrReg == RegName_Areg);
+  assign when_RegStackPlugin_l154_13 = (RegName_StatusReg == RegName_Areg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_34 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_32[63 : 32] & 32'hffffffff);
+  assign when_RegStackPlugin_l144_14 = (RegName_Areg == RegName_Breg);
+  assign when_RegStackPlugin_l146_14 = (RegName_Breg == RegName_Breg);
+  assign when_RegStackPlugin_l148_14 = (RegName_Creg == RegName_Breg);
+  assign when_RegStackPlugin_l150_14 = (RegName_WdescReg == RegName_Breg);
+  assign when_RegStackPlugin_l152_14 = (RegName_IptrReg == RegName_Breg);
+  assign when_RegStackPlugin_l154_14 = (RegName_StatusReg == RegName_Breg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_35 = ($signed(_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_35) - $signed(_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_35_4));
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_36 = (_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_36 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_15 = (RegName_Areg == RegName_Areg);
+  assign when_RegStackPlugin_l146_15 = (RegName_Breg == RegName_Areg);
+  assign when_RegStackPlugin_l148_15 = (RegName_Creg == RegName_Areg);
+  assign when_RegStackPlugin_l150_15 = (RegName_WdescReg == RegName_Areg);
+  assign when_RegStackPlugin_l152_15 = (RegName_IptrReg == RegName_Areg);
+  assign when_RegStackPlugin_l154_15 = (RegName_StatusReg == RegName_Areg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_37 = (_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_37 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_16 = (RegName_Areg == RegName_Breg);
+  assign when_RegStackPlugin_l146_16 = (RegName_Breg == RegName_Breg);
+  assign when_RegStackPlugin_l148_16 = (RegName_Creg == RegName_Breg);
+  assign when_RegStackPlugin_l150_16 = (RegName_WdescReg == RegName_Breg);
+  assign when_RegStackPlugin_l152_16 = (RegName_IptrReg == RegName_Breg);
+  assign when_RegStackPlugin_l154_16 = (RegName_StatusReg == RegName_Breg);
+  assign when_LongArithPlugin_l203 = (_zz_when_LongArithPlugin_l203 == 4'b0000);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_38 = (_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_38 * _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_38_1);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_39 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_38[31 : 0] & 32'hffffffff);
+  assign when_RegStackPlugin_l144_17 = (RegName_Areg == RegName_Areg);
+  assign when_RegStackPlugin_l146_17 = (RegName_Breg == RegName_Areg);
+  assign when_RegStackPlugin_l148_17 = (RegName_Creg == RegName_Areg);
+  assign when_RegStackPlugin_l150_17 = (RegName_WdescReg == RegName_Areg);
+  assign when_RegStackPlugin_l152_17 = (RegName_IptrReg == RegName_Areg);
+  assign when_RegStackPlugin_l154_17 = (RegName_StatusReg == RegName_Areg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_40 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_38[63 : 32] & 32'hffffffff);
+  assign when_RegStackPlugin_l144_18 = (RegName_Areg == RegName_Breg);
+  assign when_RegStackPlugin_l146_18 = (RegName_Breg == RegName_Breg);
+  assign when_RegStackPlugin_l148_18 = (RegName_Creg == RegName_Breg);
+  assign when_RegStackPlugin_l150_18 = (RegName_WdescReg == RegName_Breg);
+  assign when_RegStackPlugin_l152_18 = (RegName_IptrReg == RegName_Breg);
+  assign when_RegStackPlugin_l154_18 = (RegName_StatusReg == RegName_Breg);
+  assign when_LongArithPlugin_l220 = ((_zz_when_LongArithPlugin_l203 == 4'b0000) && (_zz_when_LongArithPlugin_l220_1 != 32'h0));
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_41 = {_zz_fpu_fpPipe_ctrl_0_down_RESULT_31,_zz_fpu_fpPipe_ctrl_0_down_RESULT_29};
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_42 = (_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_42[31 : 0] & 32'hffffffff);
   assign when_RegStackPlugin_l144_19 = (RegName_Areg == RegName_Areg);
   assign when_RegStackPlugin_l146_19 = (RegName_Breg == RegName_Areg);
   assign when_RegStackPlugin_l148_19 = (RegName_Creg == RegName_Areg);
   assign when_RegStackPlugin_l150_19 = (RegName_WdescReg == RegName_Areg);
   assign when_RegStackPlugin_l152_19 = (RegName_IptrReg == RegName_Areg);
   assign when_RegStackPlugin_l154_19 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_43 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_41[63 : 32] & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_43 = (_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_43[31 : 0] & 32'hffffffff);
   assign when_RegStackPlugin_l144_20 = (RegName_Areg == RegName_Breg);
   assign when_RegStackPlugin_l146_20 = (RegName_Breg == RegName_Breg);
   assign when_RegStackPlugin_l148_20 = (RegName_Creg == RegName_Breg);
   assign when_RegStackPlugin_l150_20 = (RegName_WdescReg == RegName_Breg);
   assign when_RegStackPlugin_l152_20 = (RegName_IptrReg == RegName_Breg);
   assign when_RegStackPlugin_l154_20 = (RegName_StatusReg == RegName_Breg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_44 = ($signed(_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_44) - $signed(_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_44_4));
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_45 = (_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_45 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_44 = ({_zz_fpu_fpPipe_ctrl_0_down_RESULT_31,_zz_fpu_fpPipe_ctrl_0_down_RESULT_29} <<< _zz_when_LongArithPlugin_l220_1[5 : 0]);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_45 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_44[31 : 0] & 32'hffffffff);
   assign when_RegStackPlugin_l144_21 = (RegName_Areg == RegName_Areg);
   assign when_RegStackPlugin_l146_21 = (RegName_Breg == RegName_Areg);
   assign when_RegStackPlugin_l148_21 = (RegName_Creg == RegName_Areg);
   assign when_RegStackPlugin_l150_21 = (RegName_WdescReg == RegName_Areg);
   assign when_RegStackPlugin_l152_21 = (RegName_IptrReg == RegName_Areg);
   assign when_RegStackPlugin_l154_21 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_46 = (_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_46 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_46 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_44[63 : 32] & 32'hffffffff);
   assign when_RegStackPlugin_l144_22 = (RegName_Areg == RegName_Breg);
   assign when_RegStackPlugin_l146_22 = (RegName_Breg == RegName_Breg);
   assign when_RegStackPlugin_l148_22 = (RegName_Creg == RegName_Breg);
   assign when_RegStackPlugin_l150_22 = (RegName_WdescReg == RegName_Breg);
   assign when_RegStackPlugin_l152_22 = (RegName_IptrReg == RegName_Breg);
   assign when_RegStackPlugin_l154_22 = (RegName_StatusReg == RegName_Breg);
-  assign when_LongArithPlugin_l203 = (_zz_when_LongArithPlugin_l203 == 4'b0000);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_47 = (_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_47 * _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_47_1);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_47 = ({_zz_fpu_fpPipe_ctrl_0_down_RESULT_31,_zz_fpu_fpPipe_ctrl_0_down_RESULT_29} >>> _zz_when_LongArithPlugin_l220_1[5 : 0]);
   assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_48 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_47[31 : 0] & 32'hffffffff);
   assign when_RegStackPlugin_l144_23 = (RegName_Areg == RegName_Areg);
   assign when_RegStackPlugin_l146_23 = (RegName_Breg == RegName_Areg);
@@ -4682,102 +4552,56 @@ module T9000Transputer (
   assign when_RegStackPlugin_l150_24 = (RegName_WdescReg == RegName_Breg);
   assign when_RegStackPlugin_l152_24 = (RegName_IptrReg == RegName_Breg);
   assign when_RegStackPlugin_l154_24 = (RegName_StatusReg == RegName_Breg);
-  assign when_LongArithPlugin_l220 = ((_zz_when_LongArithPlugin_l203 == 4'b0000) && (_zz_when_LongArithPlugin_l220_1 != 32'h0));
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_50 = {_zz_fpu_fpPipe_ctrl_0_down_RESULT_40,_zz_fpu_fpPipe_ctrl_0_down_RESULT_38};
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_51 = (_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_51[31 : 0] & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_50 = (_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_50 & 32'hffffffff);
   assign when_RegStackPlugin_l144_25 = (RegName_Areg == RegName_Areg);
   assign when_RegStackPlugin_l146_25 = (RegName_Breg == RegName_Areg);
   assign when_RegStackPlugin_l148_25 = (RegName_Creg == RegName_Areg);
   assign when_RegStackPlugin_l150_25 = (RegName_WdescReg == RegName_Areg);
   assign when_RegStackPlugin_l152_25 = (RegName_IptrReg == RegName_Areg);
   assign when_RegStackPlugin_l154_25 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_52 = (_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_52[31 : 0] & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_51 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_29 & 32'hffffffff);
   assign when_RegStackPlugin_l144_26 = (RegName_Areg == RegName_Breg);
   assign when_RegStackPlugin_l146_26 = (RegName_Breg == RegName_Breg);
   assign when_RegStackPlugin_l148_26 = (RegName_Creg == RegName_Breg);
   assign when_RegStackPlugin_l150_26 = (RegName_WdescReg == RegName_Breg);
   assign when_RegStackPlugin_l152_26 = (RegName_IptrReg == RegName_Breg);
   assign when_RegStackPlugin_l154_26 = (RegName_StatusReg == RegName_Breg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_53 = ({_zz_fpu_fpPipe_ctrl_0_down_RESULT_40,_zz_fpu_fpPipe_ctrl_0_down_RESULT_38} <<< _zz_when_LongArithPlugin_l220_1[5 : 0]);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_52 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_31 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_27 = (RegName_Areg == RegName_Creg);
+  assign when_RegStackPlugin_l146_27 = (RegName_Breg == RegName_Creg);
+  assign when_RegStackPlugin_l148_27 = (RegName_Creg == RegName_Creg);
+  assign when_RegStackPlugin_l150_27 = (RegName_WdescReg == RegName_Creg);
+  assign when_RegStackPlugin_l152_27 = (RegName_IptrReg == RegName_Creg);
+  assign when_RegStackPlugin_l154_27 = (RegName_StatusReg == RegName_Creg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_53 = _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_53;
   assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_54 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_53[31 : 0] & 32'hffffffff);
-  assign when_RegStackPlugin_l144_27 = (RegName_Areg == RegName_Areg);
-  assign when_RegStackPlugin_l146_27 = (RegName_Breg == RegName_Areg);
-  assign when_RegStackPlugin_l148_27 = (RegName_Creg == RegName_Areg);
-  assign when_RegStackPlugin_l150_27 = (RegName_WdescReg == RegName_Areg);
-  assign when_RegStackPlugin_l152_27 = (RegName_IptrReg == RegName_Areg);
-  assign when_RegStackPlugin_l154_27 = (RegName_StatusReg == RegName_Areg);
+  assign when_RegStackPlugin_l144_28 = (RegName_Areg == RegName_Areg);
+  assign when_RegStackPlugin_l146_28 = (RegName_Breg == RegName_Areg);
+  assign when_RegStackPlugin_l148_28 = (RegName_Creg == RegName_Areg);
+  assign when_RegStackPlugin_l150_28 = (RegName_WdescReg == RegName_Areg);
+  assign when_RegStackPlugin_l152_28 = (RegName_IptrReg == RegName_Areg);
+  assign when_RegStackPlugin_l154_28 = (RegName_StatusReg == RegName_Areg);
   assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_55 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_53[63 : 32] & 32'hffffffff);
-  assign when_RegStackPlugin_l144_28 = (RegName_Areg == RegName_Breg);
-  assign when_RegStackPlugin_l146_28 = (RegName_Breg == RegName_Breg);
-  assign when_RegStackPlugin_l148_28 = (RegName_Creg == RegName_Breg);
-  assign when_RegStackPlugin_l150_28 = (RegName_WdescReg == RegName_Breg);
-  assign when_RegStackPlugin_l152_28 = (RegName_IptrReg == RegName_Breg);
-  assign when_RegStackPlugin_l154_28 = (RegName_StatusReg == RegName_Breg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_56 = ({_zz_fpu_fpPipe_ctrl_0_down_RESULT_40,_zz_fpu_fpPipe_ctrl_0_down_RESULT_38} >>> _zz_when_LongArithPlugin_l220_1[5 : 0]);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_57 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_56[31 : 0] & 32'hffffffff);
-  assign when_RegStackPlugin_l144_29 = (RegName_Areg == RegName_Areg);
-  assign when_RegStackPlugin_l146_29 = (RegName_Breg == RegName_Areg);
-  assign when_RegStackPlugin_l148_29 = (RegName_Creg == RegName_Areg);
-  assign when_RegStackPlugin_l150_29 = (RegName_WdescReg == RegName_Areg);
-  assign when_RegStackPlugin_l152_29 = (RegName_IptrReg == RegName_Areg);
-  assign when_RegStackPlugin_l154_29 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_58 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_56[63 : 32] & 32'hffffffff);
-  assign when_RegStackPlugin_l144_30 = (RegName_Areg == RegName_Breg);
-  assign when_RegStackPlugin_l146_30 = (RegName_Breg == RegName_Breg);
-  assign when_RegStackPlugin_l148_30 = (RegName_Creg == RegName_Breg);
-  assign when_RegStackPlugin_l150_30 = (RegName_WdescReg == RegName_Breg);
-  assign when_RegStackPlugin_l152_30 = (RegName_IptrReg == RegName_Breg);
-  assign when_RegStackPlugin_l154_30 = (RegName_StatusReg == RegName_Breg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_59 = (_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_59 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_29 = (RegName_Areg == RegName_Breg);
+  assign when_RegStackPlugin_l146_29 = (RegName_Breg == RegName_Breg);
+  assign when_RegStackPlugin_l148_29 = (RegName_Creg == RegName_Breg);
+  assign when_RegStackPlugin_l150_29 = (RegName_WdescReg == RegName_Breg);
+  assign when_RegStackPlugin_l152_29 = (RegName_IptrReg == RegName_Breg);
+  assign when_RegStackPlugin_l154_29 = (RegName_StatusReg == RegName_Breg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_56 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_31 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_30 = (RegName_Areg == RegName_Creg);
+  assign when_RegStackPlugin_l146_30 = (RegName_Breg == RegName_Creg);
+  assign when_RegStackPlugin_l148_30 = (RegName_Creg == RegName_Creg);
+  assign when_RegStackPlugin_l150_30 = (RegName_WdescReg == RegName_Creg);
+  assign when_RegStackPlugin_l152_30 = (RegName_IptrReg == RegName_Creg);
+  assign when_RegStackPlugin_l154_30 = (RegName_StatusReg == RegName_Creg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_57 = (_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_57 & 32'hffffffff);
   assign when_RegStackPlugin_l144_31 = (RegName_Areg == RegName_Areg);
   assign when_RegStackPlugin_l146_31 = (RegName_Breg == RegName_Areg);
   assign when_RegStackPlugin_l148_31 = (RegName_Creg == RegName_Areg);
   assign when_RegStackPlugin_l150_31 = (RegName_WdescReg == RegName_Areg);
   assign when_RegStackPlugin_l152_31 = (RegName_IptrReg == RegName_Areg);
   assign when_RegStackPlugin_l154_31 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_60 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_38 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_32 = (RegName_Areg == RegName_Breg);
-  assign when_RegStackPlugin_l146_32 = (RegName_Breg == RegName_Breg);
-  assign when_RegStackPlugin_l148_32 = (RegName_Creg == RegName_Breg);
-  assign when_RegStackPlugin_l150_32 = (RegName_WdescReg == RegName_Breg);
-  assign when_RegStackPlugin_l152_32 = (RegName_IptrReg == RegName_Breg);
-  assign when_RegStackPlugin_l154_32 = (RegName_StatusReg == RegName_Breg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_61 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_40 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_33 = (RegName_Areg == RegName_Creg);
-  assign when_RegStackPlugin_l146_33 = (RegName_Breg == RegName_Creg);
-  assign when_RegStackPlugin_l148_33 = (RegName_Creg == RegName_Creg);
-  assign when_RegStackPlugin_l150_33 = (RegName_WdescReg == RegName_Creg);
-  assign when_RegStackPlugin_l152_33 = (RegName_IptrReg == RegName_Creg);
-  assign when_RegStackPlugin_l154_33 = (RegName_StatusReg == RegName_Creg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_62 = _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_62;
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_63 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_62[31 : 0] & 32'hffffffff);
-  assign when_RegStackPlugin_l144_34 = (RegName_Areg == RegName_Areg);
-  assign when_RegStackPlugin_l146_34 = (RegName_Breg == RegName_Areg);
-  assign when_RegStackPlugin_l148_34 = (RegName_Creg == RegName_Areg);
-  assign when_RegStackPlugin_l150_34 = (RegName_WdescReg == RegName_Areg);
-  assign when_RegStackPlugin_l152_34 = (RegName_IptrReg == RegName_Areg);
-  assign when_RegStackPlugin_l154_34 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_64 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_62[63 : 32] & 32'hffffffff);
-  assign when_RegStackPlugin_l144_35 = (RegName_Areg == RegName_Breg);
-  assign when_RegStackPlugin_l146_35 = (RegName_Breg == RegName_Breg);
-  assign when_RegStackPlugin_l148_35 = (RegName_Creg == RegName_Breg);
-  assign when_RegStackPlugin_l150_35 = (RegName_WdescReg == RegName_Breg);
-  assign when_RegStackPlugin_l152_35 = (RegName_IptrReg == RegName_Breg);
-  assign when_RegStackPlugin_l154_35 = (RegName_StatusReg == RegName_Breg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_65 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_40 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_36 = (RegName_Areg == RegName_Creg);
-  assign when_RegStackPlugin_l146_36 = (RegName_Breg == RegName_Creg);
-  assign when_RegStackPlugin_l148_36 = (RegName_Creg == RegName_Creg);
-  assign when_RegStackPlugin_l150_36 = (RegName_WdescReg == RegName_Creg);
-  assign when_RegStackPlugin_l152_36 = (RegName_IptrReg == RegName_Creg);
-  assign when_RegStackPlugin_l154_36 = (RegName_StatusReg == RegName_Creg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_66 = (_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_66 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_37 = (RegName_Areg == RegName_Areg);
-  assign when_RegStackPlugin_l146_37 = (RegName_Breg == RegName_Areg);
-  assign when_RegStackPlugin_l148_37 = (RegName_Creg == RegName_Areg);
-  assign when_RegStackPlugin_l150_37 = (RegName_WdescReg == RegName_Areg);
-  assign when_RegStackPlugin_l152_37 = (RegName_IptrReg == RegName_Areg);
-  assign when_RegStackPlugin_l154_37 = (RegName_StatusReg == RegName_Areg);
   assign when_LongArithPlugin_l313 = (_zz_when_LongArithPlugin_l203 == 4'b0000);
   assign _zz_when_ControlFlowPlugin_l115_1 = (_zz_when_ControlFlowPlugin_l115[7 : 4] == PrimaryOpcode_OPR);
   assign _zz_when_ControlFlowPlugin_l115_2 = _zz_when_ControlFlowPlugin_l115[3 : 0];
@@ -4785,19 +4609,19 @@ module T9000Transputer (
   always @(*) begin
     switch_ControlFlowPlugin_l132 = ControlFlowOp_RET;
     if(_zz_when_ControlFlowPlugin_l115_1) begin
-      if((_zz_when_ControlFlowPlugin_l115_2 == _zz_45)) begin
+      if((_zz_when_ControlFlowPlugin_l115_2 == _zz_46)) begin
           switch_ControlFlowPlugin_l132 = ControlFlowOp_RET;
-      end else if((_zz_when_ControlFlowPlugin_l115_2 == _zz_47)) begin
+      end else if((_zz_when_ControlFlowPlugin_l115_2 == _zz_48)) begin
           switch_ControlFlowPlugin_l132 = ControlFlowOp_LDPI;
-      end else if((_zz_when_ControlFlowPlugin_l115_2 == _zz_49)) begin
+      end else if((_zz_when_ControlFlowPlugin_l115_2 == _zz_50)) begin
           switch_ControlFlowPlugin_l132 = ControlFlowOp_GAJW;
-      end else if((_zz_when_ControlFlowPlugin_l115_2 == _zz_51)) begin
+      end else if((_zz_when_ControlFlowPlugin_l115_2 == _zz_52)) begin
           switch_ControlFlowPlugin_l132 = ControlFlowOp_GCALL;
-      end else if((_zz_when_ControlFlowPlugin_l115_2 == _zz_53)) begin
+      end else if((_zz_when_ControlFlowPlugin_l115_2 == _zz_54)) begin
           switch_ControlFlowPlugin_l132 = ControlFlowOp_LEND;
-      end else if((_zz_when_ControlFlowPlugin_l115_2 == _zz_55)) begin
+      end else if((_zz_when_ControlFlowPlugin_l115_2 == _zz_56)) begin
           switch_ControlFlowPlugin_l132 = ControlFlowOp_ENDP;
-      end else if((_zz_when_ControlFlowPlugin_l115_2 == _zz_57)) begin
+      end else if((_zz_when_ControlFlowPlugin_l115_2 == _zz_58)) begin
           switch_ControlFlowPlugin_l132 = ControlFlowOp_DISS;
       end
     end
@@ -4807,22 +4631,22 @@ module T9000Transputer (
   always @(*) begin
     case(switch_Misc_l245_6)
       RegName_Areg : begin
-        _zz_when_ControlFlowPlugin_l171 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
+        _zz_when_ControlFlowPlugin_l171 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_3;
       end
       RegName_Breg : begin
-        _zz_when_ControlFlowPlugin_l171 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
+        _zz_when_ControlFlowPlugin_l171 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_4;
       end
       RegName_Creg : begin
-        _zz_when_ControlFlowPlugin_l171 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
+        _zz_when_ControlFlowPlugin_l171 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_5;
       end
       RegName_WdescReg : begin
-        _zz_when_ControlFlowPlugin_l171 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_9;
+        _zz_when_ControlFlowPlugin_l171 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
       end
       RegName_IptrReg : begin
-        _zz_when_ControlFlowPlugin_l171 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_10;
+        _zz_when_ControlFlowPlugin_l171 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
       end
       RegName_StatusReg : begin
-        _zz_when_ControlFlowPlugin_l171 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_11;
+        _zz_when_ControlFlowPlugin_l171 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
       end
       default : begin
         _zz_when_ControlFlowPlugin_l171 = 32'h0;
@@ -4835,143 +4659,143 @@ module T9000Transputer (
   always @(*) begin
     case(switch_Misc_l245_7)
       RegName_Areg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_67 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_58 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_3;
       end
       RegName_Breg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_67 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_58 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_4;
       end
       RegName_Creg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_67 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_58 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_5;
       end
       RegName_WdescReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_67 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_9;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_58 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
       end
       RegName_IptrReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_67 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_10;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_58 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
       end
       RegName_StatusReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_67 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_11;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_58 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
       end
       default : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_67 = 32'h0;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_58 = 32'h0;
       end
     endcase
   end
 
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_68 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_67 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_59 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_58 & 32'hffffffff);
   assign switch_Misc_l245_8 = RegName_Creg;
   always @(*) begin
     case(switch_Misc_l245_8)
       RegName_Areg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_69 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_60 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_3;
       end
       RegName_Breg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_69 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_60 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_4;
       end
       RegName_Creg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_69 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_60 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_5;
       end
       RegName_WdescReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_69 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_9;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_60 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
       end
       RegName_IptrReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_69 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_10;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_60 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
       end
       RegName_StatusReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_69 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_11;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_60 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
       end
       default : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_69 = 32'h0;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_60 = 32'h0;
       end
     endcase
   end
 
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_70 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_69 & 32'hffffffff);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_71 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_68 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_38 = (RegName_Areg == RegName_Areg);
-  assign when_RegStackPlugin_l146_38 = (RegName_Breg == RegName_Areg);
-  assign when_RegStackPlugin_l148_38 = (RegName_Creg == RegName_Areg);
-  assign when_RegStackPlugin_l150_38 = (RegName_WdescReg == RegName_Areg);
-  assign when_RegStackPlugin_l152_38 = (RegName_IptrReg == RegName_Areg);
-  assign when_RegStackPlugin_l154_38 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_72 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_70 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_39 = (RegName_Areg == RegName_Breg);
-  assign when_RegStackPlugin_l146_39 = (RegName_Breg == RegName_Breg);
-  assign when_RegStackPlugin_l148_39 = (RegName_Creg == RegName_Breg);
-  assign when_RegStackPlugin_l150_39 = (RegName_WdescReg == RegName_Breg);
-  assign when_RegStackPlugin_l152_39 = (RegName_IptrReg == RegName_Breg);
-  assign when_RegStackPlugin_l154_39 = (RegName_StatusReg == RegName_Breg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_73 = (_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_73 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_61 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_60 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_62 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_59 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_32 = (RegName_Areg == RegName_Areg);
+  assign when_RegStackPlugin_l146_32 = (RegName_Breg == RegName_Areg);
+  assign when_RegStackPlugin_l148_32 = (RegName_Creg == RegName_Areg);
+  assign when_RegStackPlugin_l150_32 = (RegName_WdescReg == RegName_Areg);
+  assign when_RegStackPlugin_l152_32 = (RegName_IptrReg == RegName_Areg);
+  assign when_RegStackPlugin_l154_32 = (RegName_StatusReg == RegName_Areg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_63 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_61 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_33 = (RegName_Areg == RegName_Breg);
+  assign when_RegStackPlugin_l146_33 = (RegName_Breg == RegName_Breg);
+  assign when_RegStackPlugin_l148_33 = (RegName_Creg == RegName_Breg);
+  assign when_RegStackPlugin_l150_33 = (RegName_WdescReg == RegName_Breg);
+  assign when_RegStackPlugin_l152_33 = (RegName_IptrReg == RegName_Breg);
+  assign when_RegStackPlugin_l154_33 = (RegName_StatusReg == RegName_Breg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_64 = (_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_64 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_34 = (RegName_Areg == RegName_Areg);
+  assign when_RegStackPlugin_l146_34 = (RegName_Breg == RegName_Areg);
+  assign when_RegStackPlugin_l148_34 = (RegName_Creg == RegName_Areg);
+  assign when_RegStackPlugin_l150_34 = (RegName_WdescReg == RegName_Areg);
+  assign when_RegStackPlugin_l152_34 = (RegName_IptrReg == RegName_Areg);
+  assign when_RegStackPlugin_l154_34 = (RegName_StatusReg == RegName_Areg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_65 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_59 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_35 = (RegName_Areg == RegName_Areg);
+  assign when_RegStackPlugin_l146_35 = (RegName_Breg == RegName_Areg);
+  assign when_RegStackPlugin_l148_35 = (RegName_Creg == RegName_Areg);
+  assign when_RegStackPlugin_l150_35 = (RegName_WdescReg == RegName_Areg);
+  assign when_RegStackPlugin_l152_35 = (RegName_IptrReg == RegName_Areg);
+  assign when_RegStackPlugin_l154_35 = (RegName_StatusReg == RegName_Areg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_66 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_61 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_36 = (RegName_Areg == RegName_Breg);
+  assign when_RegStackPlugin_l146_36 = (RegName_Breg == RegName_Breg);
+  assign when_RegStackPlugin_l148_36 = (RegName_Creg == RegName_Breg);
+  assign when_RegStackPlugin_l150_36 = (RegName_WdescReg == RegName_Breg);
+  assign when_RegStackPlugin_l152_36 = (RegName_IptrReg == RegName_Breg);
+  assign when_RegStackPlugin_l154_36 = (RegName_StatusReg == RegName_Breg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_67 = (_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_67 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_37 = (RegName_Areg == RegName_Areg);
+  assign when_RegStackPlugin_l146_37 = (RegName_Breg == RegName_Areg);
+  assign when_RegStackPlugin_l148_37 = (RegName_Creg == RegName_Areg);
+  assign when_RegStackPlugin_l150_37 = (RegName_WdescReg == RegName_Areg);
+  assign when_RegStackPlugin_l152_37 = (RegName_IptrReg == RegName_Areg);
+  assign when_RegStackPlugin_l154_37 = (RegName_StatusReg == RegName_Areg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_68 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_61 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_38 = (RegName_Areg == RegName_Breg);
+  assign when_RegStackPlugin_l146_38 = (RegName_Breg == RegName_Breg);
+  assign when_RegStackPlugin_l148_38 = (RegName_Creg == RegName_Breg);
+  assign when_RegStackPlugin_l150_38 = (RegName_WdescReg == RegName_Breg);
+  assign when_RegStackPlugin_l152_38 = (RegName_IptrReg == RegName_Breg);
+  assign when_RegStackPlugin_l154_38 = (RegName_StatusReg == RegName_Breg);
+  assign when_ControlFlowPlugin_l171 = (_zz_when_ControlFlowPlugin_l171_1 != 32'h0);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_69 = (_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_69 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_39 = (RegName_Areg == RegName_Areg);
+  assign when_RegStackPlugin_l146_39 = (RegName_Breg == RegName_Areg);
+  assign when_RegStackPlugin_l148_39 = (RegName_Creg == RegName_Areg);
+  assign when_RegStackPlugin_l150_39 = (RegName_WdescReg == RegName_Areg);
+  assign when_RegStackPlugin_l152_39 = (RegName_IptrReg == RegName_Areg);
+  assign when_RegStackPlugin_l154_39 = (RegName_StatusReg == RegName_Areg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_70 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_61 & 32'hffffffff);
   assign when_RegStackPlugin_l144_40 = (RegName_Areg == RegName_Areg);
   assign when_RegStackPlugin_l146_40 = (RegName_Breg == RegName_Areg);
   assign when_RegStackPlugin_l148_40 = (RegName_Creg == RegName_Areg);
   assign when_RegStackPlugin_l150_40 = (RegName_WdescReg == RegName_Areg);
   assign when_RegStackPlugin_l152_40 = (RegName_IptrReg == RegName_Areg);
   assign when_RegStackPlugin_l154_40 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_74 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_68 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_71 = (32'h0 & 32'hffffffff);
   assign when_RegStackPlugin_l144_41 = (RegName_Areg == RegName_Areg);
   assign when_RegStackPlugin_l146_41 = (RegName_Breg == RegName_Areg);
   assign when_RegStackPlugin_l148_41 = (RegName_Creg == RegName_Areg);
   assign when_RegStackPlugin_l150_41 = (RegName_WdescReg == RegName_Areg);
   assign when_RegStackPlugin_l152_41 = (RegName_IptrReg == RegName_Areg);
   assign when_RegStackPlugin_l154_41 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_75 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_70 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_72 = (32'h0 & 32'hffffffff);
   assign when_RegStackPlugin_l144_42 = (RegName_Areg == RegName_Breg);
   assign when_RegStackPlugin_l146_42 = (RegName_Breg == RegName_Breg);
   assign when_RegStackPlugin_l148_42 = (RegName_Creg == RegName_Breg);
   assign when_RegStackPlugin_l150_42 = (RegName_WdescReg == RegName_Breg);
   assign when_RegStackPlugin_l152_42 = (RegName_IptrReg == RegName_Breg);
   assign when_RegStackPlugin_l154_42 = (RegName_StatusReg == RegName_Breg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_76 = (_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_76 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_43 = (RegName_Areg == RegName_Areg);
-  assign when_RegStackPlugin_l146_43 = (RegName_Breg == RegName_Areg);
-  assign when_RegStackPlugin_l148_43 = (RegName_Creg == RegName_Areg);
-  assign when_RegStackPlugin_l150_43 = (RegName_WdescReg == RegName_Areg);
-  assign when_RegStackPlugin_l152_43 = (RegName_IptrReg == RegName_Areg);
-  assign when_RegStackPlugin_l154_43 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_77 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_70 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_44 = (RegName_Areg == RegName_Breg);
-  assign when_RegStackPlugin_l146_44 = (RegName_Breg == RegName_Breg);
-  assign when_RegStackPlugin_l148_44 = (RegName_Creg == RegName_Breg);
-  assign when_RegStackPlugin_l150_44 = (RegName_WdescReg == RegName_Breg);
-  assign when_RegStackPlugin_l152_44 = (RegName_IptrReg == RegName_Breg);
-  assign when_RegStackPlugin_l154_44 = (RegName_StatusReg == RegName_Breg);
-  assign when_ControlFlowPlugin_l171 = (_zz_when_ControlFlowPlugin_l171_1 != 32'h0);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_78 = (_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_78 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_45 = (RegName_Areg == RegName_Areg);
-  assign when_RegStackPlugin_l146_45 = (RegName_Breg == RegName_Areg);
-  assign when_RegStackPlugin_l148_45 = (RegName_Creg == RegName_Areg);
-  assign when_RegStackPlugin_l150_45 = (RegName_WdescReg == RegName_Areg);
-  assign when_RegStackPlugin_l152_45 = (RegName_IptrReg == RegName_Areg);
-  assign when_RegStackPlugin_l154_45 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_79 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_70 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_46 = (RegName_Areg == RegName_Areg);
-  assign when_RegStackPlugin_l146_46 = (RegName_Breg == RegName_Areg);
-  assign when_RegStackPlugin_l148_46 = (RegName_Creg == RegName_Areg);
-  assign when_RegStackPlugin_l150_46 = (RegName_WdescReg == RegName_Areg);
-  assign when_RegStackPlugin_l152_46 = (RegName_IptrReg == RegName_Areg);
-  assign when_RegStackPlugin_l154_46 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_80 = (32'h0 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_47 = (RegName_Areg == RegName_Areg);
-  assign when_RegStackPlugin_l146_47 = (RegName_Breg == RegName_Areg);
-  assign when_RegStackPlugin_l148_47 = (RegName_Creg == RegName_Areg);
-  assign when_RegStackPlugin_l150_47 = (RegName_WdescReg == RegName_Areg);
-  assign when_RegStackPlugin_l152_47 = (RegName_IptrReg == RegName_Areg);
-  assign when_RegStackPlugin_l154_47 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_81 = (32'h0 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_48 = (RegName_Areg == RegName_Breg);
-  assign when_RegStackPlugin_l146_48 = (RegName_Breg == RegName_Breg);
-  assign when_RegStackPlugin_l148_48 = (RegName_Creg == RegName_Breg);
-  assign when_RegStackPlugin_l150_48 = (RegName_WdescReg == RegName_Breg);
-  assign when_RegStackPlugin_l152_48 = (RegName_IptrReg == RegName_Breg);
-  assign when_RegStackPlugin_l154_48 = (RegName_StatusReg == RegName_Breg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_82 = (32'h0 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_49 = (RegName_Areg == RegName_Creg);
-  assign when_RegStackPlugin_l146_49 = (RegName_Breg == RegName_Creg);
-  assign when_RegStackPlugin_l148_49 = (RegName_Creg == RegName_Creg);
-  assign when_RegStackPlugin_l150_49 = (RegName_WdescReg == RegName_Creg);
-  assign when_RegStackPlugin_l152_49 = (RegName_IptrReg == RegName_Creg);
-  assign when_RegStackPlugin_l154_49 = (RegName_StatusReg == RegName_Creg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_73 = (32'h0 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_43 = (RegName_Areg == RegName_Creg);
+  assign when_RegStackPlugin_l146_43 = (RegName_Breg == RegName_Creg);
+  assign when_RegStackPlugin_l148_43 = (RegName_Creg == RegName_Creg);
+  assign when_RegStackPlugin_l150_43 = (RegName_WdescReg == RegName_Creg);
+  assign when_RegStackPlugin_l152_43 = (RegName_IptrReg == RegName_Creg);
+  assign when_RegStackPlugin_l154_43 = (RegName_StatusReg == RegName_Creg);
   assign _zz_when_BlockMovePlugin_l113_1 = (_zz_when_BlockMovePlugin_l113[7 : 4] == PrimaryOpcode_OPR);
   assign _zz_when_BlockMovePlugin_l113_2 = _zz_when_BlockMovePlugin_l113[3 : 0];
   always @(*) begin
@@ -4996,22 +4820,22 @@ module T9000Transputer (
   always @(*) begin
     case(switch_Misc_l245_9)
       RegName_Areg : begin
-        _zz_when_BlockMovePlugin_l165_3 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
+        _zz_when_BlockMovePlugin_l165_3 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_3;
       end
       RegName_Breg : begin
-        _zz_when_BlockMovePlugin_l165_3 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
+        _zz_when_BlockMovePlugin_l165_3 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_4;
       end
       RegName_Creg : begin
-        _zz_when_BlockMovePlugin_l165_3 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
+        _zz_when_BlockMovePlugin_l165_3 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_5;
       end
       RegName_WdescReg : begin
-        _zz_when_BlockMovePlugin_l165_3 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_9;
+        _zz_when_BlockMovePlugin_l165_3 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
       end
       RegName_IptrReg : begin
-        _zz_when_BlockMovePlugin_l165_3 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_10;
+        _zz_when_BlockMovePlugin_l165_3 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
       end
       RegName_StatusReg : begin
-        _zz_when_BlockMovePlugin_l165_3 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_11;
+        _zz_when_BlockMovePlugin_l165_3 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
       end
       default : begin
         _zz_when_BlockMovePlugin_l165_3 = 32'h0;
@@ -5023,22 +4847,22 @@ module T9000Transputer (
   always @(*) begin
     case(switch_Misc_l245_10)
       RegName_Areg : begin
-        _zz_when_BlockMovePlugin_l165_4 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
+        _zz_when_BlockMovePlugin_l165_4 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_3;
       end
       RegName_Breg : begin
-        _zz_when_BlockMovePlugin_l165_4 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
+        _zz_when_BlockMovePlugin_l165_4 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_4;
       end
       RegName_Creg : begin
-        _zz_when_BlockMovePlugin_l165_4 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
+        _zz_when_BlockMovePlugin_l165_4 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_5;
       end
       RegName_WdescReg : begin
-        _zz_when_BlockMovePlugin_l165_4 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_9;
+        _zz_when_BlockMovePlugin_l165_4 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
       end
       RegName_IptrReg : begin
-        _zz_when_BlockMovePlugin_l165_4 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_10;
+        _zz_when_BlockMovePlugin_l165_4 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
       end
       RegName_StatusReg : begin
-        _zz_when_BlockMovePlugin_l165_4 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_11;
+        _zz_when_BlockMovePlugin_l165_4 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
       end
       default : begin
         _zz_when_BlockMovePlugin_l165_4 = 32'h0;
@@ -5050,22 +4874,22 @@ module T9000Transputer (
   always @(*) begin
     case(switch_Misc_l245_11)
       RegName_Areg : begin
-        _zz_when_BlockMovePlugin_l165_5 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
+        _zz_when_BlockMovePlugin_l165_5 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_3;
       end
       RegName_Breg : begin
-        _zz_when_BlockMovePlugin_l165_5 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
+        _zz_when_BlockMovePlugin_l165_5 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_4;
       end
       RegName_Creg : begin
-        _zz_when_BlockMovePlugin_l165_5 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
+        _zz_when_BlockMovePlugin_l165_5 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_5;
       end
       RegName_WdescReg : begin
-        _zz_when_BlockMovePlugin_l165_5 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_9;
+        _zz_when_BlockMovePlugin_l165_5 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
       end
       RegName_IptrReg : begin
-        _zz_when_BlockMovePlugin_l165_5 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_10;
+        _zz_when_BlockMovePlugin_l165_5 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
       end
       RegName_StatusReg : begin
-        _zz_when_BlockMovePlugin_l165_5 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_11;
+        _zz_when_BlockMovePlugin_l165_5 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
       end
       default : begin
         _zz_when_BlockMovePlugin_l165_5 = 32'h0;
@@ -5074,34 +4898,34 @@ module T9000Transputer (
   end
 
   assign _zz_when_BlockMovePlugin_l165_6 = (_zz_when_BlockMovePlugin_l165_5 & 32'hffffffff);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_83 = (32'h0 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_50 = (RegName_Areg == RegName_Areg);
-  assign when_RegStackPlugin_l146_50 = (RegName_Breg == RegName_Areg);
-  assign when_RegStackPlugin_l148_50 = (RegName_Creg == RegName_Areg);
-  assign when_RegStackPlugin_l150_50 = (RegName_WdescReg == RegName_Areg);
-  assign when_RegStackPlugin_l152_50 = (RegName_IptrReg == RegName_Areg);
-  assign when_RegStackPlugin_l154_50 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_84 = (32'h0 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_51 = (RegName_Areg == RegName_Breg);
-  assign when_RegStackPlugin_l146_51 = (RegName_Breg == RegName_Breg);
-  assign when_RegStackPlugin_l148_51 = (RegName_Creg == RegName_Breg);
-  assign when_RegStackPlugin_l150_51 = (RegName_WdescReg == RegName_Breg);
-  assign when_RegStackPlugin_l152_51 = (RegName_IptrReg == RegName_Breg);
-  assign when_RegStackPlugin_l154_51 = (RegName_StatusReg == RegName_Breg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_85 = (32'h0 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_52 = (RegName_Areg == RegName_Creg);
-  assign when_RegStackPlugin_l146_52 = (RegName_Breg == RegName_Creg);
-  assign when_RegStackPlugin_l148_52 = (RegName_Creg == RegName_Creg);
-  assign when_RegStackPlugin_l150_52 = (RegName_WdescReg == RegName_Creg);
-  assign when_RegStackPlugin_l152_52 = (RegName_IptrReg == RegName_Creg);
-  assign when_RegStackPlugin_l154_52 = (RegName_StatusReg == RegName_Creg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_74 = (32'h0 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_44 = (RegName_Areg == RegName_Areg);
+  assign when_RegStackPlugin_l146_44 = (RegName_Breg == RegName_Areg);
+  assign when_RegStackPlugin_l148_44 = (RegName_Creg == RegName_Areg);
+  assign when_RegStackPlugin_l150_44 = (RegName_WdescReg == RegName_Areg);
+  assign when_RegStackPlugin_l152_44 = (RegName_IptrReg == RegName_Areg);
+  assign when_RegStackPlugin_l154_44 = (RegName_StatusReg == RegName_Areg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_75 = (32'h0 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_45 = (RegName_Areg == RegName_Breg);
+  assign when_RegStackPlugin_l146_45 = (RegName_Breg == RegName_Breg);
+  assign when_RegStackPlugin_l148_45 = (RegName_Creg == RegName_Breg);
+  assign when_RegStackPlugin_l150_45 = (RegName_WdescReg == RegName_Breg);
+  assign when_RegStackPlugin_l152_45 = (RegName_IptrReg == RegName_Breg);
+  assign when_RegStackPlugin_l154_45 = (RegName_StatusReg == RegName_Breg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_76 = (32'h0 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_46 = (RegName_Areg == RegName_Creg);
+  assign when_RegStackPlugin_l146_46 = (RegName_Breg == RegName_Creg);
+  assign when_RegStackPlugin_l148_46 = (RegName_Creg == RegName_Creg);
+  assign when_RegStackPlugin_l150_46 = (RegName_WdescReg == RegName_Creg);
+  assign when_RegStackPlugin_l152_46 = (RegName_IptrReg == RegName_Creg);
+  assign when_RegStackPlugin_l154_46 = (RegName_StatusReg == RegName_Creg);
   assign when_BlockMovePlugin_l171 = (32'h00000004 <= _zz_when_BlockMovePlugin_l165);
   assign when_BlockMovePlugin_l187 = (32'h0 < _zz_when_BlockMovePlugin_l165);
   assign _zz_when_IndexingPlugin_l135_1 = (_zz_when_IndexingPlugin_l135[7 : 4] != PrimaryOpcode_OPR);
   assign _zz_when_IndexingPlugin_l135_2 = (_zz_when_IndexingPlugin_l135[7 : 4] == PrimaryOpcode_OPR);
   assign _zz_when_IndexingPlugin_l135_3 = _zz_when_IndexingPlugin_l135[3 : 0];
   assign _zz_when_IndexingPlugin_l135_4 = _zz_when_IndexingPlugin_l135[7 : 4];
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_87 = _zz_when_IndexingPlugin_l135[3 : 0];
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_78 = _zz_when_IndexingPlugin_l135[3 : 0];
   assign when_IndexingPlugin_l135 = ((_zz_when_IndexingPlugin_l135_1 && (((((_zz_when_IndexingPlugin_l135_5 || _zz_when_IndexingPlugin_l135_6) || (_zz_when_IndexingPlugin_l135_4 == _zz_when_IndexingPlugin_l135_7)) || (_zz_when_IndexingPlugin_l135_4 == _zz_when_IndexingPlugin_l135_8)) || (_zz_when_IndexingPlugin_l135_4 == PrimaryOpcode_LDLP)) || (_zz_when_IndexingPlugin_l135_4 == PrimaryOpcode_LDNLP))) || (_zz_when_IndexingPlugin_l135_2 && (((((_zz_when_IndexingPlugin_l135_9 || _zz_when_IndexingPlugin_l135_12) || (_zz_when_IndexingPlugin_l135_3 == _zz_when_IndexingPlugin_l135_15)) || (_zz_when_IndexingPlugin_l135_3 == _zz_when_IndexingPlugin_l135_17)) || (_zz_when_IndexingPlugin_l135_3 == _zz_when_IndexingPlugin_l135_19)) || (_zz_when_IndexingPlugin_l135_3 == _zz_when_IndexingPlugin_l135_21))));
   always @(*) begin
     switch_IndexingPlugin_l155 = IndexingOp_LDL;
@@ -5121,17 +4945,17 @@ module T9000Transputer (
       end
     end else begin
       if(_zz_when_IndexingPlugin_l135_2) begin
-        if((_zz_when_IndexingPlugin_l135_3 == _zz_59)) begin
+        if((_zz_when_IndexingPlugin_l135_3 == _zz_60)) begin
             switch_IndexingPlugin_l155 = IndexingOp_BSUB;
-        end else if((_zz_when_IndexingPlugin_l135_3 == _zz_61)) begin
+        end else if((_zz_when_IndexingPlugin_l135_3 == _zz_62)) begin
             switch_IndexingPlugin_l155 = IndexingOp_WSUB;
-        end else if((_zz_when_IndexingPlugin_l135_3 == _zz_63)) begin
+        end else if((_zz_when_IndexingPlugin_l135_3 == _zz_64)) begin
             switch_IndexingPlugin_l155 = IndexingOp_LB;
-        end else if((_zz_when_IndexingPlugin_l135_3 == _zz_65)) begin
+        end else if((_zz_when_IndexingPlugin_l135_3 == _zz_66)) begin
             switch_IndexingPlugin_l155 = IndexingOp_SB;
-        end else if((_zz_when_IndexingPlugin_l135_3 == _zz_67)) begin
+        end else if((_zz_when_IndexingPlugin_l135_3 == _zz_68)) begin
             switch_IndexingPlugin_l155 = IndexingOp_LSX;
-        end else if((_zz_when_IndexingPlugin_l135_3 == _zz_69)) begin
+        end else if((_zz_when_IndexingPlugin_l135_3 == _zz_70)) begin
             switch_IndexingPlugin_l155 = IndexingOp_SS;
         end
       end
@@ -5139,45 +4963,45 @@ module T9000Transputer (
   end
 
   always @(*) begin
-    _zz_fpu_fpPipe_ctrl_0_down_RESULT_86 = 32'h0;
+    _zz_fpu_fpPipe_ctrl_0_down_RESULT_77 = 32'h0;
     if(when_IndexingPlugin_l135) begin
-      _zz_fpu_fpPipe_ctrl_0_down_RESULT_86 = 32'h0;
+      _zz_fpu_fpPipe_ctrl_0_down_RESULT_77 = 32'h0;
       case(switch_IndexingPlugin_l155)
         IndexingOp_LDL : begin
-          _zz_fpu_fpPipe_ctrl_0_down_RESULT_86 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_95 + {_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_86,2'b00});
+          _zz_fpu_fpPipe_ctrl_0_down_RESULT_77 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_86 + {_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_77,2'b00});
         end
         IndexingOp_STL : begin
-          _zz_fpu_fpPipe_ctrl_0_down_RESULT_86 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_95 + {_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_86_1,2'b00});
+          _zz_fpu_fpPipe_ctrl_0_down_RESULT_77 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_86 + {_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_77_1,2'b00});
         end
         IndexingOp_LDNL : begin
-          _zz_fpu_fpPipe_ctrl_0_down_RESULT_86 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_89 + {_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_86_2,2'b00});
+          _zz_fpu_fpPipe_ctrl_0_down_RESULT_77 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_80 + {_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_77_2,2'b00});
         end
         IndexingOp_STNL : begin
-          _zz_fpu_fpPipe_ctrl_0_down_RESULT_86 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_91 + {_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_86_3,2'b00});
+          _zz_fpu_fpPipe_ctrl_0_down_RESULT_77 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_82 + {_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_77_3,2'b00});
         end
         IndexingOp_LDLP : begin
-          _zz_fpu_fpPipe_ctrl_0_down_RESULT_86 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_95 + {_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_86_4,2'b00});
+          _zz_fpu_fpPipe_ctrl_0_down_RESULT_77 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_86 + {_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_77_4,2'b00});
         end
         IndexingOp_LDNLP : begin
-          _zz_fpu_fpPipe_ctrl_0_down_RESULT_86 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_89 + {_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_86_5,2'b00});
+          _zz_fpu_fpPipe_ctrl_0_down_RESULT_77 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_80 + {_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_77_5,2'b00});
         end
         IndexingOp_BSUB : begin
-          _zz_fpu_fpPipe_ctrl_0_down_RESULT_86 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_91 + _zz_fpu_fpPipe_ctrl_0_down_RESULT_89);
+          _zz_fpu_fpPipe_ctrl_0_down_RESULT_77 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_82 + _zz_fpu_fpPipe_ctrl_0_down_RESULT_80);
         end
         IndexingOp_WSUB : begin
-          _zz_fpu_fpPipe_ctrl_0_down_RESULT_86 = _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_86_6[31:0];
+          _zz_fpu_fpPipe_ctrl_0_down_RESULT_77 = _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_77_6[31:0];
         end
         IndexingOp_LB : begin
-          _zz_fpu_fpPipe_ctrl_0_down_RESULT_86 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_89;
+          _zz_fpu_fpPipe_ctrl_0_down_RESULT_77 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_80;
         end
         IndexingOp_SB : begin
-          _zz_fpu_fpPipe_ctrl_0_down_RESULT_86 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_89;
+          _zz_fpu_fpPipe_ctrl_0_down_RESULT_77 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_80;
         end
         IndexingOp_LSX : begin
-          _zz_fpu_fpPipe_ctrl_0_down_RESULT_86 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_89;
+          _zz_fpu_fpPipe_ctrl_0_down_RESULT_77 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_80;
         end
         IndexingOp_SS : begin
-          _zz_fpu_fpPipe_ctrl_0_down_RESULT_86 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_89;
+          _zz_fpu_fpPipe_ctrl_0_down_RESULT_77 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_80;
         end
         default : begin
         end
@@ -5189,170 +5013,170 @@ module T9000Transputer (
   always @(*) begin
     case(switch_Misc_l245_12)
       RegName_Areg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_88 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_79 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_3;
       end
       RegName_Breg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_88 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_79 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_4;
       end
       RegName_Creg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_88 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_79 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_5;
       end
       RegName_WdescReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_88 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_9;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_79 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
       end
       RegName_IptrReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_88 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_10;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_79 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
       end
       RegName_StatusReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_88 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_11;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_79 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
       end
       default : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_88 = 32'h0;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_79 = 32'h0;
       end
     endcase
   end
 
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_89 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_88 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_80 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_79 & 32'hffffffff);
   assign switch_Misc_l245_13 = RegName_Breg;
   always @(*) begin
     case(switch_Misc_l245_13)
       RegName_Areg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_90 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_81 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_3;
       end
       RegName_Breg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_90 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_81 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_4;
       end
       RegName_Creg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_90 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_81 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_5;
       end
       RegName_WdescReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_90 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_9;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_81 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
       end
       RegName_IptrReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_90 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_10;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_81 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
       end
       RegName_StatusReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_90 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_11;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_81 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
       end
       default : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_90 = 32'h0;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_81 = 32'h0;
       end
     endcase
   end
 
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_91 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_90 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_82 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_81 & 32'hffffffff);
   assign switch_Misc_l245_14 = RegName_Creg;
   always @(*) begin
     case(switch_Misc_l245_14)
       RegName_Areg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_92 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_83 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_3;
       end
       RegName_Breg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_92 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_83 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_4;
       end
       RegName_Creg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_92 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_83 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_5;
       end
       RegName_WdescReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_92 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_9;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_83 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
       end
       RegName_IptrReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_92 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_10;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_83 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
       end
       RegName_StatusReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_92 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_11;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_83 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
       end
       default : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_92 = 32'h0;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_83 = 32'h0;
       end
     endcase
   end
 
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_93 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_92 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_84 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_83 & 32'hffffffff);
   assign switch_Misc_l245_15 = RegName_WdescReg;
   always @(*) begin
     case(switch_Misc_l245_15)
       RegName_Areg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_94 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_85 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_3;
       end
       RegName_Breg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_94 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_85 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_4;
       end
       RegName_Creg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_94 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_85 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_5;
       end
       RegName_WdescReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_94 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_9;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_85 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
       end
       RegName_IptrReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_94 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_10;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_85 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
       end
       RegName_StatusReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_94 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_11;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_85 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
       end
       default : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_94 = 32'h0;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_85 = 32'h0;
       end
     endcase
   end
 
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_95 = {_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_95[31 : 2],2'b00};
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_96 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_86 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_86 = {_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_86[31 : 2],2'b00};
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_87 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_77 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_47 = (RegName_Areg == RegName_Areg);
+  assign when_RegStackPlugin_l146_47 = (RegName_Breg == RegName_Areg);
+  assign when_RegStackPlugin_l148_47 = (RegName_Creg == RegName_Areg);
+  assign when_RegStackPlugin_l150_47 = (RegName_WdescReg == RegName_Areg);
+  assign when_RegStackPlugin_l152_47 = (RegName_IptrReg == RegName_Areg);
+  assign when_RegStackPlugin_l154_47 = (RegName_StatusReg == RegName_Areg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_88 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_80 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_48 = (RegName_Areg == RegName_Breg);
+  assign when_RegStackPlugin_l146_48 = (RegName_Breg == RegName_Breg);
+  assign when_RegStackPlugin_l148_48 = (RegName_Creg == RegName_Breg);
+  assign when_RegStackPlugin_l150_48 = (RegName_WdescReg == RegName_Breg);
+  assign when_RegStackPlugin_l152_48 = (RegName_IptrReg == RegName_Breg);
+  assign when_RegStackPlugin_l154_48 = (RegName_StatusReg == RegName_Breg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_89 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_82 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_49 = (RegName_Areg == RegName_Creg);
+  assign when_RegStackPlugin_l146_49 = (RegName_Breg == RegName_Creg);
+  assign when_RegStackPlugin_l148_49 = (RegName_Creg == RegName_Creg);
+  assign when_RegStackPlugin_l150_49 = (RegName_WdescReg == RegName_Creg);
+  assign when_RegStackPlugin_l152_49 = (RegName_IptrReg == RegName_Creg);
+  assign when_RegStackPlugin_l154_49 = (RegName_StatusReg == RegName_Creg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_90 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_77 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_50 = (RegName_Areg == RegName_Areg);
+  assign when_RegStackPlugin_l146_50 = (RegName_Breg == RegName_Areg);
+  assign when_RegStackPlugin_l148_50 = (RegName_Creg == RegName_Areg);
+  assign when_RegStackPlugin_l150_50 = (RegName_WdescReg == RegName_Areg);
+  assign when_RegStackPlugin_l152_50 = (RegName_IptrReg == RegName_Areg);
+  assign when_RegStackPlugin_l154_50 = (RegName_StatusReg == RegName_Areg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_91 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_77 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_51 = (RegName_Areg == RegName_Areg);
+  assign when_RegStackPlugin_l146_51 = (RegName_Breg == RegName_Areg);
+  assign when_RegStackPlugin_l148_51 = (RegName_Creg == RegName_Areg);
+  assign when_RegStackPlugin_l150_51 = (RegName_WdescReg == RegName_Areg);
+  assign when_RegStackPlugin_l152_51 = (RegName_IptrReg == RegName_Areg);
+  assign when_RegStackPlugin_l154_51 = (RegName_StatusReg == RegName_Areg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_92 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_84 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_52 = (RegName_Areg == RegName_Breg);
+  assign when_RegStackPlugin_l146_52 = (RegName_Breg == RegName_Breg);
+  assign when_RegStackPlugin_l148_52 = (RegName_Creg == RegName_Breg);
+  assign when_RegStackPlugin_l150_52 = (RegName_WdescReg == RegName_Breg);
+  assign when_RegStackPlugin_l152_52 = (RegName_IptrReg == RegName_Breg);
+  assign when_RegStackPlugin_l154_52 = (RegName_StatusReg == RegName_Breg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_93 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_77 & 32'hffffffff);
   assign when_RegStackPlugin_l144_53 = (RegName_Areg == RegName_Areg);
   assign when_RegStackPlugin_l146_53 = (RegName_Breg == RegName_Areg);
   assign when_RegStackPlugin_l148_53 = (RegName_Creg == RegName_Areg);
   assign when_RegStackPlugin_l150_53 = (RegName_WdescReg == RegName_Areg);
   assign when_RegStackPlugin_l152_53 = (RegName_IptrReg == RegName_Areg);
   assign when_RegStackPlugin_l154_53 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_97 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_89 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_94 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_84 & 32'hffffffff);
   assign when_RegStackPlugin_l144_54 = (RegName_Areg == RegName_Breg);
   assign when_RegStackPlugin_l146_54 = (RegName_Breg == RegName_Breg);
   assign when_RegStackPlugin_l148_54 = (RegName_Creg == RegName_Breg);
   assign when_RegStackPlugin_l150_54 = (RegName_WdescReg == RegName_Breg);
   assign when_RegStackPlugin_l152_54 = (RegName_IptrReg == RegName_Breg);
   assign when_RegStackPlugin_l154_54 = (RegName_StatusReg == RegName_Breg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_98 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_91 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_55 = (RegName_Areg == RegName_Creg);
-  assign when_RegStackPlugin_l146_55 = (RegName_Breg == RegName_Creg);
-  assign when_RegStackPlugin_l148_55 = (RegName_Creg == RegName_Creg);
-  assign when_RegStackPlugin_l150_55 = (RegName_WdescReg == RegName_Creg);
-  assign when_RegStackPlugin_l152_55 = (RegName_IptrReg == RegName_Creg);
-  assign when_RegStackPlugin_l154_55 = (RegName_StatusReg == RegName_Creg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_99 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_86 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_56 = (RegName_Areg == RegName_Areg);
-  assign when_RegStackPlugin_l146_56 = (RegName_Breg == RegName_Areg);
-  assign when_RegStackPlugin_l148_56 = (RegName_Creg == RegName_Areg);
-  assign when_RegStackPlugin_l150_56 = (RegName_WdescReg == RegName_Areg);
-  assign when_RegStackPlugin_l152_56 = (RegName_IptrReg == RegName_Areg);
-  assign when_RegStackPlugin_l154_56 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_100 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_86 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_57 = (RegName_Areg == RegName_Areg);
-  assign when_RegStackPlugin_l146_57 = (RegName_Breg == RegName_Areg);
-  assign when_RegStackPlugin_l148_57 = (RegName_Creg == RegName_Areg);
-  assign when_RegStackPlugin_l150_57 = (RegName_WdescReg == RegName_Areg);
-  assign when_RegStackPlugin_l152_57 = (RegName_IptrReg == RegName_Areg);
-  assign when_RegStackPlugin_l154_57 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_101 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_93 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_58 = (RegName_Areg == RegName_Breg);
-  assign when_RegStackPlugin_l146_58 = (RegName_Breg == RegName_Breg);
-  assign when_RegStackPlugin_l148_58 = (RegName_Creg == RegName_Breg);
-  assign when_RegStackPlugin_l150_58 = (RegName_WdescReg == RegName_Breg);
-  assign when_RegStackPlugin_l152_58 = (RegName_IptrReg == RegName_Breg);
-  assign when_RegStackPlugin_l154_58 = (RegName_StatusReg == RegName_Breg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_102 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_86 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_59 = (RegName_Areg == RegName_Areg);
-  assign when_RegStackPlugin_l146_59 = (RegName_Breg == RegName_Areg);
-  assign when_RegStackPlugin_l148_59 = (RegName_Creg == RegName_Areg);
-  assign when_RegStackPlugin_l150_59 = (RegName_WdescReg == RegName_Areg);
-  assign when_RegStackPlugin_l152_59 = (RegName_IptrReg == RegName_Areg);
-  assign when_RegStackPlugin_l154_59 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_103 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_93 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_60 = (RegName_Areg == RegName_Breg);
-  assign when_RegStackPlugin_l146_60 = (RegName_Breg == RegName_Breg);
-  assign when_RegStackPlugin_l148_60 = (RegName_Creg == RegName_Breg);
-  assign when_RegStackPlugin_l150_60 = (RegName_WdescReg == RegName_Breg);
-  assign when_RegStackPlugin_l152_60 = (RegName_IptrReg == RegName_Breg);
-  assign when_RegStackPlugin_l154_60 = (RegName_StatusReg == RegName_Breg);
   assign _zz_when_RangeCheckPlugin_l124_1 = (_zz_when_RangeCheckPlugin_l124[7 : 4] != PrimaryOpcode_OPR);
   assign _zz_when_RangeCheckPlugin_l124_2 = (_zz_when_RangeCheckPlugin_l124[7 : 4] == PrimaryOpcode_OPR);
   assign _zz_when_RangeCheckPlugin_l124_3 = _zz_when_RangeCheckPlugin_l124[3 : 0];
@@ -5393,22 +5217,22 @@ module T9000Transputer (
   always @(*) begin
     case(switch_Misc_l245_16)
       RegName_Areg : begin
-        _zz_when_RangeCheckPlugin_l191 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
+        _zz_when_RangeCheckPlugin_l191 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_3;
       end
       RegName_Breg : begin
-        _zz_when_RangeCheckPlugin_l191 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
+        _zz_when_RangeCheckPlugin_l191 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_4;
       end
       RegName_Creg : begin
-        _zz_when_RangeCheckPlugin_l191 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
+        _zz_when_RangeCheckPlugin_l191 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_5;
       end
       RegName_WdescReg : begin
-        _zz_when_RangeCheckPlugin_l191 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_9;
+        _zz_when_RangeCheckPlugin_l191 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
       end
       RegName_IptrReg : begin
-        _zz_when_RangeCheckPlugin_l191 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_10;
+        _zz_when_RangeCheckPlugin_l191 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
       end
       RegName_StatusReg : begin
-        _zz_when_RangeCheckPlugin_l191 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_11;
+        _zz_when_RangeCheckPlugin_l191 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
       end
       default : begin
         _zz_when_RangeCheckPlugin_l191 = 32'h0;
@@ -5421,306 +5245,306 @@ module T9000Transputer (
   always @(*) begin
     case(switch_Misc_l245_17)
       RegName_Areg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_104 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_95 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_3;
       end
       RegName_Breg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_104 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_95 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_4;
       end
       RegName_Creg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_104 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_95 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_5;
       end
       RegName_WdescReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_104 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_9;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_95 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
       end
       RegName_IptrReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_104 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_10;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_95 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
       end
       RegName_StatusReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_104 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_11;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_95 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
       end
       default : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_104 = 32'h0;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_95 = 32'h0;
       end
     endcase
   end
 
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_105 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_104 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_96 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_95 & 32'hffffffff);
   assign switch_Misc_l245_18 = RegName_Creg;
   always @(*) begin
     case(switch_Misc_l245_18)
       RegName_Areg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_106 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_97 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_3;
       end
       RegName_Breg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_106 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_97 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_4;
       end
       RegName_Creg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_106 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_97 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_5;
       end
       RegName_WdescReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_106 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_9;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_97 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
       end
       RegName_IptrReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_106 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_10;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_97 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
       end
       RegName_StatusReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_106 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_11;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_97 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
       end
       default : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_106 = 32'h0;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_97 = 32'h0;
       end
     endcase
   end
 
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_107 = (_zz_when_RangeCheckPlugin_l191_1 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_98 = (_zz_when_RangeCheckPlugin_l191_1 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_55 = (RegName_Areg == RegName_Areg);
+  assign when_RegStackPlugin_l146_55 = (RegName_Breg == RegName_Areg);
+  assign when_RegStackPlugin_l148_55 = (RegName_Creg == RegName_Areg);
+  assign when_RegStackPlugin_l150_55 = (RegName_WdescReg == RegName_Areg);
+  assign when_RegStackPlugin_l152_55 = (RegName_IptrReg == RegName_Areg);
+  assign when_RegStackPlugin_l154_55 = (RegName_StatusReg == RegName_Areg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_99 = (32'h0 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_56 = (RegName_Areg == RegName_Breg);
+  assign when_RegStackPlugin_l146_56 = (RegName_Breg == RegName_Breg);
+  assign when_RegStackPlugin_l148_56 = (RegName_Creg == RegName_Breg);
+  assign when_RegStackPlugin_l150_56 = (RegName_WdescReg == RegName_Breg);
+  assign when_RegStackPlugin_l152_56 = (RegName_IptrReg == RegName_Breg);
+  assign when_RegStackPlugin_l154_56 = (RegName_StatusReg == RegName_Breg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_100 = (32'h0 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_57 = (RegName_Areg == RegName_Creg);
+  assign when_RegStackPlugin_l146_57 = (RegName_Breg == RegName_Creg);
+  assign when_RegStackPlugin_l148_57 = (RegName_Creg == RegName_Creg);
+  assign when_RegStackPlugin_l150_57 = (RegName_WdescReg == RegName_Creg);
+  assign when_RegStackPlugin_l152_57 = (RegName_IptrReg == RegName_Creg);
+  assign when_RegStackPlugin_l154_57 = (RegName_StatusReg == RegName_Creg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_101 = ((_zz_when_RangeCheckPlugin_l191_1[31] ? 32'hffffffff : 32'h0) & 32'hffffffff);
+  assign when_RegStackPlugin_l144_58 = (RegName_Areg == RegName_Breg);
+  assign when_RegStackPlugin_l146_58 = (RegName_Breg == RegName_Breg);
+  assign when_RegStackPlugin_l148_58 = (RegName_Creg == RegName_Breg);
+  assign when_RegStackPlugin_l150_58 = (RegName_WdescReg == RegName_Breg);
+  assign when_RegStackPlugin_l152_58 = (RegName_IptrReg == RegName_Breg);
+  assign when_RegStackPlugin_l154_58 = (RegName_StatusReg == RegName_Breg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_102 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_96 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_59 = (RegName_Areg == RegName_Creg);
+  assign when_RegStackPlugin_l146_59 = (RegName_Breg == RegName_Creg);
+  assign when_RegStackPlugin_l148_59 = (RegName_Creg == RegName_Creg);
+  assign when_RegStackPlugin_l150_59 = (RegName_WdescReg == RegName_Creg);
+  assign when_RegStackPlugin_l152_59 = (RegName_IptrReg == RegName_Creg);
+  assign when_RegStackPlugin_l154_59 = (RegName_StatusReg == RegName_Creg);
+  assign when_RangeCheckPlugin_l191 = (32'h00000001 <= _zz_when_RangeCheckPlugin_l191_1);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_103 = (_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_103 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_60 = (RegName_Areg == RegName_Areg);
+  assign when_RegStackPlugin_l146_60 = (RegName_Breg == RegName_Areg);
+  assign when_RegStackPlugin_l148_60 = (RegName_Creg == RegName_Areg);
+  assign when_RegStackPlugin_l150_60 = (RegName_WdescReg == RegName_Areg);
+  assign when_RegStackPlugin_l152_60 = (RegName_IptrReg == RegName_Areg);
+  assign when_RegStackPlugin_l154_60 = (RegName_StatusReg == RegName_Areg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_104 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_96 & 32'hffffffff);
   assign when_RegStackPlugin_l144_61 = (RegName_Areg == RegName_Areg);
   assign when_RegStackPlugin_l146_61 = (RegName_Breg == RegName_Areg);
   assign when_RegStackPlugin_l148_61 = (RegName_Creg == RegName_Areg);
   assign when_RegStackPlugin_l150_61 = (RegName_WdescReg == RegName_Areg);
   assign when_RegStackPlugin_l152_61 = (RegName_IptrReg == RegName_Areg);
   assign when_RegStackPlugin_l154_61 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_108 = (32'h0 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_105 = ((_zz_fpu_fpPipe_ctrl_0_down_RESULT_97 & 32'hffffffff) & 32'hffffffff);
   assign when_RegStackPlugin_l144_62 = (RegName_Areg == RegName_Breg);
   assign when_RegStackPlugin_l146_62 = (RegName_Breg == RegName_Breg);
   assign when_RegStackPlugin_l148_62 = (RegName_Creg == RegName_Breg);
   assign when_RegStackPlugin_l150_62 = (RegName_WdescReg == RegName_Breg);
   assign when_RegStackPlugin_l152_62 = (RegName_IptrReg == RegName_Breg);
   assign when_RegStackPlugin_l154_62 = (RegName_StatusReg == RegName_Breg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_109 = (32'h0 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_63 = (RegName_Areg == RegName_Creg);
-  assign when_RegStackPlugin_l146_63 = (RegName_Breg == RegName_Creg);
-  assign when_RegStackPlugin_l148_63 = (RegName_Creg == RegName_Creg);
-  assign when_RegStackPlugin_l150_63 = (RegName_WdescReg == RegName_Creg);
-  assign when_RegStackPlugin_l152_63 = (RegName_IptrReg == RegName_Creg);
-  assign when_RegStackPlugin_l154_63 = (RegName_StatusReg == RegName_Creg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_110 = ((_zz_when_RangeCheckPlugin_l191_1[31] ? 32'hffffffff : 32'h0) & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_106 = (_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_106 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_63 = (RegName_Areg == RegName_Areg);
+  assign when_RegStackPlugin_l146_63 = (RegName_Breg == RegName_Areg);
+  assign when_RegStackPlugin_l148_63 = (RegName_Creg == RegName_Areg);
+  assign when_RegStackPlugin_l150_63 = (RegName_WdescReg == RegName_Areg);
+  assign when_RegStackPlugin_l152_63 = (RegName_IptrReg == RegName_Areg);
+  assign when_RegStackPlugin_l154_63 = (RegName_StatusReg == RegName_Areg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_107 = (_zz_when_RangeCheckPlugin_l191_1 & 32'hffffffff);
   assign when_RegStackPlugin_l144_64 = (RegName_Areg == RegName_Breg);
   assign when_RegStackPlugin_l146_64 = (RegName_Breg == RegName_Breg);
   assign when_RegStackPlugin_l148_64 = (RegName_Creg == RegName_Breg);
   assign when_RegStackPlugin_l150_64 = (RegName_WdescReg == RegName_Breg);
   assign when_RegStackPlugin_l152_64 = (RegName_IptrReg == RegName_Breg);
   assign when_RegStackPlugin_l154_64 = (RegName_StatusReg == RegName_Breg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_111 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_105 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_108 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_96 & 32'hffffffff);
   assign when_RegStackPlugin_l144_65 = (RegName_Areg == RegName_Creg);
   assign when_RegStackPlugin_l146_65 = (RegName_Breg == RegName_Creg);
   assign when_RegStackPlugin_l148_65 = (RegName_Creg == RegName_Creg);
   assign when_RegStackPlugin_l150_65 = (RegName_WdescReg == RegName_Creg);
   assign when_RegStackPlugin_l152_65 = (RegName_IptrReg == RegName_Creg);
   assign when_RegStackPlugin_l154_65 = (RegName_StatusReg == RegName_Creg);
-  assign when_RangeCheckPlugin_l191 = (32'h00000001 <= _zz_when_RangeCheckPlugin_l191_1);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_112 = (_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_112 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_66 = (RegName_Areg == RegName_Areg);
-  assign when_RegStackPlugin_l146_66 = (RegName_Breg == RegName_Areg);
-  assign when_RegStackPlugin_l148_66 = (RegName_Creg == RegName_Areg);
-  assign when_RegStackPlugin_l150_66 = (RegName_WdescReg == RegName_Areg);
-  assign when_RegStackPlugin_l152_66 = (RegName_IptrReg == RegName_Areg);
-  assign when_RegStackPlugin_l154_66 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_113 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_105 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_67 = (RegName_Areg == RegName_Areg);
-  assign when_RegStackPlugin_l146_67 = (RegName_Breg == RegName_Areg);
-  assign when_RegStackPlugin_l148_67 = (RegName_Creg == RegName_Areg);
-  assign when_RegStackPlugin_l150_67 = (RegName_WdescReg == RegName_Areg);
-  assign when_RegStackPlugin_l152_67 = (RegName_IptrReg == RegName_Areg);
-  assign when_RegStackPlugin_l154_67 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_114 = ((_zz_fpu_fpPipe_ctrl_0_down_RESULT_106 & 32'hffffffff) & 32'hffffffff);
-  assign when_RegStackPlugin_l144_68 = (RegName_Areg == RegName_Breg);
-  assign when_RegStackPlugin_l146_68 = (RegName_Breg == RegName_Breg);
-  assign when_RegStackPlugin_l148_68 = (RegName_Creg == RegName_Breg);
-  assign when_RegStackPlugin_l150_68 = (RegName_WdescReg == RegName_Breg);
-  assign when_RegStackPlugin_l152_68 = (RegName_IptrReg == RegName_Breg);
-  assign when_RegStackPlugin_l154_68 = (RegName_StatusReg == RegName_Breg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_115 = (_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_115 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_69 = (RegName_Areg == RegName_Areg);
-  assign when_RegStackPlugin_l146_69 = (RegName_Breg == RegName_Areg);
-  assign when_RegStackPlugin_l148_69 = (RegName_Creg == RegName_Areg);
-  assign when_RegStackPlugin_l150_69 = (RegName_WdescReg == RegName_Areg);
-  assign when_RegStackPlugin_l152_69 = (RegName_IptrReg == RegName_Areg);
-  assign when_RegStackPlugin_l154_69 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_116 = (_zz_when_RangeCheckPlugin_l191_1 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_70 = (RegName_Areg == RegName_Breg);
-  assign when_RegStackPlugin_l146_70 = (RegName_Breg == RegName_Breg);
-  assign when_RegStackPlugin_l148_70 = (RegName_Creg == RegName_Breg);
-  assign when_RegStackPlugin_l150_70 = (RegName_WdescReg == RegName_Breg);
-  assign when_RegStackPlugin_l152_70 = (RegName_IptrReg == RegName_Breg);
-  assign when_RegStackPlugin_l154_70 = (RegName_StatusReg == RegName_Breg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_117 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_105 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_71 = (RegName_Areg == RegName_Creg);
-  assign when_RegStackPlugin_l146_71 = (RegName_Breg == RegName_Creg);
-  assign when_RegStackPlugin_l148_71 = (RegName_Creg == RegName_Creg);
-  assign when_RegStackPlugin_l150_71 = (RegName_WdescReg == RegName_Creg);
-  assign when_RegStackPlugin_l152_71 = (RegName_IptrReg == RegName_Creg);
-  assign when_RegStackPlugin_l154_71 = (RegName_StatusReg == RegName_Creg);
   assign _zz_when_GeneralPlugin_l69_1 = _zz_when_GeneralPlugin_l69[3 : 0];
   assign when_GeneralPlugin_l69 = ((_zz_when_GeneralPlugin_l69[7 : 4] == PrimaryOpcode_OPR) && (((((_zz_when_GeneralPlugin_l69_1 == _zz_when_GeneralPlugin_l69_2) || (_zz_when_GeneralPlugin_l69_1 == _zz_when_GeneralPlugin_l69_4)) || (_zz_when_GeneralPlugin_l69_1 == _zz_when_GeneralPlugin_l69_6)) || (_zz_when_GeneralPlugin_l69_1 == _zz_when_GeneralPlugin_l69_8)) || (_zz_when_GeneralPlugin_l69_1 == _zz_when_GeneralPlugin_l69_10)));
   assign switch_Misc_l245_19 = RegName_Areg;
   always @(*) begin
     case(switch_Misc_l245_19)
       RegName_Areg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_118 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_109 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_3;
       end
       RegName_Breg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_118 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_109 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_4;
       end
       RegName_Creg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_118 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_109 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_5;
       end
       RegName_WdescReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_118 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_9;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_109 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
       end
       RegName_IptrReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_118 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_10;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_109 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
       end
       RegName_StatusReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_118 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_11;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_109 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
       end
       default : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_118 = 32'h0;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_109 = 32'h0;
       end
     endcase
   end
 
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_119 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_118 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_110 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_109 & 32'hffffffff);
   assign switch_Misc_l245_20 = RegName_Breg;
   always @(*) begin
     case(switch_Misc_l245_20)
       RegName_Areg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_120 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_111 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_3;
       end
       RegName_Breg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_120 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_111 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_4;
       end
       RegName_Creg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_120 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_111 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_5;
       end
       RegName_WdescReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_120 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_9;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_111 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
       end
       RegName_IptrReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_120 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_10;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_111 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
       end
       RegName_StatusReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_120 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_11;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_111 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
       end
       default : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_120 = 32'h0;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_111 = 32'h0;
       end
     endcase
   end
 
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_121 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_120 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_112 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_111 & 32'hffffffff);
   assign switch_Misc_l245_21 = RegName_Creg;
   always @(*) begin
     case(switch_Misc_l245_21)
       RegName_Areg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_122 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_113 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_3;
       end
       RegName_Breg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_122 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_113 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_4;
       end
       RegName_Creg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_122 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_113 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_5;
       end
       RegName_WdescReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_122 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_9;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_113 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
       end
       RegName_IptrReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_122 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_10;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_113 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
       end
       RegName_StatusReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_122 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_11;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_113 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
       end
       default : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_122 = 32'h0;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_113 = 32'h0;
       end
     endcase
   end
 
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_123 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_121 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_72 = (RegName_Areg == RegName_Areg);
-  assign when_RegStackPlugin_l146_72 = (RegName_Breg == RegName_Areg);
-  assign when_RegStackPlugin_l148_72 = (RegName_Creg == RegName_Areg);
-  assign when_RegStackPlugin_l150_72 = (RegName_WdescReg == RegName_Areg);
-  assign when_RegStackPlugin_l152_72 = (RegName_IptrReg == RegName_Areg);
-  assign when_RegStackPlugin_l154_72 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_124 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_119 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_73 = (RegName_Areg == RegName_Breg);
-  assign when_RegStackPlugin_l146_73 = (RegName_Breg == RegName_Breg);
-  assign when_RegStackPlugin_l148_73 = (RegName_Creg == RegName_Breg);
-  assign when_RegStackPlugin_l150_73 = (RegName_WdescReg == RegName_Breg);
-  assign when_RegStackPlugin_l152_73 = (RegName_IptrReg == RegName_Breg);
-  assign when_RegStackPlugin_l154_73 = (RegName_StatusReg == RegName_Breg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_125 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_119 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_74 = (RegName_Areg == RegName_Areg);
-  assign when_RegStackPlugin_l146_74 = (RegName_Breg == RegName_Areg);
-  assign when_RegStackPlugin_l148_74 = (RegName_Creg == RegName_Areg);
-  assign when_RegStackPlugin_l150_74 = (RegName_WdescReg == RegName_Areg);
-  assign when_RegStackPlugin_l152_74 = (RegName_IptrReg == RegName_Areg);
-  assign when_RegStackPlugin_l154_74 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_126 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_119 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_75 = (RegName_Areg == RegName_Breg);
-  assign when_RegStackPlugin_l146_75 = (RegName_Breg == RegName_Breg);
-  assign when_RegStackPlugin_l148_75 = (RegName_Creg == RegName_Breg);
-  assign when_RegStackPlugin_l150_75 = (RegName_WdescReg == RegName_Breg);
-  assign when_RegStackPlugin_l152_75 = (RegName_IptrReg == RegName_Breg);
-  assign when_RegStackPlugin_l154_75 = (RegName_StatusReg == RegName_Breg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_127 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_121 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_76 = (RegName_Areg == RegName_Creg);
-  assign when_RegStackPlugin_l146_76 = (RegName_Breg == RegName_Creg);
-  assign when_RegStackPlugin_l148_76 = (RegName_Creg == RegName_Creg);
-  assign when_RegStackPlugin_l150_76 = (RegName_WdescReg == RegName_Creg);
-  assign when_RegStackPlugin_l152_76 = (RegName_IptrReg == RegName_Creg);
-  assign when_RegStackPlugin_l154_76 = (RegName_StatusReg == RegName_Creg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_128 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_121 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_77 = (RegName_Areg == RegName_Areg);
-  assign when_RegStackPlugin_l146_77 = (RegName_Breg == RegName_Areg);
-  assign when_RegStackPlugin_l148_77 = (RegName_Creg == RegName_Areg);
-  assign when_RegStackPlugin_l150_77 = (RegName_WdescReg == RegName_Areg);
-  assign when_RegStackPlugin_l152_77 = (RegName_IptrReg == RegName_Areg);
-  assign when_RegStackPlugin_l154_77 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_129 = ((_zz_fpu_fpPipe_ctrl_0_down_RESULT_122 & 32'hffffffff) & 32'hffffffff);
-  assign when_RegStackPlugin_l144_78 = (RegName_Areg == RegName_Breg);
-  assign when_RegStackPlugin_l146_78 = (RegName_Breg == RegName_Breg);
-  assign when_RegStackPlugin_l148_78 = (RegName_Creg == RegName_Breg);
-  assign when_RegStackPlugin_l150_78 = (RegName_WdescReg == RegName_Breg);
-  assign when_RegStackPlugin_l152_78 = (RegName_IptrReg == RegName_Breg);
-  assign when_RegStackPlugin_l154_78 = (RegName_StatusReg == RegName_Breg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_130 = (_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_130 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_79 = (RegName_Areg == RegName_Areg);
-  assign when_RegStackPlugin_l146_79 = (RegName_Breg == RegName_Areg);
-  assign when_RegStackPlugin_l148_79 = (RegName_Creg == RegName_Areg);
-  assign when_RegStackPlugin_l150_79 = (RegName_WdescReg == RegName_Areg);
-  assign when_RegStackPlugin_l152_79 = (RegName_IptrReg == RegName_Areg);
-  assign when_RegStackPlugin_l154_79 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_131 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_119 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_80 = (RegName_Areg == RegName_Breg);
-  assign when_RegStackPlugin_l146_80 = (RegName_Breg == RegName_Breg);
-  assign when_RegStackPlugin_l148_80 = (RegName_Creg == RegName_Breg);
-  assign when_RegStackPlugin_l150_80 = (RegName_WdescReg == RegName_Breg);
-  assign when_RegStackPlugin_l152_80 = (RegName_IptrReg == RegName_Breg);
-  assign when_RegStackPlugin_l154_80 = (RegName_StatusReg == RegName_Breg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_132 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_121 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_81 = (RegName_Areg == RegName_Creg);
-  assign when_RegStackPlugin_l146_81 = (RegName_Breg == RegName_Creg);
-  assign when_RegStackPlugin_l148_81 = (RegName_Creg == RegName_Creg);
-  assign when_RegStackPlugin_l150_81 = (RegName_WdescReg == RegName_Creg);
-  assign when_RegStackPlugin_l152_81 = (RegName_IptrReg == RegName_Creg);
-  assign when_RegStackPlugin_l154_81 = (RegName_StatusReg == RegName_Creg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_114 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_112 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_66 = (RegName_Areg == RegName_Areg);
+  assign when_RegStackPlugin_l146_66 = (RegName_Breg == RegName_Areg);
+  assign when_RegStackPlugin_l148_66 = (RegName_Creg == RegName_Areg);
+  assign when_RegStackPlugin_l150_66 = (RegName_WdescReg == RegName_Areg);
+  assign when_RegStackPlugin_l152_66 = (RegName_IptrReg == RegName_Areg);
+  assign when_RegStackPlugin_l154_66 = (RegName_StatusReg == RegName_Areg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_115 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_110 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_67 = (RegName_Areg == RegName_Breg);
+  assign when_RegStackPlugin_l146_67 = (RegName_Breg == RegName_Breg);
+  assign when_RegStackPlugin_l148_67 = (RegName_Creg == RegName_Breg);
+  assign when_RegStackPlugin_l150_67 = (RegName_WdescReg == RegName_Breg);
+  assign when_RegStackPlugin_l152_67 = (RegName_IptrReg == RegName_Breg);
+  assign when_RegStackPlugin_l154_67 = (RegName_StatusReg == RegName_Breg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_116 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_110 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_68 = (RegName_Areg == RegName_Areg);
+  assign when_RegStackPlugin_l146_68 = (RegName_Breg == RegName_Areg);
+  assign when_RegStackPlugin_l148_68 = (RegName_Creg == RegName_Areg);
+  assign when_RegStackPlugin_l150_68 = (RegName_WdescReg == RegName_Areg);
+  assign when_RegStackPlugin_l152_68 = (RegName_IptrReg == RegName_Areg);
+  assign when_RegStackPlugin_l154_68 = (RegName_StatusReg == RegName_Areg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_117 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_110 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_69 = (RegName_Areg == RegName_Breg);
+  assign when_RegStackPlugin_l146_69 = (RegName_Breg == RegName_Breg);
+  assign when_RegStackPlugin_l148_69 = (RegName_Creg == RegName_Breg);
+  assign when_RegStackPlugin_l150_69 = (RegName_WdescReg == RegName_Breg);
+  assign when_RegStackPlugin_l152_69 = (RegName_IptrReg == RegName_Breg);
+  assign when_RegStackPlugin_l154_69 = (RegName_StatusReg == RegName_Breg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_118 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_112 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_70 = (RegName_Areg == RegName_Creg);
+  assign when_RegStackPlugin_l146_70 = (RegName_Breg == RegName_Creg);
+  assign when_RegStackPlugin_l148_70 = (RegName_Creg == RegName_Creg);
+  assign when_RegStackPlugin_l150_70 = (RegName_WdescReg == RegName_Creg);
+  assign when_RegStackPlugin_l152_70 = (RegName_IptrReg == RegName_Creg);
+  assign when_RegStackPlugin_l154_70 = (RegName_StatusReg == RegName_Creg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_119 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_112 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_71 = (RegName_Areg == RegName_Areg);
+  assign when_RegStackPlugin_l146_71 = (RegName_Breg == RegName_Areg);
+  assign when_RegStackPlugin_l148_71 = (RegName_Creg == RegName_Areg);
+  assign when_RegStackPlugin_l150_71 = (RegName_WdescReg == RegName_Areg);
+  assign when_RegStackPlugin_l152_71 = (RegName_IptrReg == RegName_Areg);
+  assign when_RegStackPlugin_l154_71 = (RegName_StatusReg == RegName_Areg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_120 = ((_zz_fpu_fpPipe_ctrl_0_down_RESULT_113 & 32'hffffffff) & 32'hffffffff);
+  assign when_RegStackPlugin_l144_72 = (RegName_Areg == RegName_Breg);
+  assign when_RegStackPlugin_l146_72 = (RegName_Breg == RegName_Breg);
+  assign when_RegStackPlugin_l148_72 = (RegName_Creg == RegName_Breg);
+  assign when_RegStackPlugin_l150_72 = (RegName_WdescReg == RegName_Breg);
+  assign when_RegStackPlugin_l152_72 = (RegName_IptrReg == RegName_Breg);
+  assign when_RegStackPlugin_l154_72 = (RegName_StatusReg == RegName_Breg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_121 = (_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_121 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_73 = (RegName_Areg == RegName_Areg);
+  assign when_RegStackPlugin_l146_73 = (RegName_Breg == RegName_Areg);
+  assign when_RegStackPlugin_l148_73 = (RegName_Creg == RegName_Areg);
+  assign when_RegStackPlugin_l150_73 = (RegName_WdescReg == RegName_Areg);
+  assign when_RegStackPlugin_l152_73 = (RegName_IptrReg == RegName_Areg);
+  assign when_RegStackPlugin_l154_73 = (RegName_StatusReg == RegName_Areg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_122 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_110 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_74 = (RegName_Areg == RegName_Breg);
+  assign when_RegStackPlugin_l146_74 = (RegName_Breg == RegName_Breg);
+  assign when_RegStackPlugin_l148_74 = (RegName_Creg == RegName_Breg);
+  assign when_RegStackPlugin_l150_74 = (RegName_WdescReg == RegName_Breg);
+  assign when_RegStackPlugin_l152_74 = (RegName_IptrReg == RegName_Breg);
+  assign when_RegStackPlugin_l154_74 = (RegName_StatusReg == RegName_Breg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_123 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_112 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_75 = (RegName_Areg == RegName_Creg);
+  assign when_RegStackPlugin_l146_75 = (RegName_Breg == RegName_Creg);
+  assign when_RegStackPlugin_l148_75 = (RegName_Creg == RegName_Creg);
+  assign when_RegStackPlugin_l150_75 = (RegName_WdescReg == RegName_Creg);
+  assign when_RegStackPlugin_l152_75 = (RegName_IptrReg == RegName_Creg);
+  assign when_RegStackPlugin_l154_75 = (RegName_StatusReg == RegName_Creg);
   always @(*) begin
-    _zz_fpu_fpPipe_ctrl_0_down_RESULT_133 = ChannelType_INVALID;
+    _zz_fpu_fpPipe_ctrl_0_down_RESULT_124 = ChannelType_INVALID;
     if(when_ChannelPlugin_l111) begin
-      _zz_fpu_fpPipe_ctrl_0_down_RESULT_133 = ChannelType_INVALID;
+      _zz_fpu_fpPipe_ctrl_0_down_RESULT_124 = ChannelType_INVALID;
       case(switch_ChannelPlugin_l121)
         ChannelOp_CHANTYPE : begin
           if(when_ChannelPlugin_l127) begin
-            _zz_fpu_fpPipe_ctrl_0_down_RESULT_133 = ChannelType_RESOURCE;
+            _zz_fpu_fpPipe_ctrl_0_down_RESULT_124 = ChannelType_RESOURCE;
           end else begin
             if(when_ChannelPlugin_l129) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_133 = ChannelType_VIRTUAL_1;
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_124 = ChannelType_VIRTUAL_1;
             end else begin
               if(when_ChannelPlugin_l131) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_133 = ChannelType_PHYSICAL;
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_124 = ChannelType_PHYSICAL;
               end else begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_133 = ChannelType_INVALID;
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_124 = ChannelType_INVALID;
               end
             end
           end
@@ -5742,7 +5566,7 @@ module T9000Transputer (
       endcase
     end
     if(when_ChannelPlugin_l222) begin
-      _zz_fpu_fpPipe_ctrl_0_down_RESULT_133 = ChannelType_INVALID;
+      _zz_fpu_fpPipe_ctrl_0_down_RESULT_124 = ChannelType_INVALID;
     end
   end
 
@@ -5767,22 +5591,22 @@ module T9000Transputer (
   always @(*) begin
     case(switch_Misc_l245_22)
       RegName_Areg : begin
-        _zz_when_ChannelPlugin_l127_1 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
+        _zz_when_ChannelPlugin_l127_1 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_3;
       end
       RegName_Breg : begin
-        _zz_when_ChannelPlugin_l127_1 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
+        _zz_when_ChannelPlugin_l127_1 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_4;
       end
       RegName_Creg : begin
-        _zz_when_ChannelPlugin_l127_1 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
+        _zz_when_ChannelPlugin_l127_1 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_5;
       end
       RegName_WdescReg : begin
-        _zz_when_ChannelPlugin_l127_1 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_9;
+        _zz_when_ChannelPlugin_l127_1 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
       end
       RegName_IptrReg : begin
-        _zz_when_ChannelPlugin_l127_1 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_10;
+        _zz_when_ChannelPlugin_l127_1 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
       end
       RegName_StatusReg : begin
-        _zz_when_ChannelPlugin_l127_1 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_11;
+        _zz_when_ChannelPlugin_l127_1 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
       end
       default : begin
         _zz_when_ChannelPlugin_l127_1 = 32'h0;
@@ -5795,161 +5619,161 @@ module T9000Transputer (
   always @(*) begin
     case(switch_Misc_l245_23)
       RegName_Areg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_150 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_141 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_3;
       end
       RegName_Breg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_150 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_141 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_4;
       end
       RegName_Creg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_150 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_141 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_5;
       end
       RegName_WdescReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_150 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_9;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_141 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
       end
       RegName_IptrReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_150 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_10;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_141 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
       end
       RegName_StatusReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_150 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_11;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_141 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
       end
       default : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_150 = 32'h0;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_141 = 32'h0;
       end
     endcase
   end
 
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_151 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_150 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_142 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_141 & 32'hffffffff);
   assign switch_Misc_l245_24 = RegName_Creg;
   always @(*) begin
     case(switch_Misc_l245_24)
       RegName_Areg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_152 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_143 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_3;
       end
       RegName_Breg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_152 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_143 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_4;
       end
       RegName_Creg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_152 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_143 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_5;
       end
       RegName_WdescReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_152 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_9;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_143 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
       end
       RegName_IptrReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_152 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_10;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_143 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
       end
       RegName_StatusReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_152 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_11;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_143 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
       end
       default : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_152 = 32'h0;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_143 = 32'h0;
       end
     endcase
   end
 
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_153 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_152 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_144 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_143 & 32'hffffffff);
   assign _zz_when_ChannelPlugin_l127_3 = _zz_when_ChannelPlugin_l127_2[3 : 0];
   assign when_ChannelPlugin_l127 = _zz_when_ChannelPlugin_l127[_zz_when_ChannelPlugin_l127_3];
-  assign _zz_4 = ({15'd0,1'b1} <<< _zz_when_ChannelPlugin_l127_3);
+  assign _zz_5 = ({15'd0,1'b1} <<< _zz_when_ChannelPlugin_l127_3);
   assign when_ChannelPlugin_l129 = (1'b1 && _zz_when_ChannelPlugin_l129_17);
   assign when_ChannelPlugin_l131 = (_zz_when_ChannelPlugin_l127_3 < 4'b0100);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_154 = (_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_154 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_82 = (RegName_Areg == RegName_Areg);
-  assign when_RegStackPlugin_l146_82 = (RegName_Breg == RegName_Areg);
-  assign when_RegStackPlugin_l148_82 = (RegName_Creg == RegName_Areg);
-  assign when_RegStackPlugin_l150_82 = (RegName_WdescReg == RegName_Areg);
-  assign when_RegStackPlugin_l152_82 = (RegName_IptrReg == RegName_Areg);
-  assign when_RegStackPlugin_l154_82 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_155 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_151 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_145 = (_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_145 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_76 = (RegName_Areg == RegName_Areg);
+  assign when_RegStackPlugin_l146_76 = (RegName_Breg == RegName_Areg);
+  assign when_RegStackPlugin_l148_76 = (RegName_Creg == RegName_Areg);
+  assign when_RegStackPlugin_l150_76 = (RegName_WdescReg == RegName_Areg);
+  assign when_RegStackPlugin_l152_76 = (RegName_IptrReg == RegName_Areg);
+  assign when_RegStackPlugin_l154_76 = (RegName_StatusReg == RegName_Areg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_146 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_142 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_77 = (RegName_Areg == RegName_Areg);
+  assign when_RegStackPlugin_l146_77 = (RegName_Breg == RegName_Areg);
+  assign when_RegStackPlugin_l148_77 = (RegName_Creg == RegName_Areg);
+  assign when_RegStackPlugin_l150_77 = (RegName_WdescReg == RegName_Areg);
+  assign when_RegStackPlugin_l152_77 = (RegName_IptrReg == RegName_Areg);
+  assign when_RegStackPlugin_l154_77 = (RegName_StatusReg == RegName_Areg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_147 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_144 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_78 = (RegName_Areg == RegName_Breg);
+  assign when_RegStackPlugin_l146_78 = (RegName_Breg == RegName_Breg);
+  assign when_RegStackPlugin_l148_78 = (RegName_Creg == RegName_Breg);
+  assign when_RegStackPlugin_l150_78 = (RegName_WdescReg == RegName_Breg);
+  assign when_RegStackPlugin_l152_78 = (RegName_IptrReg == RegName_Breg);
+  assign when_RegStackPlugin_l154_78 = (RegName_StatusReg == RegName_Breg);
+  assign when_ChannelPlugin_l154 = 1'b1;
+  assign _zz_when_ChannelPlugin_l129_16 = _zz_when_ChannelPlugin_l127_2[0];
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_148 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_144 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_79 = (RegName_Areg == RegName_Areg);
+  assign when_RegStackPlugin_l146_79 = (RegName_Breg == RegName_Areg);
+  assign when_RegStackPlugin_l148_79 = (RegName_Creg == RegName_Areg);
+  assign when_RegStackPlugin_l150_79 = (RegName_WdescReg == RegName_Areg);
+  assign when_RegStackPlugin_l152_79 = (RegName_IptrReg == RegName_Areg);
+  assign when_RegStackPlugin_l154_79 = (RegName_StatusReg == RegName_Areg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_149 = (32'h0 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_80 = (RegName_Areg == RegName_Breg);
+  assign when_RegStackPlugin_l146_80 = (RegName_Breg == RegName_Breg);
+  assign when_RegStackPlugin_l148_80 = (RegName_Creg == RegName_Breg);
+  assign when_RegStackPlugin_l150_80 = (RegName_WdescReg == RegName_Breg);
+  assign when_RegStackPlugin_l152_80 = (RegName_IptrReg == RegName_Breg);
+  assign when_RegStackPlugin_l154_80 = (RegName_StatusReg == RegName_Breg);
+  assign when_ChannelPlugin_l167 = 1'b1;
+  assign _zz_6 = ({15'd0,1'b1} <<< _zz_when_ChannelPlugin_l127_3);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_150 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_144 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_81 = (RegName_Areg == RegName_Areg);
+  assign when_RegStackPlugin_l146_81 = (RegName_Breg == RegName_Areg);
+  assign when_RegStackPlugin_l148_81 = (RegName_Creg == RegName_Areg);
+  assign when_RegStackPlugin_l150_81 = (RegName_WdescReg == RegName_Areg);
+  assign when_RegStackPlugin_l152_81 = (RegName_IptrReg == RegName_Areg);
+  assign when_RegStackPlugin_l154_81 = (RegName_StatusReg == RegName_Areg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_151 = (32'h0 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_82 = (RegName_Areg == RegName_Breg);
+  assign when_RegStackPlugin_l146_82 = (RegName_Breg == RegName_Breg);
+  assign when_RegStackPlugin_l148_82 = (RegName_Creg == RegName_Breg);
+  assign when_RegStackPlugin_l150_82 = (RegName_WdescReg == RegName_Breg);
+  assign when_RegStackPlugin_l152_82 = (RegName_IptrReg == RegName_Breg);
+  assign when_RegStackPlugin_l154_82 = (RegName_StatusReg == RegName_Breg);
+  assign when_ChannelPlugin_l177 = 1'b1;
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_152 = (_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_152 & 32'hffffffff);
   assign when_RegStackPlugin_l144_83 = (RegName_Areg == RegName_Areg);
   assign when_RegStackPlugin_l146_83 = (RegName_Breg == RegName_Areg);
   assign when_RegStackPlugin_l148_83 = (RegName_Creg == RegName_Areg);
   assign when_RegStackPlugin_l150_83 = (RegName_WdescReg == RegName_Areg);
   assign when_RegStackPlugin_l152_83 = (RegName_IptrReg == RegName_Areg);
   assign when_RegStackPlugin_l154_83 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_156 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_153 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_84 = (RegName_Areg == RegName_Breg);
-  assign when_RegStackPlugin_l146_84 = (RegName_Breg == RegName_Breg);
-  assign when_RegStackPlugin_l148_84 = (RegName_Creg == RegName_Breg);
-  assign when_RegStackPlugin_l150_84 = (RegName_WdescReg == RegName_Breg);
-  assign when_RegStackPlugin_l152_84 = (RegName_IptrReg == RegName_Breg);
-  assign when_RegStackPlugin_l154_84 = (RegName_StatusReg == RegName_Breg);
-  assign when_ChannelPlugin_l154 = 1'b1;
-  assign _zz_when_ChannelPlugin_l129_16 = _zz_when_ChannelPlugin_l127_2[0];
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_157 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_153 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_153 = (32'h0 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_84 = (RegName_Areg == RegName_Areg);
+  assign when_RegStackPlugin_l146_84 = (RegName_Breg == RegName_Areg);
+  assign when_RegStackPlugin_l148_84 = (RegName_Creg == RegName_Areg);
+  assign when_RegStackPlugin_l150_84 = (RegName_WdescReg == RegName_Areg);
+  assign when_RegStackPlugin_l152_84 = (RegName_IptrReg == RegName_Areg);
+  assign when_RegStackPlugin_l154_84 = (RegName_StatusReg == RegName_Areg);
+  assign when_ChannelPlugin_l190 = 1'b1;
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_154 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_142 & 32'hffffffff);
   assign when_RegStackPlugin_l144_85 = (RegName_Areg == RegName_Areg);
   assign when_RegStackPlugin_l146_85 = (RegName_Breg == RegName_Areg);
   assign when_RegStackPlugin_l148_85 = (RegName_Creg == RegName_Areg);
   assign when_RegStackPlugin_l150_85 = (RegName_WdescReg == RegName_Areg);
   assign when_RegStackPlugin_l152_85 = (RegName_IptrReg == RegName_Areg);
   assign when_RegStackPlugin_l154_85 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_158 = (32'h0 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_155 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_144 & 32'hffffffff);
   assign when_RegStackPlugin_l144_86 = (RegName_Areg == RegName_Breg);
   assign when_RegStackPlugin_l146_86 = (RegName_Breg == RegName_Breg);
   assign when_RegStackPlugin_l148_86 = (RegName_Creg == RegName_Breg);
   assign when_RegStackPlugin_l150_86 = (RegName_WdescReg == RegName_Breg);
   assign when_RegStackPlugin_l152_86 = (RegName_IptrReg == RegName_Breg);
   assign when_RegStackPlugin_l154_86 = (RegName_StatusReg == RegName_Breg);
-  assign when_ChannelPlugin_l167 = 1'b1;
-  assign _zz_5 = ({15'd0,1'b1} <<< _zz_when_ChannelPlugin_l127_3);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_159 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_153 & 32'hffffffff);
+  assign when_ChannelPlugin_l200 = 1'b1;
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_156 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_142 & 32'hffffffff);
   assign when_RegStackPlugin_l144_87 = (RegName_Areg == RegName_Areg);
   assign when_RegStackPlugin_l146_87 = (RegName_Breg == RegName_Areg);
   assign when_RegStackPlugin_l148_87 = (RegName_Creg == RegName_Areg);
   assign when_RegStackPlugin_l150_87 = (RegName_WdescReg == RegName_Areg);
   assign when_RegStackPlugin_l152_87 = (RegName_IptrReg == RegName_Areg);
   assign when_RegStackPlugin_l154_87 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_160 = (32'h0 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_157 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_144 & 32'hffffffff);
   assign when_RegStackPlugin_l144_88 = (RegName_Areg == RegName_Breg);
   assign when_RegStackPlugin_l146_88 = (RegName_Breg == RegName_Breg);
   assign when_RegStackPlugin_l148_88 = (RegName_Creg == RegName_Breg);
   assign when_RegStackPlugin_l150_88 = (RegName_WdescReg == RegName_Breg);
   assign when_RegStackPlugin_l152_88 = (RegName_IptrReg == RegName_Breg);
   assign when_RegStackPlugin_l154_88 = (RegName_StatusReg == RegName_Breg);
-  assign when_ChannelPlugin_l177 = 1'b1;
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_161 = (_zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_161 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_89 = (RegName_Areg == RegName_Areg);
-  assign when_RegStackPlugin_l146_89 = (RegName_Breg == RegName_Areg);
-  assign when_RegStackPlugin_l148_89 = (RegName_Creg == RegName_Areg);
-  assign when_RegStackPlugin_l150_89 = (RegName_WdescReg == RegName_Areg);
-  assign when_RegStackPlugin_l152_89 = (RegName_IptrReg == RegName_Areg);
-  assign when_RegStackPlugin_l154_89 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_162 = (32'h0 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_90 = (RegName_Areg == RegName_Areg);
-  assign when_RegStackPlugin_l146_90 = (RegName_Breg == RegName_Areg);
-  assign when_RegStackPlugin_l148_90 = (RegName_Creg == RegName_Areg);
-  assign when_RegStackPlugin_l150_90 = (RegName_WdescReg == RegName_Areg);
-  assign when_RegStackPlugin_l152_90 = (RegName_IptrReg == RegName_Areg);
-  assign when_RegStackPlugin_l154_90 = (RegName_StatusReg == RegName_Areg);
-  assign when_ChannelPlugin_l190 = 1'b1;
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_163 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_151 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_91 = (RegName_Areg == RegName_Areg);
-  assign when_RegStackPlugin_l146_91 = (RegName_Breg == RegName_Areg);
-  assign when_RegStackPlugin_l148_91 = (RegName_Creg == RegName_Areg);
-  assign when_RegStackPlugin_l150_91 = (RegName_WdescReg == RegName_Areg);
-  assign when_RegStackPlugin_l152_91 = (RegName_IptrReg == RegName_Areg);
-  assign when_RegStackPlugin_l154_91 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_164 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_153 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_92 = (RegName_Areg == RegName_Breg);
-  assign when_RegStackPlugin_l146_92 = (RegName_Breg == RegName_Breg);
-  assign when_RegStackPlugin_l148_92 = (RegName_Creg == RegName_Breg);
-  assign when_RegStackPlugin_l150_92 = (RegName_WdescReg == RegName_Breg);
-  assign when_RegStackPlugin_l152_92 = (RegName_IptrReg == RegName_Breg);
-  assign when_RegStackPlugin_l154_92 = (RegName_StatusReg == RegName_Breg);
-  assign when_ChannelPlugin_l200 = 1'b1;
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_165 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_151 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_93 = (RegName_Areg == RegName_Areg);
-  assign when_RegStackPlugin_l146_93 = (RegName_Breg == RegName_Areg);
-  assign when_RegStackPlugin_l148_93 = (RegName_Creg == RegName_Areg);
-  assign when_RegStackPlugin_l150_93 = (RegName_WdescReg == RegName_Areg);
-  assign when_RegStackPlugin_l152_93 = (RegName_IptrReg == RegName_Areg);
-  assign when_RegStackPlugin_l154_93 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_166 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_153 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_94 = (RegName_Areg == RegName_Breg);
-  assign when_RegStackPlugin_l146_94 = (RegName_Breg == RegName_Breg);
-  assign when_RegStackPlugin_l148_94 = (RegName_Creg == RegName_Breg);
-  assign when_RegStackPlugin_l150_94 = (RegName_WdescReg == RegName_Breg);
-  assign when_RegStackPlugin_l152_94 = (RegName_IptrReg == RegName_Breg);
-  assign when_RegStackPlugin_l154_94 = (RegName_StatusReg == RegName_Breg);
   assign when_ChannelPlugin_l222 = (! when_ChannelPlugin_l111);
   assign _zz_when_InterruptPlugin_l118_1 = (_zz_when_InterruptPlugin_l118[7 : 4] == PrimaryOpcode_OPR);
   assign _zz_when_InterruptPlugin_l118_2 = _zz_when_InterruptPlugin_l118[3 : 0];
@@ -5973,120 +5797,120 @@ module T9000Transputer (
   always @(*) begin
     case(switch_Misc_l245_25)
       RegName_Areg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_168 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_159 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_3;
       end
       RegName_Breg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_168 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_159 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_4;
       end
       RegName_Creg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_168 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_159 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_5;
       end
       RegName_WdescReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_168 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_9;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_159 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
       end
       RegName_IptrReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_168 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_10;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_159 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
       end
       RegName_StatusReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_168 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_11;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_159 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
       end
       default : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_168 = 32'h0;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_159 = 32'h0;
       end
     endcase
   end
 
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_169 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_168 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_160 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_159 & 32'hffffffff);
   assign switch_Misc_l245_26 = RegName_Breg;
   always @(*) begin
     case(switch_Misc_l245_26)
       RegName_Areg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_170 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_161 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_3;
       end
       RegName_Breg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_170 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_161 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_4;
       end
       RegName_Creg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_170 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_161 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_5;
       end
       RegName_WdescReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_170 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_9;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_161 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
       end
       RegName_IptrReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_170 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_10;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_161 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
       end
       RegName_StatusReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_170 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_11;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_161 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
       end
       default : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_170 = 32'h0;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_161 = 32'h0;
       end
     endcase
   end
 
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_171 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_170 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_162 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_161 & 32'hffffffff);
   assign switch_Misc_l245_27 = RegName_Creg;
   always @(*) begin
     case(switch_Misc_l245_27)
       RegName_Areg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_172 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_163 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_3;
       end
       RegName_Breg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_172 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_163 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_4;
       end
       RegName_Creg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_172 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_163 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_5;
       end
       RegName_WdescReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_172 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_9;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_163 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
       end
       RegName_IptrReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_172 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_10;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_163 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
       end
       RegName_StatusReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_172 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_11;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_163 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
       end
       default : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_172 = 32'h0;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_163 = 32'h0;
       end
     endcase
   end
 
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_173 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_171 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_95 = (RegName_Areg == RegName_Creg);
-  assign when_RegStackPlugin_l146_95 = (RegName_Breg == RegName_Creg);
-  assign when_RegStackPlugin_l148_95 = (RegName_Creg == RegName_Creg);
-  assign when_RegStackPlugin_l150_95 = (RegName_WdescReg == RegName_Creg);
-  assign when_RegStackPlugin_l152_95 = (RegName_IptrReg == RegName_Creg);
-  assign when_RegStackPlugin_l154_95 = (RegName_StatusReg == RegName_Creg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_174 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_169 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_96 = (RegName_Areg == RegName_Breg);
-  assign when_RegStackPlugin_l146_96 = (RegName_Breg == RegName_Breg);
-  assign when_RegStackPlugin_l148_96 = (RegName_Creg == RegName_Breg);
-  assign when_RegStackPlugin_l150_96 = (RegName_WdescReg == RegName_Breg);
-  assign when_RegStackPlugin_l152_96 = (RegName_IptrReg == RegName_Breg);
-  assign when_RegStackPlugin_l154_96 = (RegName_StatusReg == RegName_Breg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_175 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_167 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_97 = (RegName_Areg == RegName_Areg);
-  assign when_RegStackPlugin_l146_97 = (RegName_Breg == RegName_Areg);
-  assign when_RegStackPlugin_l148_97 = (RegName_Creg == RegName_Areg);
-  assign when_RegStackPlugin_l150_97 = (RegName_WdescReg == RegName_Areg);
-  assign when_RegStackPlugin_l152_97 = (RegName_IptrReg == RegName_Areg);
-  assign when_RegStackPlugin_l154_97 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_176 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_171 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_98 = (RegName_Areg == RegName_Areg);
-  assign when_RegStackPlugin_l146_98 = (RegName_Breg == RegName_Areg);
-  assign when_RegStackPlugin_l148_98 = (RegName_Creg == RegName_Areg);
-  assign when_RegStackPlugin_l150_98 = (RegName_WdescReg == RegName_Areg);
-  assign when_RegStackPlugin_l152_98 = (RegName_IptrReg == RegName_Areg);
-  assign when_RegStackPlugin_l154_98 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_177 = ((_zz_fpu_fpPipe_ctrl_0_down_RESULT_172 & 32'hffffffff) & 32'hffffffff);
-  assign when_RegStackPlugin_l144_99 = (RegName_Areg == RegName_Breg);
-  assign when_RegStackPlugin_l146_99 = (RegName_Breg == RegName_Breg);
-  assign when_RegStackPlugin_l148_99 = (RegName_Creg == RegName_Breg);
-  assign when_RegStackPlugin_l150_99 = (RegName_WdescReg == RegName_Breg);
-  assign when_RegStackPlugin_l152_99 = (RegName_IptrReg == RegName_Breg);
-  assign when_RegStackPlugin_l154_99 = (RegName_StatusReg == RegName_Breg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_164 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_162 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_89 = (RegName_Areg == RegName_Creg);
+  assign when_RegStackPlugin_l146_89 = (RegName_Breg == RegName_Creg);
+  assign when_RegStackPlugin_l148_89 = (RegName_Creg == RegName_Creg);
+  assign when_RegStackPlugin_l150_89 = (RegName_WdescReg == RegName_Creg);
+  assign when_RegStackPlugin_l152_89 = (RegName_IptrReg == RegName_Creg);
+  assign when_RegStackPlugin_l154_89 = (RegName_StatusReg == RegName_Creg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_165 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_160 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_90 = (RegName_Areg == RegName_Breg);
+  assign when_RegStackPlugin_l146_90 = (RegName_Breg == RegName_Breg);
+  assign when_RegStackPlugin_l148_90 = (RegName_Creg == RegName_Breg);
+  assign when_RegStackPlugin_l150_90 = (RegName_WdescReg == RegName_Breg);
+  assign when_RegStackPlugin_l152_90 = (RegName_IptrReg == RegName_Breg);
+  assign when_RegStackPlugin_l154_90 = (RegName_StatusReg == RegName_Breg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_166 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_158 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_91 = (RegName_Areg == RegName_Areg);
+  assign when_RegStackPlugin_l146_91 = (RegName_Breg == RegName_Areg);
+  assign when_RegStackPlugin_l148_91 = (RegName_Creg == RegName_Areg);
+  assign when_RegStackPlugin_l150_91 = (RegName_WdescReg == RegName_Areg);
+  assign when_RegStackPlugin_l152_91 = (RegName_IptrReg == RegName_Areg);
+  assign when_RegStackPlugin_l154_91 = (RegName_StatusReg == RegName_Areg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_167 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_162 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_92 = (RegName_Areg == RegName_Areg);
+  assign when_RegStackPlugin_l146_92 = (RegName_Breg == RegName_Areg);
+  assign when_RegStackPlugin_l148_92 = (RegName_Creg == RegName_Areg);
+  assign when_RegStackPlugin_l150_92 = (RegName_WdescReg == RegName_Areg);
+  assign when_RegStackPlugin_l152_92 = (RegName_IptrReg == RegName_Areg);
+  assign when_RegStackPlugin_l154_92 = (RegName_StatusReg == RegName_Areg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_168 = ((_zz_fpu_fpPipe_ctrl_0_down_RESULT_163 & 32'hffffffff) & 32'hffffffff);
+  assign when_RegStackPlugin_l144_93 = (RegName_Areg == RegName_Breg);
+  assign when_RegStackPlugin_l146_93 = (RegName_Breg == RegName_Breg);
+  assign when_RegStackPlugin_l148_93 = (RegName_Creg == RegName_Breg);
+  assign when_RegStackPlugin_l150_93 = (RegName_WdescReg == RegName_Breg);
+  assign when_RegStackPlugin_l152_93 = (RegName_IptrReg == RegName_Breg);
+  assign when_RegStackPlugin_l154_93 = (RegName_StatusReg == RegName_Breg);
   assign _zz_when_ResourcePlugin_l114_1 = (_zz_when_ResourcePlugin_l114[7 : 4] == PrimaryOpcode_OPR);
   assign _zz_when_ResourcePlugin_l114_2 = _zz_when_ResourcePlugin_l114[3 : 0];
   assign when_ResourcePlugin_l114 = (_zz_when_ResourcePlugin_l114_1 && ((_zz_when_ResourcePlugin_l114_2 == 4'b0100) || (_zz_when_ResourcePlugin_l114_2 == 4'b0011)));
@@ -6110,183 +5934,183 @@ module T9000Transputer (
   always @(*) begin
     case(switch_Misc_l245_28)
       RegName_Areg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_179 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_170 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_3;
       end
       RegName_Breg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_179 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_170 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_4;
       end
       RegName_Creg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_179 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_170 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_5;
       end
       RegName_WdescReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_179 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_9;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_170 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
       end
       RegName_IptrReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_179 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_10;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_170 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
       end
       RegName_StatusReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_179 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_11;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_170 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
       end
       default : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_179 = 32'h0;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_170 = 32'h0;
       end
     endcase
   end
 
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_180 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_179 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_171 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_170 & 32'hffffffff);
   assign switch_Misc_l245_29 = RegName_Breg;
   always @(*) begin
     case(switch_Misc_l245_29)
       RegName_Areg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_181 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_172 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_3;
       end
       RegName_Breg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_181 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_172 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_4;
       end
       RegName_Creg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_181 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_172 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_5;
       end
       RegName_WdescReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_181 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_9;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_172 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
       end
       RegName_IptrReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_181 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_10;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_172 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
       end
       RegName_StatusReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_181 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_11;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_172 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
       end
       default : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_181 = 32'h0;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_172 = 32'h0;
       end
     endcase
   end
 
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_182 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_181 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_173 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_172 & 32'hffffffff);
   assign switch_Misc_l245_30 = RegName_Creg;
   always @(*) begin
     case(switch_Misc_l245_30)
       RegName_Areg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_183 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_174 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_3;
       end
       RegName_Breg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_183 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_174 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_4;
       end
       RegName_Creg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_183 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_174 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_5;
       end
       RegName_WdescReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_183 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_9;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_174 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
       end
       RegName_IptrReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_183 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_10;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_174 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
       end
       RegName_StatusReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_183 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_11;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_174 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
       end
       default : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_183 = 32'h0;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_174 = 32'h0;
       end
     endcase
   end
 
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_184 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_183 & 32'hffffffff);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_185 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_182 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_175 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_174 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_176 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_173 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_94 = (RegName_Areg == RegName_Areg);
+  assign when_RegStackPlugin_l146_94 = (RegName_Breg == RegName_Areg);
+  assign when_RegStackPlugin_l148_94 = (RegName_Creg == RegName_Areg);
+  assign when_RegStackPlugin_l150_94 = (RegName_WdescReg == RegName_Areg);
+  assign when_RegStackPlugin_l152_94 = (RegName_IptrReg == RegName_Areg);
+  assign when_RegStackPlugin_l154_94 = (RegName_StatusReg == RegName_Areg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_177 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_175 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_95 = (RegName_Areg == RegName_Breg);
+  assign when_RegStackPlugin_l146_95 = (RegName_Breg == RegName_Breg);
+  assign when_RegStackPlugin_l148_95 = (RegName_Creg == RegName_Breg);
+  assign when_RegStackPlugin_l150_95 = (RegName_WdescReg == RegName_Breg);
+  assign when_RegStackPlugin_l152_95 = (RegName_IptrReg == RegName_Breg);
+  assign when_RegStackPlugin_l154_95 = (RegName_StatusReg == RegName_Breg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_178 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_173 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_96 = (RegName_Areg == RegName_Areg);
+  assign when_RegStackPlugin_l146_96 = (RegName_Breg == RegName_Areg);
+  assign when_RegStackPlugin_l148_96 = (RegName_Creg == RegName_Areg);
+  assign when_RegStackPlugin_l150_96 = (RegName_WdescReg == RegName_Areg);
+  assign when_RegStackPlugin_l152_96 = (RegName_IptrReg == RegName_Areg);
+  assign when_RegStackPlugin_l154_96 = (RegName_StatusReg == RegName_Areg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_179 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_175 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_97 = (RegName_Areg == RegName_Breg);
+  assign when_RegStackPlugin_l146_97 = (RegName_Breg == RegName_Breg);
+  assign when_RegStackPlugin_l148_97 = (RegName_Creg == RegName_Breg);
+  assign when_RegStackPlugin_l150_97 = (RegName_WdescReg == RegName_Breg);
+  assign when_RegStackPlugin_l152_97 = (RegName_IptrReg == RegName_Breg);
+  assign when_RegStackPlugin_l154_97 = (RegName_StatusReg == RegName_Breg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_180 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_173 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_98 = (RegName_Areg == RegName_Areg);
+  assign when_RegStackPlugin_l146_98 = (RegName_Breg == RegName_Areg);
+  assign when_RegStackPlugin_l148_98 = (RegName_Creg == RegName_Areg);
+  assign when_RegStackPlugin_l150_98 = (RegName_WdescReg == RegName_Areg);
+  assign when_RegStackPlugin_l152_98 = (RegName_IptrReg == RegName_Areg);
+  assign when_RegStackPlugin_l154_98 = (RegName_StatusReg == RegName_Areg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_181 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_175 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_99 = (RegName_Areg == RegName_Breg);
+  assign when_RegStackPlugin_l146_99 = (RegName_Breg == RegName_Breg);
+  assign when_RegStackPlugin_l148_99 = (RegName_Creg == RegName_Breg);
+  assign when_RegStackPlugin_l150_99 = (RegName_WdescReg == RegName_Breg);
+  assign when_RegStackPlugin_l152_99 = (RegName_IptrReg == RegName_Breg);
+  assign when_RegStackPlugin_l154_99 = (RegName_StatusReg == RegName_Breg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_182 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_173 & 32'hffffffff);
   assign when_RegStackPlugin_l144_100 = (RegName_Areg == RegName_Areg);
   assign when_RegStackPlugin_l146_100 = (RegName_Breg == RegName_Areg);
   assign when_RegStackPlugin_l148_100 = (RegName_Creg == RegName_Areg);
   assign when_RegStackPlugin_l150_100 = (RegName_WdescReg == RegName_Areg);
   assign when_RegStackPlugin_l152_100 = (RegName_IptrReg == RegName_Areg);
   assign when_RegStackPlugin_l154_100 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_186 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_184 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_183 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_175 & 32'hffffffff);
   assign when_RegStackPlugin_l144_101 = (RegName_Areg == RegName_Breg);
   assign when_RegStackPlugin_l146_101 = (RegName_Breg == RegName_Breg);
   assign when_RegStackPlugin_l148_101 = (RegName_Creg == RegName_Breg);
   assign when_RegStackPlugin_l150_101 = (RegName_WdescReg == RegName_Breg);
   assign when_RegStackPlugin_l152_101 = (RegName_IptrReg == RegName_Breg);
   assign when_RegStackPlugin_l154_101 = (RegName_StatusReg == RegName_Breg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_187 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_182 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_184 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_173 & 32'hffffffff);
   assign when_RegStackPlugin_l144_102 = (RegName_Areg == RegName_Areg);
   assign when_RegStackPlugin_l146_102 = (RegName_Breg == RegName_Areg);
   assign when_RegStackPlugin_l148_102 = (RegName_Creg == RegName_Areg);
   assign when_RegStackPlugin_l150_102 = (RegName_WdescReg == RegName_Areg);
   assign when_RegStackPlugin_l152_102 = (RegName_IptrReg == RegName_Areg);
   assign when_RegStackPlugin_l154_102 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_188 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_184 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_185 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_175 & 32'hffffffff);
   assign when_RegStackPlugin_l144_103 = (RegName_Areg == RegName_Breg);
   assign when_RegStackPlugin_l146_103 = (RegName_Breg == RegName_Breg);
   assign when_RegStackPlugin_l148_103 = (RegName_Creg == RegName_Breg);
   assign when_RegStackPlugin_l150_103 = (RegName_WdescReg == RegName_Breg);
   assign when_RegStackPlugin_l152_103 = (RegName_IptrReg == RegName_Breg);
   assign when_RegStackPlugin_l154_103 = (RegName_StatusReg == RegName_Breg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_189 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_182 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_104 = (RegName_Areg == RegName_Areg);
-  assign when_RegStackPlugin_l146_104 = (RegName_Breg == RegName_Areg);
-  assign when_RegStackPlugin_l148_104 = (RegName_Creg == RegName_Areg);
-  assign when_RegStackPlugin_l150_104 = (RegName_WdescReg == RegName_Areg);
-  assign when_RegStackPlugin_l152_104 = (RegName_IptrReg == RegName_Areg);
-  assign when_RegStackPlugin_l154_104 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_190 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_184 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_186 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_173 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_104 = (RegName_Areg == RegName_Creg);
+  assign when_RegStackPlugin_l146_104 = (RegName_Breg == RegName_Creg);
+  assign when_RegStackPlugin_l148_104 = (RegName_Creg == RegName_Creg);
+  assign when_RegStackPlugin_l150_104 = (RegName_WdescReg == RegName_Creg);
+  assign when_RegStackPlugin_l152_104 = (RegName_IptrReg == RegName_Creg);
+  assign when_RegStackPlugin_l154_104 = (RegName_StatusReg == RegName_Creg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_187 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_171 & 32'hffffffff);
   assign when_RegStackPlugin_l144_105 = (RegName_Areg == RegName_Breg);
   assign when_RegStackPlugin_l146_105 = (RegName_Breg == RegName_Breg);
   assign when_RegStackPlugin_l148_105 = (RegName_Creg == RegName_Breg);
   assign when_RegStackPlugin_l150_105 = (RegName_WdescReg == RegName_Breg);
   assign when_RegStackPlugin_l152_105 = (RegName_IptrReg == RegName_Breg);
   assign when_RegStackPlugin_l154_105 = (RegName_StatusReg == RegName_Breg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_191 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_182 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_188 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_169 & 32'hffffffff);
   assign when_RegStackPlugin_l144_106 = (RegName_Areg == RegName_Areg);
   assign when_RegStackPlugin_l146_106 = (RegName_Breg == RegName_Areg);
   assign when_RegStackPlugin_l148_106 = (RegName_Creg == RegName_Areg);
   assign when_RegStackPlugin_l150_106 = (RegName_WdescReg == RegName_Areg);
   assign when_RegStackPlugin_l152_106 = (RegName_IptrReg == RegName_Areg);
   assign when_RegStackPlugin_l154_106 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_192 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_184 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_107 = (RegName_Areg == RegName_Breg);
-  assign when_RegStackPlugin_l146_107 = (RegName_Breg == RegName_Breg);
-  assign when_RegStackPlugin_l148_107 = (RegName_Creg == RegName_Breg);
-  assign when_RegStackPlugin_l150_107 = (RegName_WdescReg == RegName_Breg);
-  assign when_RegStackPlugin_l152_107 = (RegName_IptrReg == RegName_Breg);
-  assign when_RegStackPlugin_l154_107 = (RegName_StatusReg == RegName_Breg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_193 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_182 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_108 = (RegName_Areg == RegName_Areg);
-  assign when_RegStackPlugin_l146_108 = (RegName_Breg == RegName_Areg);
-  assign when_RegStackPlugin_l148_108 = (RegName_Creg == RegName_Areg);
-  assign when_RegStackPlugin_l150_108 = (RegName_WdescReg == RegName_Areg);
-  assign when_RegStackPlugin_l152_108 = (RegName_IptrReg == RegName_Areg);
-  assign when_RegStackPlugin_l154_108 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_194 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_184 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_109 = (RegName_Areg == RegName_Breg);
-  assign when_RegStackPlugin_l146_109 = (RegName_Breg == RegName_Breg);
-  assign when_RegStackPlugin_l148_109 = (RegName_Creg == RegName_Breg);
-  assign when_RegStackPlugin_l150_109 = (RegName_WdescReg == RegName_Breg);
-  assign when_RegStackPlugin_l152_109 = (RegName_IptrReg == RegName_Breg);
-  assign when_RegStackPlugin_l154_109 = (RegName_StatusReg == RegName_Breg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_195 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_182 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_110 = (RegName_Areg == RegName_Creg);
-  assign when_RegStackPlugin_l146_110 = (RegName_Breg == RegName_Creg);
-  assign when_RegStackPlugin_l148_110 = (RegName_Creg == RegName_Creg);
-  assign when_RegStackPlugin_l150_110 = (RegName_WdescReg == RegName_Creg);
-  assign when_RegStackPlugin_l152_110 = (RegName_IptrReg == RegName_Creg);
-  assign when_RegStackPlugin_l154_110 = (RegName_StatusReg == RegName_Creg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_196 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_180 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_111 = (RegName_Areg == RegName_Breg);
-  assign when_RegStackPlugin_l146_111 = (RegName_Breg == RegName_Breg);
-  assign when_RegStackPlugin_l148_111 = (RegName_Creg == RegName_Breg);
-  assign when_RegStackPlugin_l150_111 = (RegName_WdescReg == RegName_Breg);
-  assign when_RegStackPlugin_l152_111 = (RegName_IptrReg == RegName_Breg);
-  assign when_RegStackPlugin_l154_111 = (RegName_StatusReg == RegName_Breg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_197 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_178 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_112 = (RegName_Areg == RegName_Areg);
-  assign when_RegStackPlugin_l146_112 = (RegName_Breg == RegName_Areg);
-  assign when_RegStackPlugin_l148_112 = (RegName_Creg == RegName_Areg);
-  assign when_RegStackPlugin_l150_112 = (RegName_WdescReg == RegName_Areg);
-  assign when_RegStackPlugin_l152_112 = (RegName_IptrReg == RegName_Areg);
-  assign when_RegStackPlugin_l154_112 = (RegName_StatusReg == RegName_Areg);
   always @(*) begin
-    _zz_fpu_fpPipe_ctrl_0_down_RESULT_198 = 32'h0;
+    _zz_fpu_fpPipe_ctrl_0_down_RESULT_189 = 32'h0;
     if(when_SystemPlugin_l123) begin
       case(switch_SystemPlugin_l128)
         SystemOp_TESTPRANAL : begin
-          _zz_fpu_fpPipe_ctrl_0_down_RESULT_198 = 32'h00009000;
+          _zz_fpu_fpPipe_ctrl_0_down_RESULT_189 = 32'h00009000;
         end
         SystemOp_LDCONF : begin
         end
@@ -6342,22 +6166,22 @@ module T9000Transputer (
   always @(*) begin
     case(switch_Misc_l245_31)
       RegName_Areg : begin
-        _zz_switch_SystemPlugin_l145 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
+        _zz_switch_SystemPlugin_l145 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_3;
       end
       RegName_Breg : begin
-        _zz_switch_SystemPlugin_l145 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
+        _zz_switch_SystemPlugin_l145 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_4;
       end
       RegName_Creg : begin
-        _zz_switch_SystemPlugin_l145 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
+        _zz_switch_SystemPlugin_l145 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_5;
       end
       RegName_WdescReg : begin
-        _zz_switch_SystemPlugin_l145 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_9;
+        _zz_switch_SystemPlugin_l145 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
       end
       RegName_IptrReg : begin
-        _zz_switch_SystemPlugin_l145 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_10;
+        _zz_switch_SystemPlugin_l145 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
       end
       RegName_StatusReg : begin
-        _zz_switch_SystemPlugin_l145 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_11;
+        _zz_switch_SystemPlugin_l145 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
       end
       default : begin
         _zz_switch_SystemPlugin_l145 = 32'h0;
@@ -6370,22 +6194,22 @@ module T9000Transputer (
   always @(*) begin
     case(switch_Misc_l245_32)
       RegName_Areg : begin
-        _zz_switch_SystemPlugin_l163 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
+        _zz_switch_SystemPlugin_l163 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_3;
       end
       RegName_Breg : begin
-        _zz_switch_SystemPlugin_l163 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
+        _zz_switch_SystemPlugin_l163 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_4;
       end
       RegName_Creg : begin
-        _zz_switch_SystemPlugin_l163 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
+        _zz_switch_SystemPlugin_l163 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_5;
       end
       RegName_WdescReg : begin
-        _zz_switch_SystemPlugin_l163 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_9;
+        _zz_switch_SystemPlugin_l163 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
       end
       RegName_IptrReg : begin
-        _zz_switch_SystemPlugin_l163 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_10;
+        _zz_switch_SystemPlugin_l163 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
       end
       RegName_StatusReg : begin
-        _zz_switch_SystemPlugin_l163 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_11;
+        _zz_switch_SystemPlugin_l163 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
       end
       default : begin
         _zz_switch_SystemPlugin_l163 = 32'h0;
@@ -6398,295 +6222,426 @@ module T9000Transputer (
   always @(*) begin
     case(switch_Misc_l245_33)
       RegName_Areg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_204 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_195 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_3;
       end
       RegName_Breg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_204 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_195 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_4;
       end
       RegName_Creg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_204 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_195 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_5;
       end
       RegName_WdescReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_204 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_9;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_195 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
       end
       RegName_IptrReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_204 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_10;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_195 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
       end
       RegName_StatusReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_204 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_11;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_195 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
       end
       default : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_204 = 32'h0;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_195 = 32'h0;
       end
     endcase
   end
 
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_205 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_204 & 32'hffffffff);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_206 = (_zz_switch_SystemPlugin_l163_1 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_113 = (RegName_Areg == RegName_Creg);
-  assign when_RegStackPlugin_l146_113 = (RegName_Breg == RegName_Creg);
-  assign when_RegStackPlugin_l148_113 = (RegName_Creg == RegName_Creg);
-  assign when_RegStackPlugin_l150_113 = (RegName_WdescReg == RegName_Creg);
-  assign when_RegStackPlugin_l152_113 = (RegName_IptrReg == RegName_Creg);
-  assign when_RegStackPlugin_l154_113 = (RegName_StatusReg == RegName_Creg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_207 = (_zz_switch_SystemPlugin_l145_1 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_196 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_195 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_197 = (_zz_switch_SystemPlugin_l163_1 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_107 = (RegName_Areg == RegName_Creg);
+  assign when_RegStackPlugin_l146_107 = (RegName_Breg == RegName_Creg);
+  assign when_RegStackPlugin_l148_107 = (RegName_Creg == RegName_Creg);
+  assign when_RegStackPlugin_l150_107 = (RegName_WdescReg == RegName_Creg);
+  assign when_RegStackPlugin_l152_107 = (RegName_IptrReg == RegName_Creg);
+  assign when_RegStackPlugin_l154_107 = (RegName_StatusReg == RegName_Creg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_198 = (_zz_switch_SystemPlugin_l145_1 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_108 = (RegName_Areg == RegName_Breg);
+  assign when_RegStackPlugin_l146_108 = (RegName_Breg == RegName_Breg);
+  assign when_RegStackPlugin_l148_108 = (RegName_Creg == RegName_Breg);
+  assign when_RegStackPlugin_l150_108 = (RegName_WdescReg == RegName_Breg);
+  assign when_RegStackPlugin_l152_108 = (RegName_IptrReg == RegName_Breg);
+  assign when_RegStackPlugin_l154_108 = (RegName_StatusReg == RegName_Breg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_199 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_189 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_109 = (RegName_Areg == RegName_Areg);
+  assign when_RegStackPlugin_l146_109 = (RegName_Breg == RegName_Areg);
+  assign when_RegStackPlugin_l148_109 = (RegName_Creg == RegName_Areg);
+  assign when_RegStackPlugin_l150_109 = (RegName_WdescReg == RegName_Areg);
+  assign when_RegStackPlugin_l152_109 = (RegName_IptrReg == RegName_Areg);
+  assign when_RegStackPlugin_l154_109 = (RegName_StatusReg == RegName_Areg);
+  assign switch_SystemPlugin_l145 = _zz_switch_SystemPlugin_l145_1[3 : 0];
+  always @(*) begin
+    case(switch_SystemPlugin_l145)
+      4'b0000 : begin
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_200 = {24'd0, _zz_fpu_fpPipe_ctrl_0_down_RESULT_190};
+      end
+      4'b0001 : begin
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_200 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_191;
+      end
+      4'b0010 : begin
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_200 = {16'd0, _zz_fpu_fpPipe_ctrl_0_down_RESULT_192};
+      end
+      4'b0011 : begin
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_200 = {16'd0, _zz_fpu_fpPipe_ctrl_0_down_RESULT_193};
+      end
+      4'b0100 : begin
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_200 = {16'd0, _zz_fpu_fpPipe_ctrl_0_down_RESULT_194};
+      end
+      default : begin
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_200 = 32'h0;
+      end
+    endcase
+  end
+
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_201 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_200 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_110 = (RegName_Areg == RegName_Areg);
+  assign when_RegStackPlugin_l146_110 = (RegName_Breg == RegName_Areg);
+  assign when_RegStackPlugin_l148_110 = (RegName_Creg == RegName_Areg);
+  assign when_RegStackPlugin_l150_110 = (RegName_WdescReg == RegName_Areg);
+  assign when_RegStackPlugin_l152_110 = (RegName_IptrReg == RegName_Areg);
+  assign when_RegStackPlugin_l154_110 = (RegName_StatusReg == RegName_Areg);
+  assign switch_SystemPlugin_l163 = _zz_switch_SystemPlugin_l163_1[3 : 0];
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_202 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_196 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_111 = (RegName_Areg == RegName_Areg);
+  assign when_RegStackPlugin_l146_111 = (RegName_Breg == RegName_Areg);
+  assign when_RegStackPlugin_l148_111 = (RegName_Creg == RegName_Areg);
+  assign when_RegStackPlugin_l150_111 = (RegName_WdescReg == RegName_Areg);
+  assign when_RegStackPlugin_l152_111 = (RegName_IptrReg == RegName_Areg);
+  assign when_RegStackPlugin_l154_111 = (RegName_StatusReg == RegName_Areg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_203 = (32'h0 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_112 = (RegName_Areg == RegName_Breg);
+  assign when_RegStackPlugin_l146_112 = (RegName_Breg == RegName_Breg);
+  assign when_RegStackPlugin_l148_112 = (RegName_Creg == RegName_Breg);
+  assign when_RegStackPlugin_l150_112 = (RegName_WdescReg == RegName_Breg);
+  assign when_RegStackPlugin_l152_112 = (RegName_IptrReg == RegName_Breg);
+  assign when_RegStackPlugin_l154_112 = (RegName_StatusReg == RegName_Breg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_204 = (_zz_switch_SystemPlugin_l163_1 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_113 = (RegName_Areg == RegName_Areg);
+  assign when_RegStackPlugin_l146_113 = (RegName_Breg == RegName_Areg);
+  assign when_RegStackPlugin_l148_113 = (RegName_Creg == RegName_Areg);
+  assign when_RegStackPlugin_l150_113 = (RegName_WdescReg == RegName_Areg);
+  assign when_RegStackPlugin_l152_113 = (RegName_IptrReg == RegName_Areg);
+  assign when_RegStackPlugin_l154_113 = (RegName_StatusReg == RegName_Areg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_205 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_196 & 32'hffffffff);
   assign when_RegStackPlugin_l144_114 = (RegName_Areg == RegName_Breg);
   assign when_RegStackPlugin_l146_114 = (RegName_Breg == RegName_Breg);
   assign when_RegStackPlugin_l148_114 = (RegName_Creg == RegName_Breg);
   assign when_RegStackPlugin_l150_114 = (RegName_WdescReg == RegName_Breg);
   assign when_RegStackPlugin_l152_114 = (RegName_IptrReg == RegName_Breg);
   assign when_RegStackPlugin_l154_114 = (RegName_StatusReg == RegName_Breg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_208 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_198 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_206 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_196 & 32'hffffffff);
   assign when_RegStackPlugin_l144_115 = (RegName_Areg == RegName_Areg);
   assign when_RegStackPlugin_l146_115 = (RegName_Breg == RegName_Areg);
   assign when_RegStackPlugin_l148_115 = (RegName_Creg == RegName_Areg);
   assign when_RegStackPlugin_l150_115 = (RegName_WdescReg == RegName_Areg);
   assign when_RegStackPlugin_l152_115 = (RegName_IptrReg == RegName_Areg);
   assign when_RegStackPlugin_l154_115 = (RegName_StatusReg == RegName_Areg);
-  assign switch_SystemPlugin_l145 = _zz_switch_SystemPlugin_l145_1[3 : 0];
-  always @(*) begin
-    case(switch_SystemPlugin_l145)
-      4'b0000 : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_209 = {24'd0, _zz_fpu_fpPipe_ctrl_0_down_RESULT_199};
-      end
-      4'b0001 : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_209 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_200;
-      end
-      4'b0010 : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_209 = {16'd0, _zz_fpu_fpPipe_ctrl_0_down_RESULT_201};
-      end
-      4'b0011 : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_209 = {16'd0, _zz_fpu_fpPipe_ctrl_0_down_RESULT_202};
-      end
-      4'b0100 : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_209 = {16'd0, _zz_fpu_fpPipe_ctrl_0_down_RESULT_203};
-      end
-      default : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_209 = 32'h0;
-      end
-    endcase
-  end
-
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_210 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_209 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_116 = (RegName_Areg == RegName_Areg);
-  assign when_RegStackPlugin_l146_116 = (RegName_Breg == RegName_Areg);
-  assign when_RegStackPlugin_l148_116 = (RegName_Creg == RegName_Areg);
-  assign when_RegStackPlugin_l150_116 = (RegName_WdescReg == RegName_Areg);
-  assign when_RegStackPlugin_l152_116 = (RegName_IptrReg == RegName_Areg);
-  assign when_RegStackPlugin_l154_116 = (RegName_StatusReg == RegName_Areg);
-  assign switch_SystemPlugin_l163 = _zz_switch_SystemPlugin_l163_1[3 : 0];
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_211 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_205 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_207 = (32'h0 & 32'hffffffff);
+  assign when_RegStackPlugin_l144_116 = (RegName_Areg == RegName_Breg);
+  assign when_RegStackPlugin_l146_116 = (RegName_Breg == RegName_Breg);
+  assign when_RegStackPlugin_l148_116 = (RegName_Creg == RegName_Breg);
+  assign when_RegStackPlugin_l150_116 = (RegName_WdescReg == RegName_Breg);
+  assign when_RegStackPlugin_l152_116 = (RegName_IptrReg == RegName_Breg);
+  assign when_RegStackPlugin_l154_116 = (RegName_StatusReg == RegName_Breg);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_208 = (_zz_switch_SystemPlugin_l163_1 & 32'hffffffff);
   assign when_RegStackPlugin_l144_117 = (RegName_Areg == RegName_Areg);
   assign when_RegStackPlugin_l146_117 = (RegName_Breg == RegName_Areg);
   assign when_RegStackPlugin_l148_117 = (RegName_Creg == RegName_Areg);
   assign when_RegStackPlugin_l150_117 = (RegName_WdescReg == RegName_Areg);
   assign when_RegStackPlugin_l152_117 = (RegName_IptrReg == RegName_Areg);
   assign when_RegStackPlugin_l154_117 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_212 = (32'h0 & 32'hffffffff);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_209 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_196 & 32'hffffffff);
   assign when_RegStackPlugin_l144_118 = (RegName_Areg == RegName_Breg);
   assign when_RegStackPlugin_l146_118 = (RegName_Breg == RegName_Breg);
   assign when_RegStackPlugin_l148_118 = (RegName_Creg == RegName_Breg);
   assign when_RegStackPlugin_l150_118 = (RegName_WdescReg == RegName_Breg);
   assign when_RegStackPlugin_l152_118 = (RegName_IptrReg == RegName_Breg);
   assign when_RegStackPlugin_l154_118 = (RegName_StatusReg == RegName_Breg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_213 = (_zz_switch_SystemPlugin_l163_1 & 32'hffffffff);
+  assign switch_SystemPlugin_l217 = _zz_switch_SystemPlugin_l145_1[3 : 0];
+  always @(*) begin
+    case(switch_SystemPlugin_l217)
+      4'b0000 : begin
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_210 = 32'h80000000;
+      end
+      4'b0001 : begin
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_210 = 32'h80004000;
+      end
+      4'b0010 : begin
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_210 = 32'h8000c000;
+      end
+      default : begin
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_210 = 32'h80000000;
+      end
+    endcase
+  end
+
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_211 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_210 & 32'hffffffff);
   assign when_RegStackPlugin_l144_119 = (RegName_Areg == RegName_Areg);
   assign when_RegStackPlugin_l146_119 = (RegName_Breg == RegName_Areg);
   assign when_RegStackPlugin_l148_119 = (RegName_Creg == RegName_Areg);
   assign when_RegStackPlugin_l150_119 = (RegName_WdescReg == RegName_Areg);
   assign when_RegStackPlugin_l152_119 = (RegName_IptrReg == RegName_Areg);
   assign when_RegStackPlugin_l154_119 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_214 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_205 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_120 = (RegName_Areg == RegName_Breg);
-  assign when_RegStackPlugin_l146_120 = (RegName_Breg == RegName_Breg);
-  assign when_RegStackPlugin_l148_120 = (RegName_Creg == RegName_Breg);
-  assign when_RegStackPlugin_l150_120 = (RegName_WdescReg == RegName_Breg);
-  assign when_RegStackPlugin_l152_120 = (RegName_IptrReg == RegName_Breg);
-  assign when_RegStackPlugin_l154_120 = (RegName_StatusReg == RegName_Breg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_215 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_205 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_121 = (RegName_Areg == RegName_Areg);
-  assign when_RegStackPlugin_l146_121 = (RegName_Breg == RegName_Areg);
-  assign when_RegStackPlugin_l148_121 = (RegName_Creg == RegName_Areg);
-  assign when_RegStackPlugin_l150_121 = (RegName_WdescReg == RegName_Areg);
-  assign when_RegStackPlugin_l152_121 = (RegName_IptrReg == RegName_Areg);
-  assign when_RegStackPlugin_l154_121 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_216 = (32'h0 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_122 = (RegName_Areg == RegName_Breg);
-  assign when_RegStackPlugin_l146_122 = (RegName_Breg == RegName_Breg);
-  assign when_RegStackPlugin_l148_122 = (RegName_Creg == RegName_Breg);
-  assign when_RegStackPlugin_l150_122 = (RegName_WdescReg == RegName_Breg);
-  assign when_RegStackPlugin_l152_122 = (RegName_IptrReg == RegName_Breg);
-  assign when_RegStackPlugin_l154_122 = (RegName_StatusReg == RegName_Breg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_217 = (_zz_switch_SystemPlugin_l163_1 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_123 = (RegName_Areg == RegName_Areg);
-  assign when_RegStackPlugin_l146_123 = (RegName_Breg == RegName_Areg);
-  assign when_RegStackPlugin_l148_123 = (RegName_Creg == RegName_Areg);
-  assign when_RegStackPlugin_l150_123 = (RegName_WdescReg == RegName_Areg);
-  assign when_RegStackPlugin_l152_123 = (RegName_IptrReg == RegName_Areg);
-  assign when_RegStackPlugin_l154_123 = (RegName_StatusReg == RegName_Areg);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_218 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_205 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_124 = (RegName_Areg == RegName_Breg);
-  assign when_RegStackPlugin_l146_124 = (RegName_Breg == RegName_Breg);
-  assign when_RegStackPlugin_l148_124 = (RegName_Creg == RegName_Breg);
-  assign when_RegStackPlugin_l150_124 = (RegName_WdescReg == RegName_Breg);
-  assign when_RegStackPlugin_l152_124 = (RegName_IptrReg == RegName_Breg);
-  assign when_RegStackPlugin_l154_124 = (RegName_StatusReg == RegName_Breg);
-  assign switch_SystemPlugin_l217 = _zz_switch_SystemPlugin_l145_1[3 : 0];
-  always @(*) begin
-    case(switch_SystemPlugin_l217)
-      4'b0000 : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_219 = 32'h80000000;
-      end
-      4'b0001 : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_219 = 32'h80004000;
-      end
-      4'b0010 : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_219 = 32'h8000c000;
-      end
-      default : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_219 = 32'h80000000;
-      end
-    endcase
-  end
-
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_220 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_219 & 32'hffffffff);
-  assign when_RegStackPlugin_l144_125 = (RegName_Areg == RegName_Areg);
-  assign when_RegStackPlugin_l146_125 = (RegName_Breg == RegName_Areg);
-  assign when_RegStackPlugin_l148_125 = (RegName_Creg == RegName_Areg);
-  assign when_RegStackPlugin_l150_125 = (RegName_WdescReg == RegName_Areg);
-  assign when_RegStackPlugin_l152_125 = (RegName_IptrReg == RegName_Areg);
-  assign when_RegStackPlugin_l154_125 = (RegName_StatusReg == RegName_Areg);
   assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_AFIX = 56'h0;
   always @(*) begin
     fpuAdder_1_io_cmd_valid = 1'b0;
-    fpuAdder_1_io_cmd_payload_a = 64'h0;
-    fpuAdder_1_io_cmd_payload_b = 64'h0;
-    fpuAdder_1_io_cmd_payload_sub = 1'b0;
-    fpuAdder_1_io_cmd_payload_rounding = _zz_switch_Misc_l245_1;
-    fpu_fpPipe_ctrl_0_down_RESULT = 64'h0;
-    fpu_fpPipe_ctrl_0_down_RESULT_AFIX = 56'h0;
-    fpu_fpPipe_ctrl_0_down_T805_STATE = 64'h0;
     if(fpu_fpPipe_ctrl_0_up_isValid) begin
-      if(_zz_when) begin
-        fpu_fpPipe_ctrl_0_down_RESULT = 64'h0;
-      end else begin
-        if((_zz_6 == 8'h8e)) begin
-        end else if((_zz_6 == 8'h8a)) begin
-        end else if((_zz_6 == 8'haa)) begin
-            fpu_fpPipe_ctrl_0_down_RESULT = _zz_fpu_fpPipe_ctrl_0_down_RESULT_221;
-        end else if((_zz_6 == _zz_111)) begin
-        end else if((_zz_6 == _zz_113)) begin
-        end else if((_zz_6 == _zz_115)) begin
-        end else if((_zz_6 == _zz_117)) begin
-        end else if((_zz_6 == _zz_119)) begin
-        end else if((_zz_6 == _zz_121)) begin
-        end else if((_zz_6 == _zz_123) || (_zz_6 == _zz_125) || (_zz_6 == _zz_127) || (_zz_6 == _zz_129) || (_zz_6 == _zz_131) || (_zz_6 == _zz_133) || (_zz_6 == _zz_135)) begin
-        end else if((_zz_6 == _zz_137)) begin
-            fpu_fpPipe_ctrl_0_down_RESULT = {{_zz_fpu_fpPipe_ctrl_0_down_RESULT_225[31],_zz_fpu_fpPipe_ctrl_0_down_RESULT_238},{_zz_fpu_fpPipe_ctrl_0_down_RESULT_225[22 : 0],29'h0}};
-        end else if((_zz_6 == _zz_139)) begin
-            fpu_fpPipe_ctrl_0_down_RESULT = {32'd0, _zz_fpu_fpPipe_ctrl_0_down_RESULT_244};
-        end else if((_zz_6 == _zz_141)) begin
-        end else if((_zz_6 == _zz_143)) begin
-            fpu_fpPipe_ctrl_0_down_RESULT = {32'd0, _zz_fpu_fpPipe_ctrl_0_down_RESULT_250};
-        end else if((_zz_6 == _zz_145)) begin
+      if(!_zz_when_20) begin
+        if((_zz_7 == 8'h8e)) begin
+        end else if((_zz_7 == 8'h8a)) begin
+        end else if((_zz_7 == 8'haa)) begin
+        end else if((_zz_7 == _zz_112)) begin
+        end else if((_zz_7 == _zz_114)) begin
+        end else if((_zz_7 == _zz_116)) begin
+        end else if((_zz_7 == _zz_118)) begin
+        end else if((_zz_7 == _zz_120)) begin
+        end else if((_zz_7 == _zz_122)) begin
+        end else if((_zz_7 == _zz_124) || (_zz_7 == _zz_126) || (_zz_7 == _zz_128) || (_zz_7 == _zz_130) || (_zz_7 == _zz_132) || (_zz_7 == _zz_134) || (_zz_7 == _zz_136)) begin
+        end else if((_zz_7 == _zz_138)) begin
+        end else if((_zz_7 == _zz_140)) begin
+        end else if((_zz_7 == _zz_142)) begin
+        end else if((_zz_7 == _zz_144)) begin
+        end else if((_zz_7 == _zz_146)) begin
             fpuAdder_1_io_cmd_valid = 1'b1;
-            fpuAdder_1_io_cmd_payload_a = _zz_fpu_fpPipe_ctrl_0_down_RESULT_224;
-            fpuAdder_1_io_cmd_payload_b = _zz_io_cmd_payload_b_1;
-            fpuAdder_1_io_cmd_payload_sub = 1'b0;
-            fpuAdder_1_io_cmd_payload_rounding = switch_Misc_l245_34;
-            fpu_fpPipe_ctrl_0_down_RESULT = fpuAdder_1_io_rsp_payload;
-        end else if((_zz_6 == _zz_147)) begin
+        end else if((_zz_7 == _zz_148)) begin
             fpuAdder_1_io_cmd_valid = 1'b1;
-            fpuAdder_1_io_cmd_payload_a = _zz_fpu_fpPipe_ctrl_0_down_RESULT_224;
-            fpuAdder_1_io_cmd_payload_b = _zz_io_cmd_payload_b_1;
-            fpuAdder_1_io_cmd_payload_sub = 1'b1;
-            fpuAdder_1_io_cmd_payload_rounding = switch_Misc_l245_34;
-            fpu_fpPipe_ctrl_0_down_RESULT = fpuAdder_1_io_rsp_payload;
-        end else if((_zz_6 == _zz_149)) begin
-            fpu_fpPipe_ctrl_0_down_RESULT = 64'h0;
-            fpu_fpPipe_ctrl_0_down_RESULT_AFIX = 56'h0;
-        end else if((_zz_6 == _zz_151)) begin
-            fpu_fpPipe_ctrl_0_down_RESULT = 64'h0;
-            fpu_fpPipe_ctrl_0_down_RESULT_AFIX = _zz_fpu_fpPipe_ctrl_0_down_RESULT_AFIX;
-        end else if((_zz_6 == _zz_153)) begin
-            fpu_fpPipe_ctrl_0_down_RESULT = 64'h0;
-            fpu_fpPipe_ctrl_0_down_RESULT_AFIX = _zz_fpu_fpPipe_ctrl_0_down_RESULT_AFIX;
-        end else if((_zz_6 == _zz_155)) begin
-            fpu_fpPipe_ctrl_0_down_RESULT = 64'h0;
-            fpu_fpPipe_ctrl_0_down_RESULT_AFIX = _zz_fpu_fpPipe_ctrl_0_down_RESULT_AFIX;
-        end else if((_zz_6 == _zz_157)) begin
-            fpu_fpPipe_ctrl_0_down_RESULT = 64'h0;
-        end else if((_zz_6 == _zz_159)) begin
-            fpu_fpPipe_ctrl_0_down_RESULT = {{1'b0,_zz_fpu_fpPipe_ctrl_0_down_RESULT_224[62 : 52]},_zz_fpu_fpPipe_ctrl_0_down_RESULT_224[51 : 0]};
-        end else if((_zz_6 == _zz_161)) begin
-            fpu_fpPipe_ctrl_0_down_RESULT = {{_zz_fpu_fpPipe_ctrl_0_down_RESULT_224[63],_zz_fpu_fpPipe_ctrl_0_down_RESULT_224[62 : 52]},_zz_fpu_fpPipe_ctrl_0_down_RESULT_253};
-        end else if((_zz_6 == _zz_163)) begin
-            if(when_FpuPlugin_l421) begin
-              fpu_fpPipe_ctrl_0_down_RESULT = {{_zz_fpu_fpPipe_ctrl_0_down_RESULT_235,11'h7ff},52'h0};
-            end else begin
-              fpu_fpPipe_ctrl_0_down_RESULT = {{_zz_fpu_fpPipe_ctrl_0_down_RESULT_235,_zz_fpu_fpPipe_ctrl_0_down_RESULT_236},_zz_fpu_fpPipe_ctrl_0_down_RESULT_224[51 : 0]};
-            end
-        end else if((_zz_6 == _zz_165)) begin
-            if(when_FpuPlugin_l434) begin
-              fpu_fpPipe_ctrl_0_down_RESULT = 64'h0;
-            end else begin
-              fpu_fpPipe_ctrl_0_down_RESULT = {{_zz_fpu_fpPipe_ctrl_0_down_RESULT_224[63],_zz_fpu_fpPipe_ctrl_0_down_RESULT_237},_zz_fpu_fpPipe_ctrl_0_down_RESULT_224[51 : 0]};
-            end
-        end else if((_zz_6 == _zz_167)) begin
-        end else if((_zz_6 == _zz_169)) begin
-        end else if((_zz_6 == _zz_171)) begin
-        end else if((_zz_6 == _zz_173)) begin
-        end else if((_zz_6 == 8'h41)) begin
-            fpu_fpPipe_ctrl_0_down_T805_STATE = 64'h0;
-        end else if((_zz_6 == 8'h42)) begin
-            fpu_fpPipe_ctrl_0_down_T805_STATE = 64'h0;
-        end else if((_zz_6 == 8'h43)) begin
-            fpu_fpPipe_ctrl_0_down_RESULT = 64'h0;
-        end else if((_zz_6 == 8'h5f)) begin
-            fpu_fpPipe_ctrl_0_down_T805_STATE = 64'h0;
-        end else if((_zz_6 == 8'h90)) begin
-            fpu_fpPipe_ctrl_0_down_T805_STATE = 64'h0;
+        end else if((_zz_7 == _zz_150)) begin
+        end else if((_zz_7 == _zz_152)) begin
+        end else if((_zz_7 == _zz_154)) begin
+        end else if((_zz_7 == _zz_156)) begin
+        end else if((_zz_7 == _zz_158)) begin
+        end else if((_zz_7 == _zz_160)) begin
+        end else if((_zz_7 == _zz_162)) begin
+        end else if((_zz_7 == _zz_164)) begin
+        end else if((_zz_7 == _zz_166)) begin
+        end else if((_zz_7 == _zz_168)) begin
+        end else if((_zz_7 == _zz_170)) begin
+        end else if((_zz_7 == _zz_172)) begin
+        end else if((_zz_7 == _zz_174)) begin
+        end else if((_zz_7 == 8'h41)) begin
+        end else if((_zz_7 == 8'h42)) begin
+        end else if((_zz_7 == 8'h43)) begin
+        end else if((_zz_7 == 8'h5f)) begin
+        end else if((_zz_7 == 8'h90)) begin
         end
       end
     end
   end
 
-  assign _zz_6 = (_zz_fpu_fpPipe_ctrl_0_up_valid_1 ? _zz_1 : _zz_fpu_fpPipe_ctrl_0_up_valid);
+  always @(*) begin
+    fpuAdder_1_io_cmd_payload_a = 64'h0;
+    if(fpu_fpPipe_ctrl_0_up_isValid) begin
+      if(!_zz_when_20) begin
+        if((_zz_7 == 8'h8e)) begin
+        end else if((_zz_7 == 8'h8a)) begin
+        end else if((_zz_7 == 8'haa)) begin
+        end else if((_zz_7 == _zz_112)) begin
+        end else if((_zz_7 == _zz_114)) begin
+        end else if((_zz_7 == _zz_116)) begin
+        end else if((_zz_7 == _zz_118)) begin
+        end else if((_zz_7 == _zz_120)) begin
+        end else if((_zz_7 == _zz_122)) begin
+        end else if((_zz_7 == _zz_124) || (_zz_7 == _zz_126) || (_zz_7 == _zz_128) || (_zz_7 == _zz_130) || (_zz_7 == _zz_132) || (_zz_7 == _zz_134) || (_zz_7 == _zz_136)) begin
+        end else if((_zz_7 == _zz_138)) begin
+        end else if((_zz_7 == _zz_140)) begin
+        end else if((_zz_7 == _zz_142)) begin
+        end else if((_zz_7 == _zz_144)) begin
+        end else if((_zz_7 == _zz_146)) begin
+            fpuAdder_1_io_cmd_payload_a = _zz_fpu_fpPipe_ctrl_0_down_RESULT_215;
+        end else if((_zz_7 == _zz_148)) begin
+            fpuAdder_1_io_cmd_payload_a = _zz_fpu_fpPipe_ctrl_0_down_RESULT_215;
+        end else if((_zz_7 == _zz_150)) begin
+        end else if((_zz_7 == _zz_152)) begin
+        end else if((_zz_7 == _zz_154)) begin
+        end else if((_zz_7 == _zz_156)) begin
+        end else if((_zz_7 == _zz_158)) begin
+        end else if((_zz_7 == _zz_160)) begin
+        end else if((_zz_7 == _zz_162)) begin
+        end else if((_zz_7 == _zz_164)) begin
+        end else if((_zz_7 == _zz_166)) begin
+        end else if((_zz_7 == _zz_168)) begin
+        end else if((_zz_7 == _zz_170)) begin
+        end else if((_zz_7 == _zz_172)) begin
+        end else if((_zz_7 == _zz_174)) begin
+        end else if((_zz_7 == 8'h41)) begin
+        end else if((_zz_7 == 8'h42)) begin
+        end else if((_zz_7 == 8'h43)) begin
+        end else if((_zz_7 == 8'h5f)) begin
+        end else if((_zz_7 == 8'h90)) begin
+        end
+      end
+    end
+  end
+
+  always @(*) begin
+    fpuAdder_1_io_cmd_payload_b = 64'h0;
+    if(fpu_fpPipe_ctrl_0_up_isValid) begin
+      if(!_zz_when_20) begin
+        if((_zz_7 == 8'h8e)) begin
+        end else if((_zz_7 == 8'h8a)) begin
+        end else if((_zz_7 == 8'haa)) begin
+        end else if((_zz_7 == _zz_112)) begin
+        end else if((_zz_7 == _zz_114)) begin
+        end else if((_zz_7 == _zz_116)) begin
+        end else if((_zz_7 == _zz_118)) begin
+        end else if((_zz_7 == _zz_120)) begin
+        end else if((_zz_7 == _zz_122)) begin
+        end else if((_zz_7 == _zz_124) || (_zz_7 == _zz_126) || (_zz_7 == _zz_128) || (_zz_7 == _zz_130) || (_zz_7 == _zz_132) || (_zz_7 == _zz_134) || (_zz_7 == _zz_136)) begin
+        end else if((_zz_7 == _zz_138)) begin
+        end else if((_zz_7 == _zz_140)) begin
+        end else if((_zz_7 == _zz_142)) begin
+        end else if((_zz_7 == _zz_144)) begin
+        end else if((_zz_7 == _zz_146)) begin
+            fpuAdder_1_io_cmd_payload_b = _zz_io_cmd_payload_b_1;
+        end else if((_zz_7 == _zz_148)) begin
+            fpuAdder_1_io_cmd_payload_b = _zz_io_cmd_payload_b_1;
+        end else if((_zz_7 == _zz_150)) begin
+        end else if((_zz_7 == _zz_152)) begin
+        end else if((_zz_7 == _zz_154)) begin
+        end else if((_zz_7 == _zz_156)) begin
+        end else if((_zz_7 == _zz_158)) begin
+        end else if((_zz_7 == _zz_160)) begin
+        end else if((_zz_7 == _zz_162)) begin
+        end else if((_zz_7 == _zz_164)) begin
+        end else if((_zz_7 == _zz_166)) begin
+        end else if((_zz_7 == _zz_168)) begin
+        end else if((_zz_7 == _zz_170)) begin
+        end else if((_zz_7 == _zz_172)) begin
+        end else if((_zz_7 == _zz_174)) begin
+        end else if((_zz_7 == 8'h41)) begin
+        end else if((_zz_7 == 8'h42)) begin
+        end else if((_zz_7 == 8'h43)) begin
+        end else if((_zz_7 == 8'h5f)) begin
+        end else if((_zz_7 == 8'h90)) begin
+        end
+      end
+    end
+  end
+
+  always @(*) begin
+    fpuAdder_1_io_cmd_payload_sub = 1'b0;
+    if(fpu_fpPipe_ctrl_0_up_isValid) begin
+      if(!_zz_when_20) begin
+        if((_zz_7 == 8'h8e)) begin
+        end else if((_zz_7 == 8'h8a)) begin
+        end else if((_zz_7 == 8'haa)) begin
+        end else if((_zz_7 == _zz_112)) begin
+        end else if((_zz_7 == _zz_114)) begin
+        end else if((_zz_7 == _zz_116)) begin
+        end else if((_zz_7 == _zz_118)) begin
+        end else if((_zz_7 == _zz_120)) begin
+        end else if((_zz_7 == _zz_122)) begin
+        end else if((_zz_7 == _zz_124) || (_zz_7 == _zz_126) || (_zz_7 == _zz_128) || (_zz_7 == _zz_130) || (_zz_7 == _zz_132) || (_zz_7 == _zz_134) || (_zz_7 == _zz_136)) begin
+        end else if((_zz_7 == _zz_138)) begin
+        end else if((_zz_7 == _zz_140)) begin
+        end else if((_zz_7 == _zz_142)) begin
+        end else if((_zz_7 == _zz_144)) begin
+        end else if((_zz_7 == _zz_146)) begin
+            fpuAdder_1_io_cmd_payload_sub = 1'b0;
+        end else if((_zz_7 == _zz_148)) begin
+            fpuAdder_1_io_cmd_payload_sub = 1'b1;
+        end else if((_zz_7 == _zz_150)) begin
+        end else if((_zz_7 == _zz_152)) begin
+        end else if((_zz_7 == _zz_154)) begin
+        end else if((_zz_7 == _zz_156)) begin
+        end else if((_zz_7 == _zz_158)) begin
+        end else if((_zz_7 == _zz_160)) begin
+        end else if((_zz_7 == _zz_162)) begin
+        end else if((_zz_7 == _zz_164)) begin
+        end else if((_zz_7 == _zz_166)) begin
+        end else if((_zz_7 == _zz_168)) begin
+        end else if((_zz_7 == _zz_170)) begin
+        end else if((_zz_7 == _zz_172)) begin
+        end else if((_zz_7 == _zz_174)) begin
+        end else if((_zz_7 == 8'h41)) begin
+        end else if((_zz_7 == 8'h42)) begin
+        end else if((_zz_7 == 8'h43)) begin
+        end else if((_zz_7 == 8'h5f)) begin
+        end else if((_zz_7 == 8'h90)) begin
+        end
+      end
+    end
+  end
+
+  always @(*) begin
+    fpuAdder_1_io_cmd_payload_rounding = _zz_switch_Misc_l245_1;
+    if(fpu_fpPipe_ctrl_0_up_isValid) begin
+      if(!_zz_when_20) begin
+        if((_zz_7 == 8'h8e)) begin
+        end else if((_zz_7 == 8'h8a)) begin
+        end else if((_zz_7 == 8'haa)) begin
+        end else if((_zz_7 == _zz_112)) begin
+        end else if((_zz_7 == _zz_114)) begin
+        end else if((_zz_7 == _zz_116)) begin
+        end else if((_zz_7 == _zz_118)) begin
+        end else if((_zz_7 == _zz_120)) begin
+        end else if((_zz_7 == _zz_122)) begin
+        end else if((_zz_7 == _zz_124) || (_zz_7 == _zz_126) || (_zz_7 == _zz_128) || (_zz_7 == _zz_130) || (_zz_7 == _zz_132) || (_zz_7 == _zz_134) || (_zz_7 == _zz_136)) begin
+        end else if((_zz_7 == _zz_138)) begin
+        end else if((_zz_7 == _zz_140)) begin
+        end else if((_zz_7 == _zz_142)) begin
+        end else if((_zz_7 == _zz_144)) begin
+        end else if((_zz_7 == _zz_146)) begin
+            fpuAdder_1_io_cmd_payload_rounding = switch_Misc_l245_34;
+        end else if((_zz_7 == _zz_148)) begin
+            fpuAdder_1_io_cmd_payload_rounding = switch_Misc_l245_34;
+        end else if((_zz_7 == _zz_150)) begin
+        end else if((_zz_7 == _zz_152)) begin
+        end else if((_zz_7 == _zz_154)) begin
+        end else if((_zz_7 == _zz_156)) begin
+        end else if((_zz_7 == _zz_158)) begin
+        end else if((_zz_7 == _zz_160)) begin
+        end else if((_zz_7 == _zz_162)) begin
+        end else if((_zz_7 == _zz_164)) begin
+        end else if((_zz_7 == _zz_166)) begin
+        end else if((_zz_7 == _zz_168)) begin
+        end else if((_zz_7 == _zz_170)) begin
+        end else if((_zz_7 == _zz_172)) begin
+        end else if((_zz_7 == _zz_174)) begin
+        end else if((_zz_7 == 8'h41)) begin
+        end else if((_zz_7 == 8'h42)) begin
+        end else if((_zz_7 == 8'h43)) begin
+        end else if((_zz_7 == 8'h5f)) begin
+        end else if((_zz_7 == 8'h90)) begin
+        end
+      end
+    end
+  end
+
+  assign _zz_7 = (_zz_fpu_fpPipe_ctrl_0_up_valid_1 ? _zz_1 : _zz_fpu_fpPipe_ctrl_0_up_valid);
   always @(*) begin
     _zz_fpu_fpPipe_ctrl_0_down_MAX_CYCLES = 10'h0;
-    if((_zz_6 == 8'haa)) begin
+    if((_zz_7 == 8'haa)) begin
         _zz_fpu_fpPipe_ctrl_0_down_MAX_CYCLES = 10'h002;
-    end else if((_zz_6 == _zz_81)) begin
+    end else if((_zz_7 == _zz_82)) begin
         _zz_fpu_fpPipe_ctrl_0_down_MAX_CYCLES = 10'h002;
-    end else if((_zz_6 == _zz_83)) begin
+    end else if((_zz_7 == _zz_84)) begin
         _zz_fpu_fpPipe_ctrl_0_down_MAX_CYCLES = 10'h002;
-    end else if((_zz_6 == _zz_85)) begin
+    end else if((_zz_7 == _zz_86)) begin
         _zz_fpu_fpPipe_ctrl_0_down_MAX_CYCLES = 10'h003;
-    end else if((_zz_6 == _zz_87)) begin
+    end else if((_zz_7 == _zz_88)) begin
         _zz_fpu_fpPipe_ctrl_0_down_MAX_CYCLES = 10'h00a;
-    end else if((_zz_6 == _zz_89)) begin
+    end else if((_zz_7 == _zz_90)) begin
         _zz_fpu_fpPipe_ctrl_0_down_MAX_CYCLES = 10'h00a;
-    end else if((_zz_6 == _zz_91)) begin
+    end else if((_zz_7 == _zz_92)) begin
         _zz_fpu_fpPipe_ctrl_0_down_MAX_CYCLES = 10'h00a;
-    end else if((_zz_6 == _zz_93)) begin
+    end else if((_zz_7 == _zz_94)) begin
         _zz_fpu_fpPipe_ctrl_0_down_MAX_CYCLES = 10'h011;
-    end else if((_zz_6 == _zz_95)) begin
+    end else if((_zz_7 == _zz_96)) begin
         _zz_fpu_fpPipe_ctrl_0_down_MAX_CYCLES = 10'h001;
-    end else if((_zz_6 == _zz_97)) begin
+    end else if((_zz_7 == _zz_98)) begin
         _zz_fpu_fpPipe_ctrl_0_down_MAX_CYCLES = 10'h001;
-    end else if((_zz_6 == _zz_99)) begin
+    end else if((_zz_7 == _zz_100)) begin
         _zz_fpu_fpPipe_ctrl_0_down_MAX_CYCLES = 10'h001;
-    end else if((_zz_6 == _zz_101)) begin
+    end else if((_zz_7 == _zz_102)) begin
         _zz_fpu_fpPipe_ctrl_0_down_MAX_CYCLES = 10'h001;
-    end else if((_zz_6 == _zz_103)) begin
+    end else if((_zz_7 == _zz_104)) begin
         _zz_fpu_fpPipe_ctrl_0_down_MAX_CYCLES = 10'h0;
-    end else if((_zz_6 == _zz_105)) begin
+    end else if((_zz_7 == _zz_106)) begin
         _zz_fpu_fpPipe_ctrl_0_down_MAX_CYCLES = 10'h0;
-    end else if((_zz_6 == _zz_107)) begin
+    end else if((_zz_7 == _zz_108)) begin
         _zz_fpu_fpPipe_ctrl_0_down_MAX_CYCLES = 10'h0;
-    end else if((_zz_6 == _zz_109)) begin
+    end else if((_zz_7 == _zz_110)) begin
         _zz_fpu_fpPipe_ctrl_0_down_MAX_CYCLES = 10'h0;
-    end else if((_zz_6 == 8'h41) || (_zz_6 == 8'h42) || (_zz_6 == 8'h43) || (_zz_6 == 8'h5f) || (_zz_6 == 8'h90)) begin
+    end else if((_zz_7 == 8'h41) || (_zz_7 == 8'h42) || (_zz_7 == 8'h43) || (_zz_7 == 8'h5f) || (_zz_7 == 8'h90)) begin
         _zz_fpu_fpPipe_ctrl_0_down_MAX_CYCLES = 10'h00a;
     end
   end
@@ -6694,80 +6649,248 @@ module T9000Transputer (
   assign fpu_fpPipe_ctrl_0_up_valid = (execute_up_isValid && (_zz_fpu_fpPipe_ctrl_0_up_valid_1 || ((((_zz_fpu_fpPipe_ctrl_0_up_valid == _zz_fpu_fpPipe_ctrl_0_up_valid_2) || (_zz_fpu_fpPipe_ctrl_0_up_valid == _zz_fpu_fpPipe_ctrl_0_up_valid_4)) || (_zz_fpu_fpPipe_ctrl_0_up_valid == _zz_fpu_fpPipe_ctrl_0_up_valid_6)) || (_zz_fpu_fpPipe_ctrl_0_up_valid == _zz_fpu_fpPipe_ctrl_0_up_valid_8))));
   assign fpu_fpPipe_ctrl_0_haltRequest_FpuPlugin_l222 = (_zz_fpu_fpPipe_ctrl_0_down_CYCLE_CNT != 10'h0);
   always @(*) begin
+    fpu_fpPipe_ctrl_0_down_RESULT = 64'h0;
+    if(fpu_fpPipe_ctrl_0_up_isValid) begin
+      if(_zz_when_20) begin
+        fpu_fpPipe_ctrl_0_down_RESULT = 64'h0;
+      end else begin
+        if((_zz_7 == 8'h8e)) begin
+        end else if((_zz_7 == 8'h8a)) begin
+        end else if((_zz_7 == 8'haa)) begin
+            fpu_fpPipe_ctrl_0_down_RESULT = _zz_fpu_fpPipe_ctrl_0_down_RESULT_212;
+        end else if((_zz_7 == _zz_112)) begin
+        end else if((_zz_7 == _zz_114)) begin
+        end else if((_zz_7 == _zz_116)) begin
+        end else if((_zz_7 == _zz_118)) begin
+        end else if((_zz_7 == _zz_120)) begin
+        end else if((_zz_7 == _zz_122)) begin
+        end else if((_zz_7 == _zz_124) || (_zz_7 == _zz_126) || (_zz_7 == _zz_128) || (_zz_7 == _zz_130) || (_zz_7 == _zz_132) || (_zz_7 == _zz_134) || (_zz_7 == _zz_136)) begin
+        end else if((_zz_7 == _zz_138)) begin
+            fpu_fpPipe_ctrl_0_down_RESULT = {{_zz_fpu_fpPipe_ctrl_0_down_RESULT_216[31],_zz_fpu_fpPipe_ctrl_0_down_RESULT_229},{_zz_fpu_fpPipe_ctrl_0_down_RESULT_216[22 : 0],29'h0}};
+        end else if((_zz_7 == _zz_140)) begin
+            fpu_fpPipe_ctrl_0_down_RESULT = {32'd0, _zz_fpu_fpPipe_ctrl_0_down_RESULT_235};
+        end else if((_zz_7 == _zz_142)) begin
+        end else if((_zz_7 == _zz_144)) begin
+            fpu_fpPipe_ctrl_0_down_RESULT = {32'd0, _zz_fpu_fpPipe_ctrl_0_down_RESULT_241};
+        end else if((_zz_7 == _zz_146)) begin
+            fpu_fpPipe_ctrl_0_down_RESULT = fpuAdder_1_io_rsp_payload;
+        end else if((_zz_7 == _zz_148)) begin
+            fpu_fpPipe_ctrl_0_down_RESULT = fpuAdder_1_io_rsp_payload;
+        end else if((_zz_7 == _zz_150)) begin
+            fpu_fpPipe_ctrl_0_down_RESULT = 64'h0;
+        end else if((_zz_7 == _zz_152)) begin
+            fpu_fpPipe_ctrl_0_down_RESULT = 64'h0;
+        end else if((_zz_7 == _zz_154)) begin
+            fpu_fpPipe_ctrl_0_down_RESULT = 64'h0;
+        end else if((_zz_7 == _zz_156)) begin
+            fpu_fpPipe_ctrl_0_down_RESULT = 64'h0;
+        end else if((_zz_7 == _zz_158)) begin
+            fpu_fpPipe_ctrl_0_down_RESULT = 64'h0;
+        end else if((_zz_7 == _zz_160)) begin
+            fpu_fpPipe_ctrl_0_down_RESULT = {{1'b0,_zz_fpu_fpPipe_ctrl_0_down_RESULT_215[62 : 52]},_zz_fpu_fpPipe_ctrl_0_down_RESULT_215[51 : 0]};
+        end else if((_zz_7 == _zz_162)) begin
+            fpu_fpPipe_ctrl_0_down_RESULT = {{_zz_fpu_fpPipe_ctrl_0_down_RESULT_215[63],_zz_fpu_fpPipe_ctrl_0_down_RESULT_215[62 : 52]},_zz_fpu_fpPipe_ctrl_0_down_RESULT_244};
+        end else if((_zz_7 == _zz_164)) begin
+            if(when_FpuPlugin_l421) begin
+              fpu_fpPipe_ctrl_0_down_RESULT = {{_zz_fpu_fpPipe_ctrl_0_down_RESULT_226,11'h7ff},52'h0};
+            end else begin
+              fpu_fpPipe_ctrl_0_down_RESULT = {{_zz_fpu_fpPipe_ctrl_0_down_RESULT_226,_zz_fpu_fpPipe_ctrl_0_down_RESULT_227},_zz_fpu_fpPipe_ctrl_0_down_RESULT_215[51 : 0]};
+            end
+        end else if((_zz_7 == _zz_166)) begin
+            if(when_FpuPlugin_l434) begin
+              fpu_fpPipe_ctrl_0_down_RESULT = 64'h0;
+            end else begin
+              fpu_fpPipe_ctrl_0_down_RESULT = {{_zz_fpu_fpPipe_ctrl_0_down_RESULT_215[63],_zz_fpu_fpPipe_ctrl_0_down_RESULT_228},_zz_fpu_fpPipe_ctrl_0_down_RESULT_215[51 : 0]};
+            end
+        end else if((_zz_7 == _zz_168)) begin
+        end else if((_zz_7 == _zz_170)) begin
+        end else if((_zz_7 == _zz_172)) begin
+        end else if((_zz_7 == _zz_174)) begin
+        end else if((_zz_7 == 8'h41)) begin
+        end else if((_zz_7 == 8'h42)) begin
+        end else if((_zz_7 == 8'h43)) begin
+            fpu_fpPipe_ctrl_0_down_RESULT = 64'h0;
+        end else if((_zz_7 == 8'h5f)) begin
+        end else if((_zz_7 == 8'h90)) begin
+        end
+      end
+    end
+  end
+
+  always @(*) begin
+    fpu_fpPipe_ctrl_0_down_RESULT_AFIX = 56'h0;
+    if(fpu_fpPipe_ctrl_0_up_isValid) begin
+      if(!_zz_when_20) begin
+        if((_zz_7 == 8'h8e)) begin
+        end else if((_zz_7 == 8'h8a)) begin
+        end else if((_zz_7 == 8'haa)) begin
+        end else if((_zz_7 == _zz_112)) begin
+        end else if((_zz_7 == _zz_114)) begin
+        end else if((_zz_7 == _zz_116)) begin
+        end else if((_zz_7 == _zz_118)) begin
+        end else if((_zz_7 == _zz_120)) begin
+        end else if((_zz_7 == _zz_122)) begin
+        end else if((_zz_7 == _zz_124) || (_zz_7 == _zz_126) || (_zz_7 == _zz_128) || (_zz_7 == _zz_130) || (_zz_7 == _zz_132) || (_zz_7 == _zz_134) || (_zz_7 == _zz_136)) begin
+        end else if((_zz_7 == _zz_138)) begin
+        end else if((_zz_7 == _zz_140)) begin
+        end else if((_zz_7 == _zz_142)) begin
+        end else if((_zz_7 == _zz_144)) begin
+        end else if((_zz_7 == _zz_146)) begin
+        end else if((_zz_7 == _zz_148)) begin
+        end else if((_zz_7 == _zz_150)) begin
+            fpu_fpPipe_ctrl_0_down_RESULT_AFIX = 56'h0;
+        end else if((_zz_7 == _zz_152)) begin
+            fpu_fpPipe_ctrl_0_down_RESULT_AFIX = _zz_fpu_fpPipe_ctrl_0_down_RESULT_AFIX;
+        end else if((_zz_7 == _zz_154)) begin
+            fpu_fpPipe_ctrl_0_down_RESULT_AFIX = _zz_fpu_fpPipe_ctrl_0_down_RESULT_AFIX;
+        end else if((_zz_7 == _zz_156)) begin
+            fpu_fpPipe_ctrl_0_down_RESULT_AFIX = _zz_fpu_fpPipe_ctrl_0_down_RESULT_AFIX;
+        end else if((_zz_7 == _zz_158)) begin
+        end else if((_zz_7 == _zz_160)) begin
+        end else if((_zz_7 == _zz_162)) begin
+        end else if((_zz_7 == _zz_164)) begin
+        end else if((_zz_7 == _zz_166)) begin
+        end else if((_zz_7 == _zz_168)) begin
+        end else if((_zz_7 == _zz_170)) begin
+        end else if((_zz_7 == _zz_172)) begin
+        end else if((_zz_7 == _zz_174)) begin
+        end else if((_zz_7 == 8'h41)) begin
+        end else if((_zz_7 == 8'h42)) begin
+        end else if((_zz_7 == 8'h43)) begin
+        end else if((_zz_7 == 8'h5f)) begin
+        end else if((_zz_7 == 8'h90)) begin
+        end
+      end
+    end
+  end
+
+  always @(*) begin
     fpu_fpPipe_ctrl_0_down_MAX_CYCLES = 10'h0;
     if(fpu_fpPipe_ctrl_0_up_isFiring) begin
       fpu_fpPipe_ctrl_0_down_MAX_CYCLES = _zz_fpu_fpPipe_ctrl_0_down_MAX_CYCLES;
     end
   end
 
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_224 = (_zz_fpu_fpPipe_ctrl_0_up_valid_1 ? _zz_fpu_fpPipe_ctrl_0_down_RESULT : _zz_fpu_fpPipe_ctrl_0_down_RESULT_221);
-  assign _zz_io_cmd_payload_b_1 = (_zz_fpu_fpPipe_ctrl_0_up_valid_1 ? _zz_io_cmd_payload_b : _zz_fpu_fpPipe_ctrl_0_down_RESULT_222);
+  always @(*) begin
+    fpu_fpPipe_ctrl_0_down_T805_STATE = 64'h0;
+    if(fpu_fpPipe_ctrl_0_up_isValid) begin
+      if(!_zz_when_20) begin
+        if((_zz_7 == 8'h8e)) begin
+        end else if((_zz_7 == 8'h8a)) begin
+        end else if((_zz_7 == 8'haa)) begin
+        end else if((_zz_7 == _zz_112)) begin
+        end else if((_zz_7 == _zz_114)) begin
+        end else if((_zz_7 == _zz_116)) begin
+        end else if((_zz_7 == _zz_118)) begin
+        end else if((_zz_7 == _zz_120)) begin
+        end else if((_zz_7 == _zz_122)) begin
+        end else if((_zz_7 == _zz_124) || (_zz_7 == _zz_126) || (_zz_7 == _zz_128) || (_zz_7 == _zz_130) || (_zz_7 == _zz_132) || (_zz_7 == _zz_134) || (_zz_7 == _zz_136)) begin
+        end else if((_zz_7 == _zz_138)) begin
+        end else if((_zz_7 == _zz_140)) begin
+        end else if((_zz_7 == _zz_142)) begin
+        end else if((_zz_7 == _zz_144)) begin
+        end else if((_zz_7 == _zz_146)) begin
+        end else if((_zz_7 == _zz_148)) begin
+        end else if((_zz_7 == _zz_150)) begin
+        end else if((_zz_7 == _zz_152)) begin
+        end else if((_zz_7 == _zz_154)) begin
+        end else if((_zz_7 == _zz_156)) begin
+        end else if((_zz_7 == _zz_158)) begin
+        end else if((_zz_7 == _zz_160)) begin
+        end else if((_zz_7 == _zz_162)) begin
+        end else if((_zz_7 == _zz_164)) begin
+        end else if((_zz_7 == _zz_166)) begin
+        end else if((_zz_7 == _zz_168)) begin
+        end else if((_zz_7 == _zz_170)) begin
+        end else if((_zz_7 == _zz_172)) begin
+        end else if((_zz_7 == _zz_174)) begin
+        end else if((_zz_7 == 8'h41)) begin
+            fpu_fpPipe_ctrl_0_down_T805_STATE = 64'h0;
+        end else if((_zz_7 == 8'h42)) begin
+            fpu_fpPipe_ctrl_0_down_T805_STATE = 64'h0;
+        end else if((_zz_7 == 8'h43)) begin
+        end else if((_zz_7 == 8'h5f)) begin
+            fpu_fpPipe_ctrl_0_down_T805_STATE = 64'h0;
+        end else if((_zz_7 == 8'h90)) begin
+            fpu_fpPipe_ctrl_0_down_T805_STATE = 64'h0;
+        end
+      end
+    end
+  end
+
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_215 = (_zz_fpu_fpPipe_ctrl_0_up_valid_1 ? _zz_fpu_fpPipe_ctrl_0_down_RESULT : _zz_fpu_fpPipe_ctrl_0_down_RESULT_212);
+  assign _zz_io_cmd_payload_b_1 = (_zz_fpu_fpPipe_ctrl_0_up_valid_1 ? _zz_io_cmd_payload_b : _zz_fpu_fpPipe_ctrl_0_down_RESULT_213);
   assign switch_Misc_l245_34 = (_zz_fpu_fpPipe_ctrl_0_up_valid_1 ? _zz_switch_Misc_l245 : _zz_switch_Misc_l245_1);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_225 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_221[31 : 0];
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_226 = _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_226;
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_216 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_212[31 : 0];
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_217 = _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_217;
   assign switch_Misc_l245_35 = RegName_Areg;
   always @(*) begin
     case(switch_Misc_l245_35)
       RegName_Areg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_227 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_218 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_3;
       end
       RegName_Breg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_227 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_218 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_4;
       end
       RegName_Creg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_227 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_218 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_5;
       end
       RegName_WdescReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_227 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_9;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_218 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_6;
       end
       RegName_IptrReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_227 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_10;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_218 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_7;
       end
       RegName_StatusReg : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_227 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_11;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_218 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_8;
       end
       default : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_227 = 32'h0;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_218 = 32'h0;
       end
     endcase
   end
 
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_228 = _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_228;
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_229 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_224[63];
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_230 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_224[63 : 12];
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_231 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_224[11];
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_232 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_224[10];
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_233 = (|_zz_fpu_fpPipe_ctrl_0_down_RESULT_224[9 : 0]);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_219 = _zz__zz_fpu_fpPipe_ctrl_0_down_RESULT_219;
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_220 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_215[63];
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_221 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_215[63 : 12];
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_222 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_215[11];
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_223 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_215[10];
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_224 = (|_zz_fpu_fpPipe_ctrl_0_down_RESULT_215[9 : 0]);
   always @(*) begin
     case(switch_Misc_l245_34)
       2'b00 : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_234 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_231 && ((_zz_fpu_fpPipe_ctrl_0_down_RESULT_232 || _zz_fpu_fpPipe_ctrl_0_down_RESULT_233) || _zz_fpu_fpPipe_ctrl_0_down_RESULT_230[0]));
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_225 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_222 && ((_zz_fpu_fpPipe_ctrl_0_down_RESULT_223 || _zz_fpu_fpPipe_ctrl_0_down_RESULT_224) || _zz_fpu_fpPipe_ctrl_0_down_RESULT_221[0]));
       end
       2'b01 : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_234 = 1'b0;
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_225 = 1'b0;
       end
       2'b10 : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_234 = (((_zz_fpu_fpPipe_ctrl_0_down_RESULT_231 || _zz_fpu_fpPipe_ctrl_0_down_RESULT_232) || _zz_fpu_fpPipe_ctrl_0_down_RESULT_233) && (! _zz_fpu_fpPipe_ctrl_0_down_RESULT_229));
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_225 = (((_zz_fpu_fpPipe_ctrl_0_down_RESULT_222 || _zz_fpu_fpPipe_ctrl_0_down_RESULT_223) || _zz_fpu_fpPipe_ctrl_0_down_RESULT_224) && (! _zz_fpu_fpPipe_ctrl_0_down_RESULT_220));
       end
       default : begin
-        _zz_fpu_fpPipe_ctrl_0_down_RESULT_234 = (((_zz_fpu_fpPipe_ctrl_0_down_RESULT_231 || _zz_fpu_fpPipe_ctrl_0_down_RESULT_232) || _zz_fpu_fpPipe_ctrl_0_down_RESULT_233) && _zz_fpu_fpPipe_ctrl_0_down_RESULT_229);
+        _zz_fpu_fpPipe_ctrl_0_down_RESULT_225 = (((_zz_fpu_fpPipe_ctrl_0_down_RESULT_222 || _zz_fpu_fpPipe_ctrl_0_down_RESULT_223) || _zz_fpu_fpPipe_ctrl_0_down_RESULT_224) && _zz_fpu_fpPipe_ctrl_0_down_RESULT_220);
       end
     endcase
   end
 
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_235 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_224[63];
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_236 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_224[62 : 52] + 11'h001);
-  assign when_FpuPlugin_l421 = (11'h7ff <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_236);
-  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_237 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_224[62 : 52] - 11'h001);
-  assign when_FpuPlugin_l434 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_237 <= 11'h0);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_226 = _zz_fpu_fpPipe_ctrl_0_down_RESULT_215[63];
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_227 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_215[62 : 52] + 11'h001);
+  assign when_FpuPlugin_l421 = (11'h7ff <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_227);
+  assign _zz_fpu_fpPipe_ctrl_0_down_RESULT_228 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_215[62 : 52] - 11'h001);
+  assign when_FpuPlugin_l434 = (_zz_fpu_fpPipe_ctrl_0_down_RESULT_228 <= 11'h0);
   assign when_FpuPlugin_l492 = (fpu_fpPipe_ctrl_0_down_isFiring && (! 1'b0));
   assign when_FpuPlugin_l512 = (fpu_fpPipe_ctrl_0_up_isValid && (_zz_fpu_fpPipe_ctrl_0_down_CYCLE_CNT != 10'h0));
   assign fpu_fpPipe_ctrl_0_down_CYCLE_CNT = _zz_fpu_fpPipe_ctrl_0_down_CYCLE_CNT;
   always @(*) begin
     fpu_fpPipe_ctrl_0_down_valid = fpu_fpPipe_ctrl_0_up_valid;
-    fpu_fpPipe_ctrl_0_up_ready = fpu_fpPipe_ctrl_0_down_isReady;
     if(when_CtrlLink_l150) begin
       fpu_fpPipe_ctrl_0_down_valid = 1'b0;
+    end
+  end
+
+  always @(*) begin
+    fpu_fpPipe_ctrl_0_up_ready = fpu_fpPipe_ctrl_0_down_isReady;
+    if(when_CtrlLink_l150) begin
       fpu_fpPipe_ctrl_0_up_ready = 1'b0;
     end
   end
@@ -6785,11 +6908,17 @@ module T9000Transputer (
   assign io_push_fire_1 = (streamFifo_3_io_push_valid && streamFifo_3_io_push_ready);
   always @(*) begin
     streamFifo_2_io_pop_ready = 1'b0;
-    streamFifo_3_io_pop_ready = 1'b0;
-    if(when_SchedulerPlugin_l129) begin
+    if(when_SchedulerPlugin_l131) begin
       if(streamFifo_2_io_pop_valid) begin
         streamFifo_2_io_pop_ready = 1'b1;
-      end else begin
+      end
+    end
+  end
+
+  always @(*) begin
+    streamFifo_3_io_pop_ready = 1'b0;
+    if(when_SchedulerPlugin_l131) begin
+      if(!streamFifo_2_io_pop_valid) begin
         if(streamFifo_3_io_pop_valid) begin
           streamFifo_3_io_pop_ready = 1'b1;
         end
@@ -6797,27 +6926,36 @@ module T9000Transputer (
     end
   end
 
-  assign when_SchedulerPlugin_l129 = ((_zz_when_SchedulerPlugin_l129 || _zz_when_SchedulerPlugin_l129_1) && _zz_when_SchedulerPlugin_l129_2);
-  assign when_SchedulerPlugin_l161 = ((! _zz_when_SchedulerPlugin_l129_2) && ((5'h0 < streamFifo_2_io_occupancy) || (5'h0 < streamFifo_3_io_occupancy)));
-  assign when_SchedulerPlugin_l166 = ((((_zz_when_SchedulerPlugin_l166 == ProcessState_RUNNING) && streamFifo_2_io_pop_valid) && (! _zz_when_SchedulerPlugin_l129)) && (! _zz_when_SchedulerPlugin_l129_1));
-  assign when_SchedulerPlugin_l168 = (_zz_when_SchedulerPlugin_l168 != 32'h0);
+  assign when_SchedulerPlugin_l131 = ((_zz_when_SchedulerPlugin_l131 || _zz_when_SchedulerPlugin_l131_1) && _zz_when_SchedulerPlugin_l131_2);
+  assign when_SchedulerPlugin_l163 = ((! _zz_when_SchedulerPlugin_l131_2) && ((5'h0 < streamFifo_2_io_occupancy) || (5'h0 < streamFifo_3_io_occupancy)));
+  assign when_SchedulerPlugin_l168 = ((((_zz_when_SchedulerPlugin_l168 == ProcessState_RUNNING) && streamFifo_2_io_pop_valid) && (! _zz_when_SchedulerPlugin_l131)) && (! _zz_when_SchedulerPlugin_l131_1));
+  assign when_SchedulerPlugin_l170 = (_zz_when_SchedulerPlugin_l170 != 32'h0);
   always @(posedge clk) begin
     if(reset) begin
+      _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= 32'h0;
+      _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= 32'h0;
+      _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= 32'h0;
       _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= 32'h0;
       _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= 32'h0;
       _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= 32'h0;
-      _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= 32'h0;
-      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= 32'h0;
-      _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= 32'h0;
       _zz_io_input_cmd_payload_fragment_address <= 32'h0;
       _zz_io_input_cmd_valid_2 <= 1'b0;
       when_LongArithPlugin_l312 <= 1'b0;
       _zz_when_LongArithPlugin_l203 <= 4'b0000;
       when_BlockMovePlugin_l165 <= 1'b0;
-      _zz_3 <= 3'b000;
+      _zz_4 <= 3'b000;
       _zz_when_BlockMovePlugin_l165 <= 32'h0;
       _zz_when_BlockMovePlugin_l165_1 <= 32'h0;
       _zz_when_BlockMovePlugin_l165_2 <= 32'h0;
+      _zz_fpu_fpPipe_ctrl_0_down_RESULT_125 <= 32'h0;
+      _zz_fpu_fpPipe_ctrl_0_down_RESULT_126 <= 32'h0;
+      _zz_fpu_fpPipe_ctrl_0_down_RESULT_127 <= 32'h0;
+      _zz_fpu_fpPipe_ctrl_0_down_RESULT_128 <= 32'h0;
+      _zz_fpu_fpPipe_ctrl_0_down_RESULT_129 <= 32'h0;
+      _zz_fpu_fpPipe_ctrl_0_down_RESULT_130 <= 32'h0;
+      _zz_fpu_fpPipe_ctrl_0_down_RESULT_131 <= 32'h0;
+      _zz_fpu_fpPipe_ctrl_0_down_RESULT_132 <= 32'h0;
+      _zz_fpu_fpPipe_ctrl_0_down_RESULT_133 <= 32'h0;
       _zz_fpu_fpPipe_ctrl_0_down_RESULT_134 <= 32'h0;
       _zz_fpu_fpPipe_ctrl_0_down_RESULT_135 <= 32'h0;
       _zz_fpu_fpPipe_ctrl_0_down_RESULT_136 <= 32'h0;
@@ -6825,15 +6963,6 @@ module T9000Transputer (
       _zz_fpu_fpPipe_ctrl_0_down_RESULT_138 <= 32'h0;
       _zz_fpu_fpPipe_ctrl_0_down_RESULT_139 <= 32'h0;
       _zz_fpu_fpPipe_ctrl_0_down_RESULT_140 <= 32'h0;
-      _zz_fpu_fpPipe_ctrl_0_down_RESULT_141 <= 32'h0;
-      _zz_fpu_fpPipe_ctrl_0_down_RESULT_142 <= 32'h0;
-      _zz_fpu_fpPipe_ctrl_0_down_RESULT_143 <= 32'h0;
-      _zz_fpu_fpPipe_ctrl_0_down_RESULT_144 <= 32'h0;
-      _zz_fpu_fpPipe_ctrl_0_down_RESULT_145 <= 32'h0;
-      _zz_fpu_fpPipe_ctrl_0_down_RESULT_146 <= 32'h0;
-      _zz_fpu_fpPipe_ctrl_0_down_RESULT_147 <= 32'h0;
-      _zz_fpu_fpPipe_ctrl_0_down_RESULT_148 <= 32'h0;
-      _zz_fpu_fpPipe_ctrl_0_down_RESULT_149 <= 32'h0;
       _zz_when_ChannelPlugin_l127 <= 16'h0;
       _zz_when_ChannelPlugin_l129 <= 1'b0;
       _zz_when_ChannelPlugin_l129_1 <= 1'b0;
@@ -6851,24 +6980,24 @@ module T9000Transputer (
       _zz_when_ChannelPlugin_l129_13 <= 1'b0;
       _zz_when_ChannelPlugin_l129_14 <= 1'b0;
       _zz_when_ChannelPlugin_l129_15 <= 1'b0;
-      _zz_fpu_fpPipe_ctrl_0_down_RESULT_167 <= 32'h0;
-      _zz_fpu_fpPipe_ctrl_0_down_RESULT_178 <= 32'h0;
-      _zz_fpu_fpPipe_ctrl_0_down_RESULT_199 <= 8'h90;
-      _zz_fpu_fpPipe_ctrl_0_down_RESULT_200 <= 32'h0;
-      _zz_fpu_fpPipe_ctrl_0_down_RESULT_201 <= 16'h0;
-      _zz_fpu_fpPipe_ctrl_0_down_RESULT_202 <= 16'h0;
-      _zz_fpu_fpPipe_ctrl_0_down_RESULT_203 <= 16'h0100;
-      _zz_fpu_fpPipe_ctrl_0_down_RESULT_221 <= 64'h0;
-      _zz_fpu_fpPipe_ctrl_0_down_RESULT_222 <= 64'h0;
-      _zz_fpu_fpPipe_ctrl_0_down_RESULT_223 <= 64'h0;
+      _zz_fpu_fpPipe_ctrl_0_down_RESULT_158 <= 32'h0;
+      _zz_fpu_fpPipe_ctrl_0_down_RESULT_169 <= 32'h0;
+      _zz_fpu_fpPipe_ctrl_0_down_RESULT_190 <= 8'h90;
+      _zz_fpu_fpPipe_ctrl_0_down_RESULT_191 <= 32'h0;
+      _zz_fpu_fpPipe_ctrl_0_down_RESULT_192 <= 16'h0;
+      _zz_fpu_fpPipe_ctrl_0_down_RESULT_193 <= 16'h0;
+      _zz_fpu_fpPipe_ctrl_0_down_RESULT_194 <= 16'h0100;
+      _zz_fpu_fpPipe_ctrl_0_down_RESULT_212 <= 64'h0;
+      _zz_fpu_fpPipe_ctrl_0_down_RESULT_213 <= 64'h0;
+      _zz_fpu_fpPipe_ctrl_0_down_RESULT_214 <= 64'h0;
       _zz_switch_Misc_l245_1 <= 2'b00;
       _zz_fpu_fpPipe_ctrl_0_down_CYCLE_CNT <= 10'h0;
-      _zz_when_SchedulerPlugin_l168 <= 32'h0;
-      _zz_when_SchedulerPlugin_l168_1 <= 32'h0;
-      _zz_when_SchedulerPlugin_l129 <= 1'b0;
-      _zz_when_SchedulerPlugin_l129_1 <= 1'b0;
-      _zz_when_SchedulerPlugin_l129_2 <= 1'b1;
-      _zz_when_SchedulerPlugin_l166 <= ProcessState_READY;
+      _zz_when_SchedulerPlugin_l170 <= 32'h0;
+      _zz_when_SchedulerPlugin_l170_1 <= 32'h0;
+      _zz_when_SchedulerPlugin_l131 <= 1'b0;
+      _zz_when_SchedulerPlugin_l131_1 <= 1'b0;
+      _zz_when_SchedulerPlugin_l131_2 <= 1'b1;
+      _zz_when_SchedulerPlugin_l168 <= ProcessState_READY;
     end else begin
       `ifndef SYNTHESIS
         `ifdef FORMAL
@@ -6913,26 +7042,26 @@ module T9000Transputer (
       if((bmbUpSizerBridge_1_io_input_rsp_valid && _zz_io_input_rsp_ready)) begin
         _zz_io_input_cmd_valid_2 <= 1'b0;
       end
-      if(when_ArithmeticPlugin_l124) begin
-        case(switch_ArithmeticPlugin_l148)
+      if(((_zz_2[7 : 4] == PrimaryOpcode_OPR) && ((((((((((_zz_3 == _zz_when) || (_zz_3 == _zz_when_2)) || (_zz_3 == _zz_when_4)) || (_zz_3 == _zz_when_6)) || (_zz_3 == _zz_when_8)) || (_zz_3 == _zz_when_10)) || (_zz_3 == _zz_when_12)) || (_zz_3 == _zz_when_14)) || (_zz_3 == _zz_when_16)) || (_zz_3 == _zz_when_18)))) begin
+        case(switch_ArithmeticPlugin_l151)
           AluOp_ADD : begin
             if(when_RegStackPlugin_l144) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_18;
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_15;
             end else begin
               if(when_RegStackPlugin_l146) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_18;
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_15;
               end else begin
                 if(when_RegStackPlugin_l148) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_18;
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_15;
                 end else begin
                   if(when_RegStackPlugin_l150) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_18;
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_15;
                   end else begin
                     if(when_RegStackPlugin_l152) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_18;
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_15;
                     end else begin
                       if(when_RegStackPlugin_l154) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_18;
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_15;
                       end
                     end
                   end
@@ -6940,22 +7069,22 @@ module T9000Transputer (
               end
             end
             if(when_RegStackPlugin_l144_1) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_19;
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_16;
             end else begin
               if(when_RegStackPlugin_l146_1) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_19;
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_16;
               end else begin
                 if(when_RegStackPlugin_l148_1) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_19;
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_16;
                 end else begin
                   if(when_RegStackPlugin_l150_1) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_19;
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_16;
                   end else begin
                     if(when_RegStackPlugin_l152_1) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_19;
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_16;
                     end else begin
                       if(when_RegStackPlugin_l154_1) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_19;
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_16;
                       end
                     end
                   end
@@ -6965,22 +7094,22 @@ module T9000Transputer (
           end
           AluOp_SUB : begin
             if(when_RegStackPlugin_l144_2) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_20;
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_17;
             end else begin
               if(when_RegStackPlugin_l146_2) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_20;
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_17;
               end else begin
                 if(when_RegStackPlugin_l148_2) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_20;
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_17;
                 end else begin
                   if(when_RegStackPlugin_l150_2) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_20;
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_17;
                   end else begin
                     if(when_RegStackPlugin_l152_2) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_20;
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_17;
                     end else begin
                       if(when_RegStackPlugin_l154_2) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_20;
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_17;
                       end
                     end
                   end
@@ -6988,22 +7117,22 @@ module T9000Transputer (
               end
             end
             if(when_RegStackPlugin_l144_3) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_21;
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_18;
             end else begin
               if(when_RegStackPlugin_l146_3) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_21;
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_18;
               end else begin
                 if(when_RegStackPlugin_l148_3) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_21;
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_18;
                 end else begin
                   if(when_RegStackPlugin_l150_3) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_21;
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_18;
                   end else begin
                     if(when_RegStackPlugin_l152_3) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_21;
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_18;
                     end else begin
                       if(when_RegStackPlugin_l154_3) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_21;
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_18;
                       end
                     end
                   end
@@ -7013,22 +7142,22 @@ module T9000Transputer (
           end
           AluOp_AND_1 : begin
             if(when_RegStackPlugin_l144_4) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_22;
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_19;
             end else begin
               if(when_RegStackPlugin_l146_4) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_22;
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_19;
               end else begin
                 if(when_RegStackPlugin_l148_4) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_22;
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_19;
                 end else begin
                   if(when_RegStackPlugin_l150_4) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_22;
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_19;
                   end else begin
                     if(when_RegStackPlugin_l152_4) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_22;
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_19;
                     end else begin
                       if(when_RegStackPlugin_l154_4) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_22;
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_19;
                       end
                     end
                   end
@@ -7036,22 +7165,22 @@ module T9000Transputer (
               end
             end
             if(when_RegStackPlugin_l144_5) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_23;
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_20;
             end else begin
               if(when_RegStackPlugin_l146_5) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_23;
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_20;
               end else begin
                 if(when_RegStackPlugin_l148_5) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_23;
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_20;
                 end else begin
                   if(when_RegStackPlugin_l150_5) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_23;
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_20;
                   end else begin
                     if(when_RegStackPlugin_l152_5) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_23;
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_20;
                     end else begin
                       if(when_RegStackPlugin_l154_5) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_23;
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_20;
                       end
                     end
                   end
@@ -7061,22 +7190,22 @@ module T9000Transputer (
           end
           AluOp_OR_1 : begin
             if(when_RegStackPlugin_l144_6) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_24;
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_21;
             end else begin
               if(when_RegStackPlugin_l146_6) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_24;
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_21;
               end else begin
                 if(when_RegStackPlugin_l148_6) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_24;
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_21;
                 end else begin
                   if(when_RegStackPlugin_l150_6) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_24;
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_21;
                   end else begin
                     if(when_RegStackPlugin_l152_6) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_24;
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_21;
                     end else begin
                       if(when_RegStackPlugin_l154_6) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_24;
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_21;
                       end
                     end
                   end
@@ -7084,22 +7213,22 @@ module T9000Transputer (
               end
             end
             if(when_RegStackPlugin_l144_7) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_25;
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_22;
             end else begin
               if(when_RegStackPlugin_l146_7) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_25;
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_22;
               end else begin
                 if(when_RegStackPlugin_l148_7) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_25;
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_22;
                 end else begin
                   if(when_RegStackPlugin_l150_7) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_25;
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_22;
                   end else begin
                     if(when_RegStackPlugin_l152_7) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_25;
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_22;
                     end else begin
                       if(when_RegStackPlugin_l154_7) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_25;
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_22;
                       end
                     end
                   end
@@ -7109,22 +7238,22 @@ module T9000Transputer (
           end
           AluOp_XOR_1 : begin
             if(when_RegStackPlugin_l144_8) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_26;
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_23;
             end else begin
               if(when_RegStackPlugin_l146_8) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_26;
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_23;
               end else begin
                 if(when_RegStackPlugin_l148_8) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_26;
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_23;
                 end else begin
                   if(when_RegStackPlugin_l150_8) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_26;
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_23;
                   end else begin
                     if(when_RegStackPlugin_l152_8) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_26;
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_23;
                     end else begin
                       if(when_RegStackPlugin_l154_8) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_26;
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_23;
                       end
                     end
                   end
@@ -7132,22 +7261,22 @@ module T9000Transputer (
               end
             end
             if(when_RegStackPlugin_l144_9) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_27;
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_24;
             end else begin
               if(when_RegStackPlugin_l146_9) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_27;
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_24;
               end else begin
                 if(when_RegStackPlugin_l148_9) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_27;
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_24;
                 end else begin
                   if(when_RegStackPlugin_l150_9) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_27;
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_24;
                   end else begin
                     if(when_RegStackPlugin_l152_9) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_27;
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_24;
                     end else begin
                       if(when_RegStackPlugin_l154_9) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_27;
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_24;
                       end
                     end
                   end
@@ -7157,166 +7286,22 @@ module T9000Transputer (
           end
           AluOp_NOT_1 : begin
             if(when_RegStackPlugin_l144_10) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_28;
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_25;
             end else begin
               if(when_RegStackPlugin_l146_10) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_28;
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_25;
               end else begin
                 if(when_RegStackPlugin_l148_10) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_28;
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_25;
                 end else begin
                   if(when_RegStackPlugin_l150_10) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_28;
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_25;
                   end else begin
                     if(when_RegStackPlugin_l152_10) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_28;
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_25;
                     end else begin
                       if(when_RegStackPlugin_l154_10) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_28;
-                      end
-                    end
-                  end
-                end
-              end
-            end
-          end
-          AluOp_SHL : begin
-            if(when_RegStackPlugin_l144_11) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_29;
-            end else begin
-              if(when_RegStackPlugin_l146_11) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_29;
-              end else begin
-                if(when_RegStackPlugin_l148_11) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_29;
-                end else begin
-                  if(when_RegStackPlugin_l150_11) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_29;
-                  end else begin
-                    if(when_RegStackPlugin_l152_11) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_29;
-                    end else begin
-                      if(when_RegStackPlugin_l154_11) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_29;
-                      end
-                    end
-                  end
-                end
-              end
-            end
-            if(when_RegStackPlugin_l144_12) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_30;
-            end else begin
-              if(when_RegStackPlugin_l146_12) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_30;
-              end else begin
-                if(when_RegStackPlugin_l148_12) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_30;
-                end else begin
-                  if(when_RegStackPlugin_l150_12) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_30;
-                  end else begin
-                    if(when_RegStackPlugin_l152_12) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_30;
-                    end else begin
-                      if(when_RegStackPlugin_l154_12) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_30;
-                      end
-                    end
-                  end
-                end
-              end
-            end
-          end
-          AluOp_SHR : begin
-            if(when_RegStackPlugin_l144_13) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_31;
-            end else begin
-              if(when_RegStackPlugin_l146_13) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_31;
-              end else begin
-                if(when_RegStackPlugin_l148_13) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_31;
-                end else begin
-                  if(when_RegStackPlugin_l150_13) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_31;
-                  end else begin
-                    if(when_RegStackPlugin_l152_13) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_31;
-                    end else begin
-                      if(when_RegStackPlugin_l154_13) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_31;
-                      end
-                    end
-                  end
-                end
-              end
-            end
-            if(when_RegStackPlugin_l144_14) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_32;
-            end else begin
-              if(when_RegStackPlugin_l146_14) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_32;
-              end else begin
-                if(when_RegStackPlugin_l148_14) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_32;
-                end else begin
-                  if(when_RegStackPlugin_l150_14) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_32;
-                  end else begin
-                    if(when_RegStackPlugin_l152_14) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_32;
-                    end else begin
-                      if(when_RegStackPlugin_l154_14) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_32;
-                      end
-                    end
-                  end
-                end
-              end
-            end
-          end
-          AluOp_GT : begin
-            if(when_RegStackPlugin_l144_15) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_33;
-            end else begin
-              if(when_RegStackPlugin_l146_15) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_33;
-              end else begin
-                if(when_RegStackPlugin_l148_15) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_33;
-                end else begin
-                  if(when_RegStackPlugin_l150_15) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_33;
-                  end else begin
-                    if(when_RegStackPlugin_l152_15) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_33;
-                    end else begin
-                      if(when_RegStackPlugin_l154_15) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_33;
-                      end
-                    end
-                  end
-                end
-              end
-            end
-            if(when_RegStackPlugin_l144_16) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_34;
-            end else begin
-              if(when_RegStackPlugin_l146_16) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_34;
-              end else begin
-                if(when_RegStackPlugin_l148_16) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_34;
-                end else begin
-                  if(when_RegStackPlugin_l150_16) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_34;
-                  end else begin
-                    if(when_RegStackPlugin_l152_16) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_34;
-                    end else begin
-                      if(when_RegStackPlugin_l154_16) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_34;
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_25;
                       end
                     end
                   end
@@ -7325,46 +7310,46 @@ module T9000Transputer (
             end
           end
           AluOp_REV : begin
-            if(when_RegStackPlugin_l144_17) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_35;
+            if(when_RegStackPlugin_l144_11) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_26;
             end else begin
-              if(when_RegStackPlugin_l146_17) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_35;
+              if(when_RegStackPlugin_l146_11) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_26;
               end else begin
-                if(when_RegStackPlugin_l148_17) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_35;
+                if(when_RegStackPlugin_l148_11) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_26;
                 end else begin
-                  if(when_RegStackPlugin_l150_17) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_35;
+                  if(when_RegStackPlugin_l150_11) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_26;
                   end else begin
-                    if(when_RegStackPlugin_l152_17) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_35;
+                    if(when_RegStackPlugin_l152_11) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_26;
                     end else begin
-                      if(when_RegStackPlugin_l154_17) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_35;
+                      if(when_RegStackPlugin_l154_11) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_26;
                       end
                     end
                   end
                 end
               end
             end
-            if(when_RegStackPlugin_l144_18) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_36;
+            if(when_RegStackPlugin_l144_12) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_27;
             end else begin
-              if(when_RegStackPlugin_l146_18) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_36;
+              if(when_RegStackPlugin_l146_12) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_27;
               end else begin
-                if(when_RegStackPlugin_l148_18) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_36;
+                if(when_RegStackPlugin_l148_12) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_27;
                 end else begin
-                  if(when_RegStackPlugin_l150_18) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_36;
+                  if(when_RegStackPlugin_l150_12) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_27;
                   end else begin
-                    if(when_RegStackPlugin_l152_18) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_36;
+                    if(when_RegStackPlugin_l152_12) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_27;
                     end else begin
-                      if(when_RegStackPlugin_l154_18) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_36;
+                      if(when_RegStackPlugin_l154_12) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_27;
                       end
                     end
                   end
@@ -7381,46 +7366,46 @@ module T9000Transputer (
         _zz_when_LongArithPlugin_l203 <= (_zz_when_LongArithPlugin_l312 - 4'b0001);
         case(switch_LongArithPlugin_l132)
           LongArithOp_LADD : begin
-            if(when_RegStackPlugin_l144_19) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_42;
+            if(when_RegStackPlugin_l144_13) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_33;
             end else begin
-              if(when_RegStackPlugin_l146_19) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_42;
+              if(when_RegStackPlugin_l146_13) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_33;
               end else begin
-                if(when_RegStackPlugin_l148_19) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_42;
+                if(when_RegStackPlugin_l148_13) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_33;
                 end else begin
-                  if(when_RegStackPlugin_l150_19) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_42;
+                  if(when_RegStackPlugin_l150_13) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_33;
                   end else begin
-                    if(when_RegStackPlugin_l152_19) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_42;
+                    if(when_RegStackPlugin_l152_13) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_33;
                     end else begin
-                      if(when_RegStackPlugin_l154_19) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_42;
+                      if(when_RegStackPlugin_l154_13) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_33;
                       end
                     end
                   end
                 end
               end
             end
-            if(when_RegStackPlugin_l144_20) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_43;
+            if(when_RegStackPlugin_l144_14) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_34;
             end else begin
-              if(when_RegStackPlugin_l146_20) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_43;
+              if(when_RegStackPlugin_l146_14) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_34;
               end else begin
-                if(when_RegStackPlugin_l148_20) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_43;
+                if(when_RegStackPlugin_l148_14) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_34;
                 end else begin
-                  if(when_RegStackPlugin_l150_20) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_43;
+                  if(when_RegStackPlugin_l150_14) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_34;
                   end else begin
-                    if(when_RegStackPlugin_l152_20) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_43;
+                    if(when_RegStackPlugin_l152_14) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_34;
                     end else begin
-                      if(when_RegStackPlugin_l154_20) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_43;
+                      if(when_RegStackPlugin_l154_14) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_34;
                       end
                     end
                   end
@@ -7429,46 +7414,46 @@ module T9000Transputer (
             end
           end
           LongArithOp_LSUB : begin
-            if(when_RegStackPlugin_l144_21) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_45;
+            if(when_RegStackPlugin_l144_15) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_36;
             end else begin
-              if(when_RegStackPlugin_l146_21) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_45;
+              if(when_RegStackPlugin_l146_15) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_36;
               end else begin
-                if(when_RegStackPlugin_l148_21) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_45;
+                if(when_RegStackPlugin_l148_15) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_36;
                 end else begin
-                  if(when_RegStackPlugin_l150_21) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_45;
+                  if(when_RegStackPlugin_l150_15) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_36;
                   end else begin
-                    if(when_RegStackPlugin_l152_21) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_45;
+                    if(when_RegStackPlugin_l152_15) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_36;
                     end else begin
-                      if(when_RegStackPlugin_l154_21) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_45;
+                      if(when_RegStackPlugin_l154_15) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_36;
                       end
                     end
                   end
                 end
               end
             end
-            if(when_RegStackPlugin_l144_22) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_46;
+            if(when_RegStackPlugin_l144_16) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_37;
             end else begin
-              if(when_RegStackPlugin_l146_22) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_46;
+              if(when_RegStackPlugin_l146_16) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_37;
               end else begin
-                if(when_RegStackPlugin_l148_22) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_46;
+                if(when_RegStackPlugin_l148_16) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_37;
                 end else begin
-                  if(when_RegStackPlugin_l150_22) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_46;
+                  if(when_RegStackPlugin_l150_16) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_37;
                   end else begin
-                    if(when_RegStackPlugin_l152_22) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_46;
+                    if(when_RegStackPlugin_l152_16) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_37;
                     end else begin
-                      if(when_RegStackPlugin_l154_22) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_46;
+                      if(when_RegStackPlugin_l154_16) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_37;
                       end
                     end
                   end
@@ -7478,46 +7463,46 @@ module T9000Transputer (
           end
           LongArithOp_LMUL : begin
             if(when_LongArithPlugin_l203) begin
-              if(when_RegStackPlugin_l144_23) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_48;
+              if(when_RegStackPlugin_l144_17) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_39;
               end else begin
-                if(when_RegStackPlugin_l146_23) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_48;
+                if(when_RegStackPlugin_l146_17) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_39;
                 end else begin
-                  if(when_RegStackPlugin_l148_23) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_48;
+                  if(when_RegStackPlugin_l148_17) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_39;
                   end else begin
-                    if(when_RegStackPlugin_l150_23) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_48;
+                    if(when_RegStackPlugin_l150_17) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_39;
                     end else begin
-                      if(when_RegStackPlugin_l152_23) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_48;
+                      if(when_RegStackPlugin_l152_17) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_39;
                       end else begin
-                        if(when_RegStackPlugin_l154_23) begin
-                          _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_48;
+                        if(when_RegStackPlugin_l154_17) begin
+                          _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_39;
                         end
                       end
                     end
                   end
                 end
               end
-              if(when_RegStackPlugin_l144_24) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_49;
+              if(when_RegStackPlugin_l144_18) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_40;
               end else begin
-                if(when_RegStackPlugin_l146_24) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_49;
+                if(when_RegStackPlugin_l146_18) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_40;
                 end else begin
-                  if(when_RegStackPlugin_l148_24) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_49;
+                  if(when_RegStackPlugin_l148_18) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_40;
                   end else begin
-                    if(when_RegStackPlugin_l150_24) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_49;
+                    if(when_RegStackPlugin_l150_18) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_40;
                     end else begin
-                      if(when_RegStackPlugin_l152_24) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_49;
+                      if(when_RegStackPlugin_l152_18) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_40;
                       end else begin
-                        if(when_RegStackPlugin_l154_24) begin
-                          _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_49;
+                        if(when_RegStackPlugin_l154_18) begin
+                          _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_40;
                         end
                       end
                     end
@@ -7528,46 +7513,46 @@ module T9000Transputer (
           end
           LongArithOp_LDIV : begin
             if(when_LongArithPlugin_l220) begin
-              if(when_RegStackPlugin_l144_25) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_51;
+              if(when_RegStackPlugin_l144_19) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_42;
               end else begin
-                if(when_RegStackPlugin_l146_25) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_51;
+                if(when_RegStackPlugin_l146_19) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_42;
                 end else begin
-                  if(when_RegStackPlugin_l148_25) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_51;
+                  if(when_RegStackPlugin_l148_19) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_42;
                   end else begin
-                    if(when_RegStackPlugin_l150_25) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_51;
+                    if(when_RegStackPlugin_l150_19) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_42;
                     end else begin
-                      if(when_RegStackPlugin_l152_25) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_51;
+                      if(when_RegStackPlugin_l152_19) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_42;
                       end else begin
-                        if(when_RegStackPlugin_l154_25) begin
-                          _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_51;
+                        if(when_RegStackPlugin_l154_19) begin
+                          _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_42;
                         end
                       end
                     end
                   end
                 end
               end
-              if(when_RegStackPlugin_l144_26) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_52;
+              if(when_RegStackPlugin_l144_20) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_43;
               end else begin
-                if(when_RegStackPlugin_l146_26) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_52;
+                if(when_RegStackPlugin_l146_20) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_43;
                 end else begin
-                  if(when_RegStackPlugin_l148_26) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_52;
+                  if(when_RegStackPlugin_l148_20) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_43;
                   end else begin
-                    if(when_RegStackPlugin_l150_26) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_52;
+                    if(when_RegStackPlugin_l150_20) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_43;
                     end else begin
-                      if(when_RegStackPlugin_l152_26) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_52;
+                      if(when_RegStackPlugin_l152_20) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_43;
                       end else begin
-                        if(when_RegStackPlugin_l154_26) begin
-                          _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_52;
+                        if(when_RegStackPlugin_l154_20) begin
+                          _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_43;
                         end
                       end
                     end
@@ -7577,46 +7562,46 @@ module T9000Transputer (
             end
           end
           LongArithOp_LSHL : begin
-            if(when_RegStackPlugin_l144_27) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_54;
+            if(when_RegStackPlugin_l144_21) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_45;
             end else begin
-              if(when_RegStackPlugin_l146_27) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_54;
+              if(when_RegStackPlugin_l146_21) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_45;
               end else begin
-                if(when_RegStackPlugin_l148_27) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_54;
+                if(when_RegStackPlugin_l148_21) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_45;
                 end else begin
-                  if(when_RegStackPlugin_l150_27) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_54;
+                  if(when_RegStackPlugin_l150_21) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_45;
                   end else begin
-                    if(when_RegStackPlugin_l152_27) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_54;
+                    if(when_RegStackPlugin_l152_21) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_45;
                     end else begin
-                      if(when_RegStackPlugin_l154_27) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_54;
+                      if(when_RegStackPlugin_l154_21) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_45;
                       end
                     end
                   end
                 end
               end
             end
-            if(when_RegStackPlugin_l144_28) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_55;
+            if(when_RegStackPlugin_l144_22) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_46;
             end else begin
-              if(when_RegStackPlugin_l146_28) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_55;
+              if(when_RegStackPlugin_l146_22) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_46;
               end else begin
-                if(when_RegStackPlugin_l148_28) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_55;
+                if(when_RegStackPlugin_l148_22) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_46;
                 end else begin
-                  if(when_RegStackPlugin_l150_28) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_55;
+                  if(when_RegStackPlugin_l150_22) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_46;
                   end else begin
-                    if(when_RegStackPlugin_l152_28) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_55;
+                    if(when_RegStackPlugin_l152_22) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_46;
                     end else begin
-                      if(when_RegStackPlugin_l154_28) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_55;
+                      if(when_RegStackPlugin_l154_22) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_46;
                       end
                     end
                   end
@@ -7625,46 +7610,46 @@ module T9000Transputer (
             end
           end
           LongArithOp_LSHR : begin
-            if(when_RegStackPlugin_l144_29) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_57;
+            if(when_RegStackPlugin_l144_23) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_48;
             end else begin
-              if(when_RegStackPlugin_l146_29) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_57;
+              if(when_RegStackPlugin_l146_23) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_48;
               end else begin
-                if(when_RegStackPlugin_l148_29) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_57;
+                if(when_RegStackPlugin_l148_23) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_48;
                 end else begin
-                  if(when_RegStackPlugin_l150_29) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_57;
+                  if(when_RegStackPlugin_l150_23) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_48;
                   end else begin
-                    if(when_RegStackPlugin_l152_29) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_57;
+                    if(when_RegStackPlugin_l152_23) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_48;
                     end else begin
-                      if(when_RegStackPlugin_l154_29) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_57;
+                      if(when_RegStackPlugin_l154_23) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_48;
                       end
                     end
                   end
                 end
               end
             end
-            if(when_RegStackPlugin_l144_30) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_58;
+            if(when_RegStackPlugin_l144_24) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_49;
             end else begin
-              if(when_RegStackPlugin_l146_30) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_58;
+              if(when_RegStackPlugin_l146_24) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_49;
               end else begin
-                if(when_RegStackPlugin_l148_30) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_58;
+                if(when_RegStackPlugin_l148_24) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_49;
                 end else begin
-                  if(when_RegStackPlugin_l150_30) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_58;
+                  if(when_RegStackPlugin_l150_24) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_49;
                   end else begin
-                    if(when_RegStackPlugin_l152_30) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_58;
+                    if(when_RegStackPlugin_l152_24) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_49;
                     end else begin
-                      if(when_RegStackPlugin_l154_30) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_58;
+                      if(when_RegStackPlugin_l154_24) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_49;
                       end
                     end
                   end
@@ -7673,69 +7658,69 @@ module T9000Transputer (
             end
           end
           LongArithOp_MINT : begin
-            if(when_RegStackPlugin_l144_31) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_59;
+            if(when_RegStackPlugin_l144_25) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_50;
             end else begin
-              if(when_RegStackPlugin_l146_31) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_59;
+              if(when_RegStackPlugin_l146_25) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_50;
               end else begin
-                if(when_RegStackPlugin_l148_31) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_59;
+                if(when_RegStackPlugin_l148_25) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_50;
                 end else begin
-                  if(when_RegStackPlugin_l150_31) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_59;
+                  if(when_RegStackPlugin_l150_25) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_50;
                   end else begin
-                    if(when_RegStackPlugin_l152_31) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_59;
+                    if(when_RegStackPlugin_l152_25) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_50;
                     end else begin
-                      if(when_RegStackPlugin_l154_31) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_59;
+                      if(when_RegStackPlugin_l154_25) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_50;
                       end
                     end
                   end
                 end
               end
             end
-            if(when_RegStackPlugin_l144_32) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_60;
+            if(when_RegStackPlugin_l144_26) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_51;
             end else begin
-              if(when_RegStackPlugin_l146_32) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_60;
+              if(when_RegStackPlugin_l146_26) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_51;
               end else begin
-                if(when_RegStackPlugin_l148_32) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_60;
+                if(when_RegStackPlugin_l148_26) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_51;
                 end else begin
-                  if(when_RegStackPlugin_l150_32) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_60;
+                  if(when_RegStackPlugin_l150_26) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_51;
                   end else begin
-                    if(when_RegStackPlugin_l152_32) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_60;
+                    if(when_RegStackPlugin_l152_26) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_51;
                     end else begin
-                      if(when_RegStackPlugin_l154_32) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_60;
+                      if(when_RegStackPlugin_l154_26) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_51;
                       end
                     end
                   end
                 end
               end
             end
-            if(when_RegStackPlugin_l144_33) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_61;
+            if(when_RegStackPlugin_l144_27) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_52;
             end else begin
-              if(when_RegStackPlugin_l146_33) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_61;
+              if(when_RegStackPlugin_l146_27) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_52;
               end else begin
-                if(when_RegStackPlugin_l148_33) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_61;
+                if(when_RegStackPlugin_l148_27) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_52;
                 end else begin
-                  if(when_RegStackPlugin_l150_33) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_61;
+                  if(when_RegStackPlugin_l150_27) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_52;
                   end else begin
-                    if(when_RegStackPlugin_l152_33) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_61;
+                    if(when_RegStackPlugin_l152_27) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_52;
                     end else begin
-                      if(when_RegStackPlugin_l154_33) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_61;
+                      if(when_RegStackPlugin_l154_27) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_52;
                       end
                     end
                   end
@@ -7744,69 +7729,69 @@ module T9000Transputer (
             end
           end
           LongArithOp_XSWORD : begin
-            if(when_RegStackPlugin_l144_34) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_63;
+            if(when_RegStackPlugin_l144_28) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_54;
             end else begin
-              if(when_RegStackPlugin_l146_34) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_63;
+              if(when_RegStackPlugin_l146_28) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_54;
               end else begin
-                if(when_RegStackPlugin_l148_34) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_63;
+                if(when_RegStackPlugin_l148_28) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_54;
                 end else begin
-                  if(when_RegStackPlugin_l150_34) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_63;
+                  if(when_RegStackPlugin_l150_28) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_54;
                   end else begin
-                    if(when_RegStackPlugin_l152_34) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_63;
+                    if(when_RegStackPlugin_l152_28) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_54;
                     end else begin
-                      if(when_RegStackPlugin_l154_34) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_63;
+                      if(when_RegStackPlugin_l154_28) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_54;
                       end
                     end
                   end
                 end
               end
             end
-            if(when_RegStackPlugin_l144_35) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_64;
+            if(when_RegStackPlugin_l144_29) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_55;
             end else begin
-              if(when_RegStackPlugin_l146_35) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_64;
+              if(when_RegStackPlugin_l146_29) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_55;
               end else begin
-                if(when_RegStackPlugin_l148_35) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_64;
+                if(when_RegStackPlugin_l148_29) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_55;
                 end else begin
-                  if(when_RegStackPlugin_l150_35) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_64;
+                  if(when_RegStackPlugin_l150_29) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_55;
                   end else begin
-                    if(when_RegStackPlugin_l152_35) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_64;
+                    if(when_RegStackPlugin_l152_29) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_55;
                     end else begin
-                      if(when_RegStackPlugin_l154_35) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_64;
+                      if(when_RegStackPlugin_l154_29) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_55;
                       end
                     end
                   end
                 end
               end
             end
-            if(when_RegStackPlugin_l144_36) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_65;
+            if(when_RegStackPlugin_l144_30) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_56;
             end else begin
-              if(when_RegStackPlugin_l146_36) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_65;
+              if(when_RegStackPlugin_l146_30) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_56;
               end else begin
-                if(when_RegStackPlugin_l148_36) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_65;
+                if(when_RegStackPlugin_l148_30) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_56;
                 end else begin
-                  if(when_RegStackPlugin_l150_36) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_65;
+                  if(when_RegStackPlugin_l150_30) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_56;
                   end else begin
-                    if(when_RegStackPlugin_l152_36) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_65;
+                    if(when_RegStackPlugin_l152_30) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_56;
                     end else begin
-                      if(when_RegStackPlugin_l154_36) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_65;
+                      if(when_RegStackPlugin_l154_30) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_56;
                       end
                     end
                   end
@@ -7815,23 +7800,23 @@ module T9000Transputer (
             end
           end
           LongArithOp_PROD : begin
-            if(when_RegStackPlugin_l144_37) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_66;
+            if(when_RegStackPlugin_l144_31) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_57;
             end else begin
-              if(when_RegStackPlugin_l146_37) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_66;
+              if(when_RegStackPlugin_l146_31) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_57;
               end else begin
-                if(when_RegStackPlugin_l148_37) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_66;
+                if(when_RegStackPlugin_l148_31) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_57;
                 end else begin
-                  if(when_RegStackPlugin_l150_37) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_66;
+                  if(when_RegStackPlugin_l150_31) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_57;
                   end else begin
-                    if(when_RegStackPlugin_l152_37) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_66;
+                    if(when_RegStackPlugin_l152_31) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_57;
                     end else begin
-                      if(when_RegStackPlugin_l154_37) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_66;
+                      if(when_RegStackPlugin_l154_31) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_57;
                       end
                     end
                   end
@@ -7853,46 +7838,46 @@ module T9000Transputer (
       if(when_ControlFlowPlugin_l115) begin
         case(switch_ControlFlowPlugin_l132)
           ControlFlowOp_RET : begin
-            if(when_RegStackPlugin_l144_38) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_71;
+            if(when_RegStackPlugin_l144_32) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_62;
             end else begin
-              if(when_RegStackPlugin_l146_38) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_71;
+              if(when_RegStackPlugin_l146_32) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_62;
               end else begin
-                if(when_RegStackPlugin_l148_38) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_71;
+                if(when_RegStackPlugin_l148_32) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_62;
                 end else begin
-                  if(when_RegStackPlugin_l150_38) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_71;
+                  if(when_RegStackPlugin_l150_32) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_62;
                   end else begin
-                    if(when_RegStackPlugin_l152_38) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_71;
+                    if(when_RegStackPlugin_l152_32) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_62;
                     end else begin
-                      if(when_RegStackPlugin_l154_38) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_71;
+                      if(when_RegStackPlugin_l154_32) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_62;
                       end
                     end
                   end
                 end
               end
             end
-            if(when_RegStackPlugin_l144_39) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_72;
+            if(when_RegStackPlugin_l144_33) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_63;
             end else begin
-              if(when_RegStackPlugin_l146_39) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_72;
+              if(when_RegStackPlugin_l146_33) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_63;
               end else begin
-                if(when_RegStackPlugin_l148_39) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_72;
+                if(when_RegStackPlugin_l148_33) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_63;
                 end else begin
-                  if(when_RegStackPlugin_l150_39) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_72;
+                  if(when_RegStackPlugin_l150_33) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_63;
                   end else begin
-                    if(when_RegStackPlugin_l152_39) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_72;
+                    if(when_RegStackPlugin_l152_33) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_63;
                     end else begin
-                      if(when_RegStackPlugin_l154_39) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_72;
+                      if(when_RegStackPlugin_l154_33) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_63;
                       end
                     end
                   end
@@ -7901,23 +7886,23 @@ module T9000Transputer (
             end
           end
           ControlFlowOp_LDPI : begin
-            if(when_RegStackPlugin_l144_40) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_73;
+            if(when_RegStackPlugin_l144_34) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_64;
             end else begin
-              if(when_RegStackPlugin_l146_40) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_73;
+              if(when_RegStackPlugin_l146_34) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_64;
               end else begin
-                if(when_RegStackPlugin_l148_40) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_73;
+                if(when_RegStackPlugin_l148_34) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_64;
                 end else begin
-                  if(when_RegStackPlugin_l150_40) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_73;
+                  if(when_RegStackPlugin_l150_34) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_64;
                   end else begin
-                    if(when_RegStackPlugin_l152_40) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_73;
+                    if(when_RegStackPlugin_l152_34) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_64;
                     end else begin
-                      if(when_RegStackPlugin_l154_40) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_73;
+                      if(when_RegStackPlugin_l154_34) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_64;
                       end
                     end
                   end
@@ -7926,46 +7911,46 @@ module T9000Transputer (
             end
           end
           ControlFlowOp_GAJW : begin
-            if(when_RegStackPlugin_l144_41) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_74;
+            if(when_RegStackPlugin_l144_35) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_65;
             end else begin
-              if(when_RegStackPlugin_l146_41) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_74;
+              if(when_RegStackPlugin_l146_35) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_65;
               end else begin
-                if(when_RegStackPlugin_l148_41) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_74;
+                if(when_RegStackPlugin_l148_35) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_65;
                 end else begin
-                  if(when_RegStackPlugin_l150_41) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_74;
+                  if(when_RegStackPlugin_l150_35) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_65;
                   end else begin
-                    if(when_RegStackPlugin_l152_41) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_74;
+                    if(when_RegStackPlugin_l152_35) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_65;
                     end else begin
-                      if(when_RegStackPlugin_l154_41) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_74;
+                      if(when_RegStackPlugin_l154_35) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_65;
                       end
                     end
                   end
                 end
               end
             end
-            if(when_RegStackPlugin_l144_42) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_75;
+            if(when_RegStackPlugin_l144_36) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_66;
             end else begin
-              if(when_RegStackPlugin_l146_42) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_75;
+              if(when_RegStackPlugin_l146_36) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_66;
               end else begin
-                if(when_RegStackPlugin_l148_42) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_75;
+                if(when_RegStackPlugin_l148_36) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_66;
                 end else begin
-                  if(when_RegStackPlugin_l150_42) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_75;
+                  if(when_RegStackPlugin_l150_36) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_66;
                   end else begin
-                    if(when_RegStackPlugin_l152_42) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_75;
+                    if(when_RegStackPlugin_l152_36) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_66;
                     end else begin
-                      if(when_RegStackPlugin_l154_42) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_75;
+                      if(when_RegStackPlugin_l154_36) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_66;
                       end
                     end
                   end
@@ -7974,46 +7959,46 @@ module T9000Transputer (
             end
           end
           ControlFlowOp_GCALL : begin
-            if(when_RegStackPlugin_l144_43) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_76;
+            if(when_RegStackPlugin_l144_37) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_67;
             end else begin
-              if(when_RegStackPlugin_l146_43) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_76;
+              if(when_RegStackPlugin_l146_37) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_67;
               end else begin
-                if(when_RegStackPlugin_l148_43) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_76;
+                if(when_RegStackPlugin_l148_37) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_67;
                 end else begin
-                  if(when_RegStackPlugin_l150_43) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_76;
+                  if(when_RegStackPlugin_l150_37) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_67;
                   end else begin
-                    if(when_RegStackPlugin_l152_43) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_76;
+                    if(when_RegStackPlugin_l152_37) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_67;
                     end else begin
-                      if(when_RegStackPlugin_l154_43) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_76;
+                      if(when_RegStackPlugin_l154_37) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_67;
                       end
                     end
                   end
                 end
               end
             end
-            if(when_RegStackPlugin_l144_44) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_77;
+            if(when_RegStackPlugin_l144_38) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_68;
             end else begin
-              if(when_RegStackPlugin_l146_44) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_77;
+              if(when_RegStackPlugin_l146_38) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_68;
               end else begin
-                if(when_RegStackPlugin_l148_44) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_77;
+                if(when_RegStackPlugin_l148_38) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_68;
                 end else begin
-                  if(when_RegStackPlugin_l150_44) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_77;
+                  if(when_RegStackPlugin_l150_38) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_68;
                   end else begin
-                    if(when_RegStackPlugin_l152_44) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_77;
+                    if(when_RegStackPlugin_l152_38) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_68;
                     end else begin
-                      if(when_RegStackPlugin_l154_44) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_77;
+                      if(when_RegStackPlugin_l154_38) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_68;
                       end
                     end
                   end
@@ -8023,23 +8008,23 @@ module T9000Transputer (
           end
           ControlFlowOp_LEND : begin
             if(when_ControlFlowPlugin_l171) begin
-              if(when_RegStackPlugin_l144_45) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_78;
+              if(when_RegStackPlugin_l144_39) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_69;
               end else begin
-                if(when_RegStackPlugin_l146_45) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_78;
+                if(when_RegStackPlugin_l146_39) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_69;
                 end else begin
-                  if(when_RegStackPlugin_l148_45) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_78;
+                  if(when_RegStackPlugin_l148_39) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_69;
                   end else begin
-                    if(when_RegStackPlugin_l150_45) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_78;
+                    if(when_RegStackPlugin_l150_39) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_69;
                     end else begin
-                      if(when_RegStackPlugin_l152_45) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_78;
+                      if(when_RegStackPlugin_l152_39) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_69;
                       end else begin
-                        if(when_RegStackPlugin_l154_45) begin
-                          _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_78;
+                        if(when_RegStackPlugin_l154_39) begin
+                          _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_69;
                         end
                       end
                     end
@@ -8047,23 +8032,23 @@ module T9000Transputer (
                 end
               end
             end else begin
-              if(when_RegStackPlugin_l144_46) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_79;
+              if(when_RegStackPlugin_l144_40) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_70;
               end else begin
-                if(when_RegStackPlugin_l146_46) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_79;
+                if(when_RegStackPlugin_l146_40) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_70;
                 end else begin
-                  if(when_RegStackPlugin_l148_46) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_79;
+                  if(when_RegStackPlugin_l148_40) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_70;
                   end else begin
-                    if(when_RegStackPlugin_l150_46) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_79;
+                    if(when_RegStackPlugin_l150_40) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_70;
                     end else begin
-                      if(when_RegStackPlugin_l152_46) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_79;
+                      if(when_RegStackPlugin_l152_40) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_70;
                       end else begin
-                        if(when_RegStackPlugin_l154_46) begin
-                          _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_79;
+                        if(when_RegStackPlugin_l154_40) begin
+                          _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_70;
                         end
                       end
                     end
@@ -8073,69 +8058,69 @@ module T9000Transputer (
             end
           end
           ControlFlowOp_DISS : begin
-            if(when_RegStackPlugin_l144_47) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_80;
+            if(when_RegStackPlugin_l144_41) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_71;
             end else begin
-              if(when_RegStackPlugin_l146_47) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_80;
+              if(when_RegStackPlugin_l146_41) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_71;
               end else begin
-                if(when_RegStackPlugin_l148_47) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_80;
+                if(when_RegStackPlugin_l148_41) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_71;
                 end else begin
-                  if(when_RegStackPlugin_l150_47) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_80;
+                  if(when_RegStackPlugin_l150_41) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_71;
                   end else begin
-                    if(when_RegStackPlugin_l152_47) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_80;
+                    if(when_RegStackPlugin_l152_41) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_71;
                     end else begin
-                      if(when_RegStackPlugin_l154_47) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_80;
+                      if(when_RegStackPlugin_l154_41) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_71;
                       end
                     end
                   end
                 end
               end
             end
-            if(when_RegStackPlugin_l144_48) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_81;
+            if(when_RegStackPlugin_l144_42) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_72;
             end else begin
-              if(when_RegStackPlugin_l146_48) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_81;
+              if(when_RegStackPlugin_l146_42) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_72;
               end else begin
-                if(when_RegStackPlugin_l148_48) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_81;
+                if(when_RegStackPlugin_l148_42) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_72;
                 end else begin
-                  if(when_RegStackPlugin_l150_48) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_81;
+                  if(when_RegStackPlugin_l150_42) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_72;
                   end else begin
-                    if(when_RegStackPlugin_l152_48) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_81;
+                    if(when_RegStackPlugin_l152_42) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_72;
                     end else begin
-                      if(when_RegStackPlugin_l154_48) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_81;
+                      if(when_RegStackPlugin_l154_42) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_72;
                       end
                     end
                   end
                 end
               end
             end
-            if(when_RegStackPlugin_l144_49) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_82;
+            if(when_RegStackPlugin_l144_43) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_73;
             end else begin
-              if(when_RegStackPlugin_l146_49) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_82;
+              if(when_RegStackPlugin_l146_43) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_73;
               end else begin
-                if(when_RegStackPlugin_l148_49) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_82;
+                if(when_RegStackPlugin_l148_43) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_73;
                 end else begin
-                  if(when_RegStackPlugin_l150_49) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_82;
+                  if(when_RegStackPlugin_l150_43) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_73;
                   end else begin
-                    if(when_RegStackPlugin_l152_49) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_82;
+                    if(when_RegStackPlugin_l152_43) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_73;
                     end else begin
-                      if(when_RegStackPlugin_l154_49) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_82;
+                      if(when_RegStackPlugin_l154_43) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_73;
                       end
                     end
                   end
@@ -8152,74 +8137,74 @@ module T9000Transputer (
           BlockMoveOp_MOVE : begin
             _zz_when_BlockMovePlugin_l165 <= _zz_when_BlockMovePlugin_l165_6;
             when_BlockMovePlugin_l165 <= (_zz_when_BlockMovePlugin_l165_6 != 32'h0);
-            _zz_3 <= 3'b001;
+            _zz_4 <= 3'b001;
           end
           BlockMoveOp_MOVE2DINIT : begin
             _zz_when_BlockMovePlugin_l165_1 <= (_zz_when_BlockMovePlugin_l165_3 & 32'hffffffff);
             _zz_when_BlockMovePlugin_l165_2 <= (_zz_when_BlockMovePlugin_l165_4 & 32'hffffffff);
-            if(when_RegStackPlugin_l144_50) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_83;
+            if(when_RegStackPlugin_l144_44) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_74;
             end else begin
-              if(when_RegStackPlugin_l146_50) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_83;
+              if(when_RegStackPlugin_l146_44) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_74;
               end else begin
-                if(when_RegStackPlugin_l148_50) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_83;
+                if(when_RegStackPlugin_l148_44) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_74;
                 end else begin
-                  if(when_RegStackPlugin_l150_50) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_83;
+                  if(when_RegStackPlugin_l150_44) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_74;
                   end else begin
-                    if(when_RegStackPlugin_l152_50) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_83;
+                    if(when_RegStackPlugin_l152_44) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_74;
                     end else begin
-                      if(when_RegStackPlugin_l154_50) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_83;
+                      if(when_RegStackPlugin_l154_44) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_74;
                       end
                     end
                   end
                 end
               end
             end
-            if(when_RegStackPlugin_l144_51) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_84;
+            if(when_RegStackPlugin_l144_45) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_75;
             end else begin
-              if(when_RegStackPlugin_l146_51) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_84;
+              if(when_RegStackPlugin_l146_45) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_75;
               end else begin
-                if(when_RegStackPlugin_l148_51) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_84;
+                if(when_RegStackPlugin_l148_45) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_75;
                 end else begin
-                  if(when_RegStackPlugin_l150_51) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_84;
+                  if(when_RegStackPlugin_l150_45) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_75;
                   end else begin
-                    if(when_RegStackPlugin_l152_51) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_84;
+                    if(when_RegStackPlugin_l152_45) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_75;
                     end else begin
-                      if(when_RegStackPlugin_l154_51) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_84;
+                      if(when_RegStackPlugin_l154_45) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_75;
                       end
                     end
                   end
                 end
               end
             end
-            if(when_RegStackPlugin_l144_52) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_85;
+            if(when_RegStackPlugin_l144_46) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_76;
             end else begin
-              if(when_RegStackPlugin_l146_52) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_85;
+              if(when_RegStackPlugin_l146_46) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_76;
               end else begin
-                if(when_RegStackPlugin_l148_52) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_85;
+                if(when_RegStackPlugin_l148_46) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_76;
                 end else begin
-                  if(when_RegStackPlugin_l150_52) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_85;
+                  if(when_RegStackPlugin_l150_46) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_76;
                   end else begin
-                    if(when_RegStackPlugin_l152_52) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_85;
+                    if(when_RegStackPlugin_l152_46) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_76;
                     end else begin
-                      if(when_RegStackPlugin_l154_52) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_85;
+                      if(when_RegStackPlugin_l154_46) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_76;
                       end
                     end
                   end
@@ -8230,7 +8215,7 @@ module T9000Transputer (
           BlockMoveOp_MOVE2DALL : begin
             _zz_when_BlockMovePlugin_l165 <= _zz__zz_when_BlockMovePlugin_l165[31:0];
             when_BlockMovePlugin_l165 <= (_zz_when_BlockMovePlugin_l165 != 32'h0);
-            _zz_3 <= 3'b010;
+            _zz_4 <= 3'b010;
           end
           BlockMoveOp_MOVE2DNONZERO : begin
             when_BlockMovePlugin_l165 <= 1'b0;
@@ -8241,7 +8226,7 @@ module T9000Transputer (
         endcase
       end
       if(when_BlockMovePlugin_l165) begin
-        case(_zz_3)
+        case(_zz_4)
           3'b001 : begin
             if(when_BlockMovePlugin_l171) begin
               _zz_when_BlockMovePlugin_l165 <= (_zz_when_BlockMovePlugin_l165 - 32'h00000004);
@@ -8264,69 +8249,69 @@ module T9000Transputer (
       if(when_IndexingPlugin_l135) begin
         case(switch_IndexingPlugin_l155)
           IndexingOp_LDLP : begin
-            if(when_RegStackPlugin_l144_53) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_96;
+            if(when_RegStackPlugin_l144_47) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_87;
             end else begin
-              if(when_RegStackPlugin_l146_53) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_96;
+              if(when_RegStackPlugin_l146_47) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_87;
               end else begin
-                if(when_RegStackPlugin_l148_53) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_96;
+                if(when_RegStackPlugin_l148_47) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_87;
                 end else begin
-                  if(when_RegStackPlugin_l150_53) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_96;
+                  if(when_RegStackPlugin_l150_47) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_87;
                   end else begin
-                    if(when_RegStackPlugin_l152_53) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_96;
+                    if(when_RegStackPlugin_l152_47) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_87;
                     end else begin
-                      if(when_RegStackPlugin_l154_53) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_96;
+                      if(when_RegStackPlugin_l154_47) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_87;
                       end
                     end
                   end
                 end
               end
             end
-            if(when_RegStackPlugin_l144_54) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_97;
+            if(when_RegStackPlugin_l144_48) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_88;
             end else begin
-              if(when_RegStackPlugin_l146_54) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_97;
+              if(when_RegStackPlugin_l146_48) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_88;
               end else begin
-                if(when_RegStackPlugin_l148_54) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_97;
+                if(when_RegStackPlugin_l148_48) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_88;
                 end else begin
-                  if(when_RegStackPlugin_l150_54) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_97;
+                  if(when_RegStackPlugin_l150_48) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_88;
                   end else begin
-                    if(when_RegStackPlugin_l152_54) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_97;
+                    if(when_RegStackPlugin_l152_48) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_88;
                     end else begin
-                      if(when_RegStackPlugin_l154_54) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_97;
+                      if(when_RegStackPlugin_l154_48) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_88;
                       end
                     end
                   end
                 end
               end
             end
-            if(when_RegStackPlugin_l144_55) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_98;
+            if(when_RegStackPlugin_l144_49) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_89;
             end else begin
-              if(when_RegStackPlugin_l146_55) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_98;
+              if(when_RegStackPlugin_l146_49) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_89;
               end else begin
-                if(when_RegStackPlugin_l148_55) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_98;
+                if(when_RegStackPlugin_l148_49) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_89;
                 end else begin
-                  if(when_RegStackPlugin_l150_55) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_98;
+                  if(when_RegStackPlugin_l150_49) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_89;
                   end else begin
-                    if(when_RegStackPlugin_l152_55) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_98;
+                    if(when_RegStackPlugin_l152_49) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_89;
                     end else begin
-                      if(when_RegStackPlugin_l154_55) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_98;
+                      if(when_RegStackPlugin_l154_49) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_89;
                       end
                     end
                   end
@@ -8335,23 +8320,23 @@ module T9000Transputer (
             end
           end
           IndexingOp_LDNLP : begin
-            if(when_RegStackPlugin_l144_56) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_99;
+            if(when_RegStackPlugin_l144_50) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_90;
             end else begin
-              if(when_RegStackPlugin_l146_56) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_99;
+              if(when_RegStackPlugin_l146_50) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_90;
               end else begin
-                if(when_RegStackPlugin_l148_56) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_99;
+                if(when_RegStackPlugin_l148_50) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_90;
                 end else begin
-                  if(when_RegStackPlugin_l150_56) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_99;
+                  if(when_RegStackPlugin_l150_50) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_90;
                   end else begin
-                    if(when_RegStackPlugin_l152_56) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_99;
+                    if(when_RegStackPlugin_l152_50) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_90;
                     end else begin
-                      if(when_RegStackPlugin_l154_56) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_99;
+                      if(when_RegStackPlugin_l154_50) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_90;
                       end
                     end
                   end
@@ -8360,46 +8345,46 @@ module T9000Transputer (
             end
           end
           IndexingOp_BSUB : begin
-            if(when_RegStackPlugin_l144_57) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_100;
+            if(when_RegStackPlugin_l144_51) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_91;
             end else begin
-              if(when_RegStackPlugin_l146_57) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_100;
+              if(when_RegStackPlugin_l146_51) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_91;
               end else begin
-                if(when_RegStackPlugin_l148_57) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_100;
+                if(when_RegStackPlugin_l148_51) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_91;
                 end else begin
-                  if(when_RegStackPlugin_l150_57) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_100;
+                  if(when_RegStackPlugin_l150_51) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_91;
                   end else begin
-                    if(when_RegStackPlugin_l152_57) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_100;
+                    if(when_RegStackPlugin_l152_51) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_91;
                     end else begin
-                      if(when_RegStackPlugin_l154_57) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_100;
+                      if(when_RegStackPlugin_l154_51) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_91;
                       end
                     end
                   end
                 end
               end
             end
-            if(when_RegStackPlugin_l144_58) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_101;
+            if(when_RegStackPlugin_l144_52) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_92;
             end else begin
-              if(when_RegStackPlugin_l146_58) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_101;
+              if(when_RegStackPlugin_l146_52) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_92;
               end else begin
-                if(when_RegStackPlugin_l148_58) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_101;
+                if(when_RegStackPlugin_l148_52) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_92;
                 end else begin
-                  if(when_RegStackPlugin_l150_58) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_101;
+                  if(when_RegStackPlugin_l150_52) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_92;
                   end else begin
-                    if(when_RegStackPlugin_l152_58) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_101;
+                    if(when_RegStackPlugin_l152_52) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_92;
                     end else begin
-                      if(when_RegStackPlugin_l154_58) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_101;
+                      if(when_RegStackPlugin_l154_52) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_92;
                       end
                     end
                   end
@@ -8408,46 +8393,46 @@ module T9000Transputer (
             end
           end
           IndexingOp_WSUB : begin
-            if(when_RegStackPlugin_l144_59) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_102;
+            if(when_RegStackPlugin_l144_53) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_93;
             end else begin
-              if(when_RegStackPlugin_l146_59) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_102;
+              if(when_RegStackPlugin_l146_53) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_93;
               end else begin
-                if(when_RegStackPlugin_l148_59) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_102;
+                if(when_RegStackPlugin_l148_53) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_93;
                 end else begin
-                  if(when_RegStackPlugin_l150_59) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_102;
+                  if(when_RegStackPlugin_l150_53) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_93;
                   end else begin
-                    if(when_RegStackPlugin_l152_59) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_102;
+                    if(when_RegStackPlugin_l152_53) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_93;
                     end else begin
-                      if(when_RegStackPlugin_l154_59) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_102;
+                      if(when_RegStackPlugin_l154_53) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_93;
                       end
                     end
                   end
                 end
               end
             end
-            if(when_RegStackPlugin_l144_60) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_103;
+            if(when_RegStackPlugin_l144_54) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_94;
             end else begin
-              if(when_RegStackPlugin_l146_60) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_103;
+              if(when_RegStackPlugin_l146_54) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_94;
               end else begin
-                if(when_RegStackPlugin_l148_60) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_103;
+                if(when_RegStackPlugin_l148_54) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_94;
                 end else begin
-                  if(when_RegStackPlugin_l150_60) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_103;
+                  if(when_RegStackPlugin_l150_54) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_94;
                   end else begin
-                    if(when_RegStackPlugin_l152_60) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_103;
+                    if(when_RegStackPlugin_l152_54) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_94;
                     end else begin
-                      if(when_RegStackPlugin_l154_60) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_103;
+                      if(when_RegStackPlugin_l154_54) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_94;
                       end
                     end
                   end
@@ -8462,69 +8447,69 @@ module T9000Transputer (
       if(when_RangeCheckPlugin_l124) begin
         case(switch_RangeCheckPlugin_l137)
           RangeCheckOp_CIR : begin
-            if(when_RegStackPlugin_l144_61) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_107;
+            if(when_RegStackPlugin_l144_55) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_98;
             end else begin
-              if(when_RegStackPlugin_l146_61) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_107;
+              if(when_RegStackPlugin_l146_55) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_98;
               end else begin
-                if(when_RegStackPlugin_l148_61) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_107;
+                if(when_RegStackPlugin_l148_55) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_98;
                 end else begin
-                  if(when_RegStackPlugin_l150_61) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_107;
+                  if(when_RegStackPlugin_l150_55) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_98;
                   end else begin
-                    if(when_RegStackPlugin_l152_61) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_107;
+                    if(when_RegStackPlugin_l152_55) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_98;
                     end else begin
-                      if(when_RegStackPlugin_l154_61) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_107;
+                      if(when_RegStackPlugin_l154_55) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_98;
                       end
                     end
                   end
                 end
               end
             end
-            if(when_RegStackPlugin_l144_62) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_108;
+            if(when_RegStackPlugin_l144_56) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_99;
             end else begin
-              if(when_RegStackPlugin_l146_62) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_108;
+              if(when_RegStackPlugin_l146_56) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_99;
               end else begin
-                if(when_RegStackPlugin_l148_62) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_108;
+                if(when_RegStackPlugin_l148_56) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_99;
                 end else begin
-                  if(when_RegStackPlugin_l150_62) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_108;
+                  if(when_RegStackPlugin_l150_56) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_99;
                   end else begin
-                    if(when_RegStackPlugin_l152_62) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_108;
+                    if(when_RegStackPlugin_l152_56) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_99;
                     end else begin
-                      if(when_RegStackPlugin_l154_62) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_108;
+                      if(when_RegStackPlugin_l154_56) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_99;
                       end
                     end
                   end
                 end
               end
             end
-            if(when_RegStackPlugin_l144_63) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_109;
+            if(when_RegStackPlugin_l144_57) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_100;
             end else begin
-              if(when_RegStackPlugin_l146_63) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_109;
+              if(when_RegStackPlugin_l146_57) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_100;
               end else begin
-                if(when_RegStackPlugin_l148_63) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_109;
+                if(when_RegStackPlugin_l148_57) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_100;
                 end else begin
-                  if(when_RegStackPlugin_l150_63) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_109;
+                  if(when_RegStackPlugin_l150_57) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_100;
                   end else begin
-                    if(when_RegStackPlugin_l152_63) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_109;
+                    if(when_RegStackPlugin_l152_57) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_100;
                     end else begin
-                      if(when_RegStackPlugin_l154_63) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_109;
+                      if(when_RegStackPlugin_l154_57) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_100;
                       end
                     end
                   end
@@ -8539,46 +8524,46 @@ module T9000Transputer (
           RangeCheckOp_CWORD : begin
           end
           RangeCheckOp_XSWORD : begin
-            if(when_RegStackPlugin_l144_64) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_110;
+            if(when_RegStackPlugin_l144_58) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_101;
             end else begin
-              if(when_RegStackPlugin_l146_64) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_110;
+              if(when_RegStackPlugin_l146_58) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_101;
               end else begin
-                if(when_RegStackPlugin_l148_64) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_110;
+                if(when_RegStackPlugin_l148_58) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_101;
                 end else begin
-                  if(when_RegStackPlugin_l150_64) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_110;
+                  if(when_RegStackPlugin_l150_58) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_101;
                   end else begin
-                    if(when_RegStackPlugin_l152_64) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_110;
+                    if(when_RegStackPlugin_l152_58) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_101;
                     end else begin
-                      if(when_RegStackPlugin_l154_64) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_110;
+                      if(when_RegStackPlugin_l154_58) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_101;
                       end
                     end
                   end
                 end
               end
             end
-            if(when_RegStackPlugin_l144_65) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_111;
+            if(when_RegStackPlugin_l144_59) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_102;
             end else begin
-              if(when_RegStackPlugin_l146_65) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_111;
+              if(when_RegStackPlugin_l146_59) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_102;
               end else begin
-                if(when_RegStackPlugin_l148_65) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_111;
+                if(when_RegStackPlugin_l148_59) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_102;
                 end else begin
-                  if(when_RegStackPlugin_l150_65) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_111;
+                  if(when_RegStackPlugin_l150_59) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_102;
                   end else begin
-                    if(when_RegStackPlugin_l152_65) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_111;
+                    if(when_RegStackPlugin_l152_59) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_102;
                     end else begin
-                      if(when_RegStackPlugin_l154_65) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_111;
+                      if(when_RegStackPlugin_l154_59) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_102;
                       end
                     end
                   end
@@ -8588,23 +8573,23 @@ module T9000Transputer (
           end
           RangeCheckOp_CCNT1 : begin
             if(when_RangeCheckPlugin_l191) begin
-              if(when_RegStackPlugin_l144_66) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_112;
+              if(when_RegStackPlugin_l144_60) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_103;
               end else begin
-                if(when_RegStackPlugin_l146_66) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_112;
+                if(when_RegStackPlugin_l146_60) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_103;
                 end else begin
-                  if(when_RegStackPlugin_l148_66) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_112;
+                  if(when_RegStackPlugin_l148_60) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_103;
                   end else begin
-                    if(when_RegStackPlugin_l150_66) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_112;
+                    if(when_RegStackPlugin_l150_60) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_103;
                     end else begin
-                      if(when_RegStackPlugin_l152_66) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_112;
+                      if(when_RegStackPlugin_l152_60) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_103;
                       end else begin
-                        if(when_RegStackPlugin_l154_66) begin
-                          _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_112;
+                        if(when_RegStackPlugin_l154_60) begin
+                          _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_103;
                         end
                       end
                     end
@@ -8614,46 +8599,46 @@ module T9000Transputer (
             end
           end
           RangeCheckOp_CJ : begin
-            if(when_RegStackPlugin_l144_67) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_113;
+            if(when_RegStackPlugin_l144_61) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_104;
             end else begin
-              if(when_RegStackPlugin_l146_67) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_113;
+              if(when_RegStackPlugin_l146_61) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_104;
               end else begin
-                if(when_RegStackPlugin_l148_67) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_113;
+                if(when_RegStackPlugin_l148_61) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_104;
                 end else begin
-                  if(when_RegStackPlugin_l150_67) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_113;
+                  if(when_RegStackPlugin_l150_61) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_104;
                   end else begin
-                    if(when_RegStackPlugin_l152_67) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_113;
+                    if(when_RegStackPlugin_l152_61) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_104;
                     end else begin
-                      if(when_RegStackPlugin_l154_67) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_113;
+                      if(when_RegStackPlugin_l154_61) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_104;
                       end
                     end
                   end
                 end
               end
             end
-            if(when_RegStackPlugin_l144_68) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_114;
+            if(when_RegStackPlugin_l144_62) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_105;
             end else begin
-              if(when_RegStackPlugin_l146_68) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_114;
+              if(when_RegStackPlugin_l146_62) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_105;
               end else begin
-                if(when_RegStackPlugin_l148_68) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_114;
+                if(when_RegStackPlugin_l148_62) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_105;
                 end else begin
-                  if(when_RegStackPlugin_l150_68) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_114;
+                  if(when_RegStackPlugin_l150_62) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_105;
                   end else begin
-                    if(when_RegStackPlugin_l152_68) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_114;
+                    if(when_RegStackPlugin_l152_62) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_105;
                     end else begin
-                      if(when_RegStackPlugin_l154_68) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_114;
+                      if(when_RegStackPlugin_l154_62) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_105;
                       end
                     end
                   end
@@ -8662,69 +8647,69 @@ module T9000Transputer (
             end
           end
           RangeCheckOp_CALL : begin
-            if(when_RegStackPlugin_l144_69) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_115;
+            if(when_RegStackPlugin_l144_63) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_106;
             end else begin
-              if(when_RegStackPlugin_l146_69) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_115;
+              if(when_RegStackPlugin_l146_63) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_106;
               end else begin
-                if(when_RegStackPlugin_l148_69) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_115;
+                if(when_RegStackPlugin_l148_63) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_106;
                 end else begin
-                  if(when_RegStackPlugin_l150_69) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_115;
+                  if(when_RegStackPlugin_l150_63) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_106;
                   end else begin
-                    if(when_RegStackPlugin_l152_69) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_115;
+                    if(when_RegStackPlugin_l152_63) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_106;
                     end else begin
-                      if(when_RegStackPlugin_l154_69) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_115;
+                      if(when_RegStackPlugin_l154_63) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_106;
                       end
                     end
                   end
                 end
               end
             end
-            if(when_RegStackPlugin_l144_70) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_116;
+            if(when_RegStackPlugin_l144_64) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_107;
             end else begin
-              if(when_RegStackPlugin_l146_70) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_116;
+              if(when_RegStackPlugin_l146_64) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_107;
               end else begin
-                if(when_RegStackPlugin_l148_70) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_116;
+                if(when_RegStackPlugin_l148_64) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_107;
                 end else begin
-                  if(when_RegStackPlugin_l150_70) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_116;
+                  if(when_RegStackPlugin_l150_64) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_107;
                   end else begin
-                    if(when_RegStackPlugin_l152_70) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_116;
+                    if(when_RegStackPlugin_l152_64) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_107;
                     end else begin
-                      if(when_RegStackPlugin_l154_70) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_116;
+                      if(when_RegStackPlugin_l154_64) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_107;
                       end
                     end
                   end
                 end
               end
             end
-            if(when_RegStackPlugin_l144_71) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_117;
+            if(when_RegStackPlugin_l144_65) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_108;
             end else begin
-              if(when_RegStackPlugin_l146_71) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_117;
+              if(when_RegStackPlugin_l146_65) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_108;
               end else begin
-                if(when_RegStackPlugin_l148_71) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_117;
+                if(when_RegStackPlugin_l148_65) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_108;
                 end else begin
-                  if(when_RegStackPlugin_l150_71) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_117;
+                  if(when_RegStackPlugin_l150_65) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_108;
                   end else begin
-                    if(when_RegStackPlugin_l152_71) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_117;
+                    if(when_RegStackPlugin_l152_65) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_108;
                     end else begin
-                      if(when_RegStackPlugin_l154_71) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_117;
+                      if(when_RegStackPlugin_l154_65) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_108;
                       end
                     end
                   end
@@ -8739,71 +8724,212 @@ module T9000Transputer (
         endcase
       end
       if(when_GeneralPlugin_l69) begin
-        if((_zz_when_GeneralPlugin_l69_1 == _zz_71)) begin
+        if((_zz_when_GeneralPlugin_l69_1 == _zz_72)) begin
+            if(when_RegStackPlugin_l144_66) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_114;
+            end else begin
+              if(when_RegStackPlugin_l146_66) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_114;
+              end else begin
+                if(when_RegStackPlugin_l148_66) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_114;
+                end else begin
+                  if(when_RegStackPlugin_l150_66) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_114;
+                  end else begin
+                    if(when_RegStackPlugin_l152_66) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_114;
+                    end else begin
+                      if(when_RegStackPlugin_l154_66) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_114;
+                      end
+                    end
+                  end
+                end
+              end
+            end
+            if(when_RegStackPlugin_l144_67) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_115;
+            end else begin
+              if(when_RegStackPlugin_l146_67) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_115;
+              end else begin
+                if(when_RegStackPlugin_l148_67) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_115;
+                end else begin
+                  if(when_RegStackPlugin_l150_67) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_115;
+                  end else begin
+                    if(when_RegStackPlugin_l152_67) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_115;
+                    end else begin
+                      if(when_RegStackPlugin_l154_67) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_115;
+                      end
+                    end
+                  end
+                end
+              end
+            end
+        end else if((_zz_when_GeneralPlugin_l69_1 == _zz_74)) begin
+            if(when_RegStackPlugin_l144_68) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_116;
+            end else begin
+              if(when_RegStackPlugin_l146_68) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_116;
+              end else begin
+                if(when_RegStackPlugin_l148_68) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_116;
+                end else begin
+                  if(when_RegStackPlugin_l150_68) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_116;
+                  end else begin
+                    if(when_RegStackPlugin_l152_68) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_116;
+                    end else begin
+                      if(when_RegStackPlugin_l154_68) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_116;
+                      end
+                    end
+                  end
+                end
+              end
+            end
+            if(when_RegStackPlugin_l144_69) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_117;
+            end else begin
+              if(when_RegStackPlugin_l146_69) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_117;
+              end else begin
+                if(when_RegStackPlugin_l148_69) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_117;
+                end else begin
+                  if(when_RegStackPlugin_l150_69) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_117;
+                  end else begin
+                    if(when_RegStackPlugin_l152_69) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_117;
+                    end else begin
+                      if(when_RegStackPlugin_l154_69) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_117;
+                      end
+                    end
+                  end
+                end
+              end
+            end
+            if(when_RegStackPlugin_l144_70) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_118;
+            end else begin
+              if(when_RegStackPlugin_l146_70) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_118;
+              end else begin
+                if(when_RegStackPlugin_l148_70) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_118;
+                end else begin
+                  if(when_RegStackPlugin_l150_70) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_118;
+                  end else begin
+                    if(when_RegStackPlugin_l152_70) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_118;
+                    end else begin
+                      if(when_RegStackPlugin_l154_70) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_118;
+                      end
+                    end
+                  end
+                end
+              end
+            end
+        end else if((_zz_when_GeneralPlugin_l69_1 == _zz_76)) begin
+            if(when_RegStackPlugin_l144_71) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_119;
+            end else begin
+              if(when_RegStackPlugin_l146_71) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_119;
+              end else begin
+                if(when_RegStackPlugin_l148_71) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_119;
+                end else begin
+                  if(when_RegStackPlugin_l150_71) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_119;
+                  end else begin
+                    if(when_RegStackPlugin_l152_71) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_119;
+                    end else begin
+                      if(when_RegStackPlugin_l154_71) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_119;
+                      end
+                    end
+                  end
+                end
+              end
+            end
             if(when_RegStackPlugin_l144_72) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_123;
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_120;
             end else begin
               if(when_RegStackPlugin_l146_72) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_123;
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_120;
               end else begin
                 if(when_RegStackPlugin_l148_72) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_123;
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_120;
                 end else begin
                   if(when_RegStackPlugin_l150_72) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_123;
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_120;
                   end else begin
                     if(when_RegStackPlugin_l152_72) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_123;
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_120;
                     end else begin
                       if(when_RegStackPlugin_l154_72) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_123;
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_120;
                       end
                     end
                   end
                 end
               end
             end
+        end else if((_zz_when_GeneralPlugin_l69_1 == _zz_78)) begin
+        end else if((_zz_when_GeneralPlugin_l69_1 == _zz_80)) begin
             if(when_RegStackPlugin_l144_73) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_124;
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_121;
             end else begin
               if(when_RegStackPlugin_l146_73) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_124;
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_121;
               end else begin
                 if(when_RegStackPlugin_l148_73) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_124;
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_121;
                 end else begin
                   if(when_RegStackPlugin_l150_73) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_124;
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_121;
                   end else begin
                     if(when_RegStackPlugin_l152_73) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_124;
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_121;
                     end else begin
                       if(when_RegStackPlugin_l154_73) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_124;
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_121;
                       end
                     end
                   end
                 end
               end
             end
-        end else if((_zz_when_GeneralPlugin_l69_1 == _zz_73)) begin
             if(when_RegStackPlugin_l144_74) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_125;
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_122;
             end else begin
               if(when_RegStackPlugin_l146_74) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_125;
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_122;
               end else begin
                 if(when_RegStackPlugin_l148_74) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_125;
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_122;
                 end else begin
                   if(when_RegStackPlugin_l150_74) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_125;
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_122;
                   end else begin
                     if(when_RegStackPlugin_l152_74) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_125;
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_122;
                     end else begin
                       if(when_RegStackPlugin_l154_74) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_125;
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_122;
                       end
                     end
                   end
@@ -8811,163 +8937,22 @@ module T9000Transputer (
               end
             end
             if(when_RegStackPlugin_l144_75) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_126;
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_123;
             end else begin
               if(when_RegStackPlugin_l146_75) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_126;
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_123;
               end else begin
                 if(when_RegStackPlugin_l148_75) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_126;
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_123;
                 end else begin
                   if(when_RegStackPlugin_l150_75) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_126;
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_123;
                   end else begin
                     if(when_RegStackPlugin_l152_75) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_126;
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_123;
                     end else begin
                       if(when_RegStackPlugin_l154_75) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_126;
-                      end
-                    end
-                  end
-                end
-              end
-            end
-            if(when_RegStackPlugin_l144_76) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_127;
-            end else begin
-              if(when_RegStackPlugin_l146_76) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_127;
-              end else begin
-                if(when_RegStackPlugin_l148_76) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_127;
-                end else begin
-                  if(when_RegStackPlugin_l150_76) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_127;
-                  end else begin
-                    if(when_RegStackPlugin_l152_76) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_127;
-                    end else begin
-                      if(when_RegStackPlugin_l154_76) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_127;
-                      end
-                    end
-                  end
-                end
-              end
-            end
-        end else if((_zz_when_GeneralPlugin_l69_1 == _zz_75)) begin
-            if(when_RegStackPlugin_l144_77) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_128;
-            end else begin
-              if(when_RegStackPlugin_l146_77) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_128;
-              end else begin
-                if(when_RegStackPlugin_l148_77) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_128;
-                end else begin
-                  if(when_RegStackPlugin_l150_77) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_128;
-                  end else begin
-                    if(when_RegStackPlugin_l152_77) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_128;
-                    end else begin
-                      if(when_RegStackPlugin_l154_77) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_128;
-                      end
-                    end
-                  end
-                end
-              end
-            end
-            if(when_RegStackPlugin_l144_78) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_129;
-            end else begin
-              if(when_RegStackPlugin_l146_78) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_129;
-              end else begin
-                if(when_RegStackPlugin_l148_78) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_129;
-                end else begin
-                  if(when_RegStackPlugin_l150_78) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_129;
-                  end else begin
-                    if(when_RegStackPlugin_l152_78) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_129;
-                    end else begin
-                      if(when_RegStackPlugin_l154_78) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_129;
-                      end
-                    end
-                  end
-                end
-              end
-            end
-        end else if((_zz_when_GeneralPlugin_l69_1 == _zz_77)) begin
-        end else if((_zz_when_GeneralPlugin_l69_1 == _zz_79)) begin
-            if(when_RegStackPlugin_l144_79) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_130;
-            end else begin
-              if(when_RegStackPlugin_l146_79) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_130;
-              end else begin
-                if(when_RegStackPlugin_l148_79) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_130;
-                end else begin
-                  if(when_RegStackPlugin_l150_79) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_130;
-                  end else begin
-                    if(when_RegStackPlugin_l152_79) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_130;
-                    end else begin
-                      if(when_RegStackPlugin_l154_79) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_130;
-                      end
-                    end
-                  end
-                end
-              end
-            end
-            if(when_RegStackPlugin_l144_80) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_131;
-            end else begin
-              if(when_RegStackPlugin_l146_80) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_131;
-              end else begin
-                if(when_RegStackPlugin_l148_80) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_131;
-                end else begin
-                  if(when_RegStackPlugin_l150_80) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_131;
-                  end else begin
-                    if(when_RegStackPlugin_l152_80) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_131;
-                    end else begin
-                      if(when_RegStackPlugin_l154_80) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_131;
-                      end
-                    end
-                  end
-                end
-              end
-            end
-            if(when_RegStackPlugin_l144_81) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_132;
-            end else begin
-              if(when_RegStackPlugin_l146_81) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_132;
-              end else begin
-                if(when_RegStackPlugin_l148_81) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_132;
-                end else begin
-                  if(when_RegStackPlugin_l150_81) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_132;
-                  end else begin
-                    if(when_RegStackPlugin_l152_81) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_132;
-                    end else begin
-                      if(when_RegStackPlugin_l154_81) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_132;
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_123;
                       end
                     end
                   end
@@ -8979,23 +8964,23 @@ module T9000Transputer (
       if(when_ChannelPlugin_l111) begin
         case(switch_ChannelPlugin_l121)
           ChannelOp_CHANTYPE : begin
-            if(when_RegStackPlugin_l144_82) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_154;
+            if(when_RegStackPlugin_l144_76) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_145;
             end else begin
-              if(when_RegStackPlugin_l146_82) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_154;
+              if(when_RegStackPlugin_l146_76) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_145;
               end else begin
-                if(when_RegStackPlugin_l148_82) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_154;
+                if(when_RegStackPlugin_l148_76) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_145;
                 end else begin
-                  if(when_RegStackPlugin_l150_82) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_154;
+                  if(when_RegStackPlugin_l150_76) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_145;
                   end else begin
-                    if(when_RegStackPlugin_l152_82) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_154;
+                    if(when_RegStackPlugin_l152_76) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_145;
                     end else begin
-                      if(when_RegStackPlugin_l154_82) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_154;
+                      if(when_RegStackPlugin_l154_76) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_145;
                       end
                     end
                   end
@@ -9004,46 +8989,46 @@ module T9000Transputer (
             end
           end
           ChannelOp_INITVLCB : begin
-            if(when_RegStackPlugin_l144_83) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_155;
+            if(when_RegStackPlugin_l144_77) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_146;
             end else begin
-              if(when_RegStackPlugin_l146_83) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_155;
+              if(when_RegStackPlugin_l146_77) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_146;
               end else begin
-                if(when_RegStackPlugin_l148_83) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_155;
+                if(when_RegStackPlugin_l148_77) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_146;
                 end else begin
-                  if(when_RegStackPlugin_l150_83) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_155;
+                  if(when_RegStackPlugin_l150_77) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_146;
                   end else begin
-                    if(when_RegStackPlugin_l152_83) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_155;
+                    if(when_RegStackPlugin_l152_77) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_146;
                     end else begin
-                      if(when_RegStackPlugin_l154_83) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_155;
+                      if(when_RegStackPlugin_l154_77) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_146;
                       end
                     end
                   end
                 end
               end
             end
-            if(when_RegStackPlugin_l144_84) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_156;
+            if(when_RegStackPlugin_l144_78) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_147;
             end else begin
-              if(when_RegStackPlugin_l146_84) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_156;
+              if(when_RegStackPlugin_l146_78) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_147;
               end else begin
-                if(when_RegStackPlugin_l148_84) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_156;
+                if(when_RegStackPlugin_l148_78) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_147;
                 end else begin
-                  if(when_RegStackPlugin_l150_84) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_156;
+                  if(when_RegStackPlugin_l150_78) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_147;
                   end else begin
-                    if(when_RegStackPlugin_l152_84) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_156;
+                    if(when_RegStackPlugin_l152_78) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_147;
                     end else begin
-                      if(when_RegStackPlugin_l154_84) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_156;
+                      if(when_RegStackPlugin_l154_78) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_147;
                       end
                     end
                   end
@@ -9053,95 +9038,95 @@ module T9000Transputer (
           end
           ChannelOp_SETCHMODE : begin
             if(when_ChannelPlugin_l154) begin
-              if(_zz_4[0]) begin
+              if(_zz_5[0]) begin
                 _zz_when_ChannelPlugin_l129 <= _zz_when_ChannelPlugin_l129_16;
               end
-              if(_zz_4[1]) begin
+              if(_zz_5[1]) begin
                 _zz_when_ChannelPlugin_l129_1 <= _zz_when_ChannelPlugin_l129_16;
               end
-              if(_zz_4[2]) begin
+              if(_zz_5[2]) begin
                 _zz_when_ChannelPlugin_l129_2 <= _zz_when_ChannelPlugin_l129_16;
               end
-              if(_zz_4[3]) begin
+              if(_zz_5[3]) begin
                 _zz_when_ChannelPlugin_l129_3 <= _zz_when_ChannelPlugin_l129_16;
               end
-              if(_zz_4[4]) begin
+              if(_zz_5[4]) begin
                 _zz_when_ChannelPlugin_l129_4 <= _zz_when_ChannelPlugin_l129_16;
               end
-              if(_zz_4[5]) begin
+              if(_zz_5[5]) begin
                 _zz_when_ChannelPlugin_l129_5 <= _zz_when_ChannelPlugin_l129_16;
               end
-              if(_zz_4[6]) begin
+              if(_zz_5[6]) begin
                 _zz_when_ChannelPlugin_l129_6 <= _zz_when_ChannelPlugin_l129_16;
               end
-              if(_zz_4[7]) begin
+              if(_zz_5[7]) begin
                 _zz_when_ChannelPlugin_l129_7 <= _zz_when_ChannelPlugin_l129_16;
               end
-              if(_zz_4[8]) begin
+              if(_zz_5[8]) begin
                 _zz_when_ChannelPlugin_l129_8 <= _zz_when_ChannelPlugin_l129_16;
               end
-              if(_zz_4[9]) begin
+              if(_zz_5[9]) begin
                 _zz_when_ChannelPlugin_l129_9 <= _zz_when_ChannelPlugin_l129_16;
               end
-              if(_zz_4[10]) begin
+              if(_zz_5[10]) begin
                 _zz_when_ChannelPlugin_l129_10 <= _zz_when_ChannelPlugin_l129_16;
               end
-              if(_zz_4[11]) begin
+              if(_zz_5[11]) begin
                 _zz_when_ChannelPlugin_l129_11 <= _zz_when_ChannelPlugin_l129_16;
               end
-              if(_zz_4[12]) begin
+              if(_zz_5[12]) begin
                 _zz_when_ChannelPlugin_l129_12 <= _zz_when_ChannelPlugin_l129_16;
               end
-              if(_zz_4[13]) begin
+              if(_zz_5[13]) begin
                 _zz_when_ChannelPlugin_l129_13 <= _zz_when_ChannelPlugin_l129_16;
               end
-              if(_zz_4[14]) begin
+              if(_zz_5[14]) begin
                 _zz_when_ChannelPlugin_l129_14 <= _zz_when_ChannelPlugin_l129_16;
               end
-              if(_zz_4[15]) begin
+              if(_zz_5[15]) begin
                 _zz_when_ChannelPlugin_l129_15 <= _zz_when_ChannelPlugin_l129_16;
               end
             end
-            if(when_RegStackPlugin_l144_85) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_157;
+            if(when_RegStackPlugin_l144_79) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_148;
             end else begin
-              if(when_RegStackPlugin_l146_85) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_157;
+              if(when_RegStackPlugin_l146_79) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_148;
               end else begin
-                if(when_RegStackPlugin_l148_85) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_157;
+                if(when_RegStackPlugin_l148_79) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_148;
                 end else begin
-                  if(when_RegStackPlugin_l150_85) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_157;
+                  if(when_RegStackPlugin_l150_79) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_148;
                   end else begin
-                    if(when_RegStackPlugin_l152_85) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_157;
+                    if(when_RegStackPlugin_l152_79) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_148;
                     end else begin
-                      if(when_RegStackPlugin_l154_85) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_157;
+                      if(when_RegStackPlugin_l154_79) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_148;
                       end
                     end
                   end
                 end
               end
             end
-            if(when_RegStackPlugin_l144_86) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_158;
+            if(when_RegStackPlugin_l144_80) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_149;
             end else begin
-              if(when_RegStackPlugin_l146_86) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_158;
+              if(when_RegStackPlugin_l146_80) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_149;
               end else begin
-                if(when_RegStackPlugin_l148_86) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_158;
+                if(when_RegStackPlugin_l148_80) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_149;
                 end else begin
-                  if(when_RegStackPlugin_l150_86) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_158;
+                  if(when_RegStackPlugin_l150_80) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_149;
                   end else begin
-                    if(when_RegStackPlugin_l152_86) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_158;
+                    if(when_RegStackPlugin_l152_80) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_149;
                     end else begin
-                      if(when_RegStackPlugin_l154_86) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_158;
+                      if(when_RegStackPlugin_l154_80) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_149;
                       end
                     end
                   end
@@ -9151,95 +9136,95 @@ module T9000Transputer (
           end
           ChannelOp_SETHDR : begin
             if(when_ChannelPlugin_l167) begin
-              if(_zz_5[0]) begin
+              if(_zz_6[0]) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_125 <= _zz_when_ChannelPlugin_l127_2;
+              end
+              if(_zz_6[1]) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_126 <= _zz_when_ChannelPlugin_l127_2;
+              end
+              if(_zz_6[2]) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_127 <= _zz_when_ChannelPlugin_l127_2;
+              end
+              if(_zz_6[3]) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_128 <= _zz_when_ChannelPlugin_l127_2;
+              end
+              if(_zz_6[4]) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_129 <= _zz_when_ChannelPlugin_l127_2;
+              end
+              if(_zz_6[5]) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_130 <= _zz_when_ChannelPlugin_l127_2;
+              end
+              if(_zz_6[6]) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_131 <= _zz_when_ChannelPlugin_l127_2;
+              end
+              if(_zz_6[7]) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_132 <= _zz_when_ChannelPlugin_l127_2;
+              end
+              if(_zz_6[8]) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_133 <= _zz_when_ChannelPlugin_l127_2;
+              end
+              if(_zz_6[9]) begin
                 _zz_fpu_fpPipe_ctrl_0_down_RESULT_134 <= _zz_when_ChannelPlugin_l127_2;
               end
-              if(_zz_5[1]) begin
+              if(_zz_6[10]) begin
                 _zz_fpu_fpPipe_ctrl_0_down_RESULT_135 <= _zz_when_ChannelPlugin_l127_2;
               end
-              if(_zz_5[2]) begin
+              if(_zz_6[11]) begin
                 _zz_fpu_fpPipe_ctrl_0_down_RESULT_136 <= _zz_when_ChannelPlugin_l127_2;
               end
-              if(_zz_5[3]) begin
+              if(_zz_6[12]) begin
                 _zz_fpu_fpPipe_ctrl_0_down_RESULT_137 <= _zz_when_ChannelPlugin_l127_2;
               end
-              if(_zz_5[4]) begin
+              if(_zz_6[13]) begin
                 _zz_fpu_fpPipe_ctrl_0_down_RESULT_138 <= _zz_when_ChannelPlugin_l127_2;
               end
-              if(_zz_5[5]) begin
+              if(_zz_6[14]) begin
                 _zz_fpu_fpPipe_ctrl_0_down_RESULT_139 <= _zz_when_ChannelPlugin_l127_2;
               end
-              if(_zz_5[6]) begin
+              if(_zz_6[15]) begin
                 _zz_fpu_fpPipe_ctrl_0_down_RESULT_140 <= _zz_when_ChannelPlugin_l127_2;
               end
-              if(_zz_5[7]) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_141 <= _zz_when_ChannelPlugin_l127_2;
-              end
-              if(_zz_5[8]) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_142 <= _zz_when_ChannelPlugin_l127_2;
-              end
-              if(_zz_5[9]) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_143 <= _zz_when_ChannelPlugin_l127_2;
-              end
-              if(_zz_5[10]) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_144 <= _zz_when_ChannelPlugin_l127_2;
-              end
-              if(_zz_5[11]) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_145 <= _zz_when_ChannelPlugin_l127_2;
-              end
-              if(_zz_5[12]) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_146 <= _zz_when_ChannelPlugin_l127_2;
-              end
-              if(_zz_5[13]) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_147 <= _zz_when_ChannelPlugin_l127_2;
-              end
-              if(_zz_5[14]) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_148 <= _zz_when_ChannelPlugin_l127_2;
-              end
-              if(_zz_5[15]) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_149 <= _zz_when_ChannelPlugin_l127_2;
-              end
             end
-            if(when_RegStackPlugin_l144_87) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_159;
+            if(when_RegStackPlugin_l144_81) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_150;
             end else begin
-              if(when_RegStackPlugin_l146_87) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_159;
+              if(when_RegStackPlugin_l146_81) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_150;
               end else begin
-                if(when_RegStackPlugin_l148_87) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_159;
+                if(when_RegStackPlugin_l148_81) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_150;
                 end else begin
-                  if(when_RegStackPlugin_l150_87) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_159;
+                  if(when_RegStackPlugin_l150_81) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_150;
                   end else begin
-                    if(when_RegStackPlugin_l152_87) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_159;
+                    if(when_RegStackPlugin_l152_81) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_150;
                     end else begin
-                      if(when_RegStackPlugin_l154_87) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_159;
+                      if(when_RegStackPlugin_l154_81) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_150;
                       end
                     end
                   end
                 end
               end
             end
-            if(when_RegStackPlugin_l144_88) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_160;
+            if(when_RegStackPlugin_l144_82) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_151;
             end else begin
-              if(when_RegStackPlugin_l146_88) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_160;
+              if(when_RegStackPlugin_l146_82) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_151;
               end else begin
-                if(when_RegStackPlugin_l148_88) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_160;
+                if(when_RegStackPlugin_l148_82) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_151;
                 end else begin
-                  if(when_RegStackPlugin_l150_88) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_160;
+                  if(when_RegStackPlugin_l150_82) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_151;
                   end else begin
-                    if(when_RegStackPlugin_l152_88) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_160;
+                    if(when_RegStackPlugin_l152_82) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_151;
                     end else begin
-                      if(when_RegStackPlugin_l154_88) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_160;
+                      if(when_RegStackPlugin_l154_82) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_151;
                       end
                     end
                   end
@@ -9249,23 +9234,23 @@ module T9000Transputer (
           end
           ChannelOp_READHDR : begin
             if(when_ChannelPlugin_l177) begin
-              if(when_RegStackPlugin_l144_89) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_161;
+              if(when_RegStackPlugin_l144_83) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_152;
               end else begin
-                if(when_RegStackPlugin_l146_89) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_161;
+                if(when_RegStackPlugin_l146_83) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_152;
                 end else begin
-                  if(when_RegStackPlugin_l148_89) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_161;
+                  if(when_RegStackPlugin_l148_83) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_152;
                   end else begin
-                    if(when_RegStackPlugin_l150_89) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_161;
+                    if(when_RegStackPlugin_l150_83) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_152;
                     end else begin
-                      if(when_RegStackPlugin_l152_89) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_161;
+                      if(when_RegStackPlugin_l152_83) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_152;
                       end else begin
-                        if(when_RegStackPlugin_l154_89) begin
-                          _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_161;
+                        if(when_RegStackPlugin_l154_83) begin
+                          _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_152;
                         end
                       end
                     end
@@ -9273,23 +9258,23 @@ module T9000Transputer (
                 end
               end
             end else begin
-              if(when_RegStackPlugin_l144_90) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_162;
+              if(when_RegStackPlugin_l144_84) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_153;
               end else begin
-                if(when_RegStackPlugin_l146_90) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_162;
+                if(when_RegStackPlugin_l146_84) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_153;
                 end else begin
-                  if(when_RegStackPlugin_l148_90) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_162;
+                  if(when_RegStackPlugin_l148_84) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_153;
                   end else begin
-                    if(when_RegStackPlugin_l150_90) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_162;
+                    if(when_RegStackPlugin_l150_84) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_153;
                     end else begin
-                      if(when_RegStackPlugin_l152_90) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_162;
+                      if(when_RegStackPlugin_l152_84) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_153;
                       end else begin
-                        if(when_RegStackPlugin_l154_90) begin
-                          _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_162;
+                        if(when_RegStackPlugin_l154_84) begin
+                          _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_153;
                         end
                       end
                     end
@@ -9302,46 +9287,46 @@ module T9000Transputer (
             if(when_ChannelPlugin_l190) begin
               _zz_when_ChannelPlugin_l127[_zz_when_ChannelPlugin_l127_3] <= 1'b1;
             end
-            if(when_RegStackPlugin_l144_91) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_163;
+            if(when_RegStackPlugin_l144_85) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_154;
             end else begin
-              if(when_RegStackPlugin_l146_91) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_163;
+              if(when_RegStackPlugin_l146_85) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_154;
               end else begin
-                if(when_RegStackPlugin_l148_91) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_163;
+                if(when_RegStackPlugin_l148_85) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_154;
                 end else begin
-                  if(when_RegStackPlugin_l150_91) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_163;
+                  if(when_RegStackPlugin_l150_85) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_154;
                   end else begin
-                    if(when_RegStackPlugin_l152_91) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_163;
+                    if(when_RegStackPlugin_l152_85) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_154;
                     end else begin
-                      if(when_RegStackPlugin_l154_91) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_163;
+                      if(when_RegStackPlugin_l154_85) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_154;
                       end
                     end
                   end
                 end
               end
             end
-            if(when_RegStackPlugin_l144_92) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_164;
+            if(when_RegStackPlugin_l144_86) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_155;
             end else begin
-              if(when_RegStackPlugin_l146_92) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_164;
+              if(when_RegStackPlugin_l146_86) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_155;
               end else begin
-                if(when_RegStackPlugin_l148_92) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_164;
+                if(when_RegStackPlugin_l148_86) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_155;
                 end else begin
-                  if(when_RegStackPlugin_l150_92) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_164;
+                  if(when_RegStackPlugin_l150_86) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_155;
                   end else begin
-                    if(when_RegStackPlugin_l152_92) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_164;
+                    if(when_RegStackPlugin_l152_86) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_155;
                     end else begin
-                      if(when_RegStackPlugin_l154_92) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_164;
+                      if(when_RegStackPlugin_l154_86) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_155;
                       end
                     end
                   end
@@ -9353,46 +9338,46 @@ module T9000Transputer (
             if(when_ChannelPlugin_l200) begin
               _zz_when_ChannelPlugin_l127[_zz_when_ChannelPlugin_l127_3] <= 1'b0;
             end
-            if(when_RegStackPlugin_l144_93) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_165;
+            if(when_RegStackPlugin_l144_87) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_156;
             end else begin
-              if(when_RegStackPlugin_l146_93) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_165;
+              if(when_RegStackPlugin_l146_87) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_156;
               end else begin
-                if(when_RegStackPlugin_l148_93) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_165;
+                if(when_RegStackPlugin_l148_87) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_156;
                 end else begin
-                  if(when_RegStackPlugin_l150_93) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_165;
+                  if(when_RegStackPlugin_l150_87) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_156;
                   end else begin
-                    if(when_RegStackPlugin_l152_93) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_165;
+                    if(when_RegStackPlugin_l152_87) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_156;
                     end else begin
-                      if(when_RegStackPlugin_l154_93) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_165;
+                      if(when_RegStackPlugin_l154_87) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_156;
                       end
                     end
                   end
                 end
               end
             end
-            if(when_RegStackPlugin_l144_94) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_166;
+            if(when_RegStackPlugin_l144_88) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_157;
             end else begin
-              if(when_RegStackPlugin_l146_94) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_166;
+              if(when_RegStackPlugin_l146_88) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_157;
               end else begin
-                if(when_RegStackPlugin_l148_94) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_166;
+                if(when_RegStackPlugin_l148_88) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_157;
                 end else begin
-                  if(when_RegStackPlugin_l150_94) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_166;
+                  if(when_RegStackPlugin_l150_88) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_157;
                   end else begin
-                    if(when_RegStackPlugin_l152_94) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_166;
+                    if(when_RegStackPlugin_l152_88) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_157;
                     end else begin
-                      if(when_RegStackPlugin_l154_94) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_166;
+                      if(when_RegStackPlugin_l154_88) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_157;
                       end
                     end
                   end
@@ -9411,69 +9396,69 @@ module T9000Transputer (
           InterruptOp_INTENB : begin
           end
           InterruptOp_LDTRAPPED : begin
-            if(when_RegStackPlugin_l144_95) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_173;
+            if(when_RegStackPlugin_l144_89) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_164;
             end else begin
-              if(when_RegStackPlugin_l146_95) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_173;
+              if(when_RegStackPlugin_l146_89) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_164;
               end else begin
-                if(when_RegStackPlugin_l148_95) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_173;
+                if(when_RegStackPlugin_l148_89) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_164;
                 end else begin
-                  if(when_RegStackPlugin_l150_95) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_173;
+                  if(when_RegStackPlugin_l150_89) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_164;
                   end else begin
-                    if(when_RegStackPlugin_l152_95) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_173;
+                    if(when_RegStackPlugin_l152_89) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_164;
                     end else begin
-                      if(when_RegStackPlugin_l154_95) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_173;
+                      if(when_RegStackPlugin_l154_89) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_164;
                       end
                     end
                   end
                 end
               end
             end
-            if(when_RegStackPlugin_l144_96) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_174;
+            if(when_RegStackPlugin_l144_90) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_165;
             end else begin
-              if(when_RegStackPlugin_l146_96) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_174;
+              if(when_RegStackPlugin_l146_90) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_165;
               end else begin
-                if(when_RegStackPlugin_l148_96) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_174;
+                if(when_RegStackPlugin_l148_90) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_165;
                 end else begin
-                  if(when_RegStackPlugin_l150_96) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_174;
+                  if(when_RegStackPlugin_l150_90) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_165;
                   end else begin
-                    if(when_RegStackPlugin_l152_96) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_174;
+                    if(when_RegStackPlugin_l152_90) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_165;
                     end else begin
-                      if(when_RegStackPlugin_l154_96) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_174;
+                      if(when_RegStackPlugin_l154_90) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_165;
                       end
                     end
                   end
                 end
               end
             end
-            if(when_RegStackPlugin_l144_97) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_175;
+            if(when_RegStackPlugin_l144_91) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_166;
             end else begin
-              if(when_RegStackPlugin_l146_97) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_175;
+              if(when_RegStackPlugin_l146_91) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_166;
               end else begin
-                if(when_RegStackPlugin_l148_97) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_175;
+                if(when_RegStackPlugin_l148_91) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_166;
                 end else begin
-                  if(when_RegStackPlugin_l150_97) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_175;
+                  if(when_RegStackPlugin_l150_91) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_166;
                   end else begin
-                    if(when_RegStackPlugin_l152_97) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_175;
+                    if(when_RegStackPlugin_l152_91) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_166;
                     end else begin
-                      if(when_RegStackPlugin_l154_97) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_175;
+                      if(when_RegStackPlugin_l154_91) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_166;
                       end
                     end
                   end
@@ -9482,47 +9467,47 @@ module T9000Transputer (
             end
           end
           InterruptOp_STTRAPPED : begin
-            _zz_fpu_fpPipe_ctrl_0_down_RESULT_167 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_169;
-            if(when_RegStackPlugin_l144_98) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_176;
+            _zz_fpu_fpPipe_ctrl_0_down_RESULT_158 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_160;
+            if(when_RegStackPlugin_l144_92) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_167;
             end else begin
-              if(when_RegStackPlugin_l146_98) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_176;
+              if(when_RegStackPlugin_l146_92) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_167;
               end else begin
-                if(when_RegStackPlugin_l148_98) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_176;
+                if(when_RegStackPlugin_l148_92) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_167;
                 end else begin
-                  if(when_RegStackPlugin_l150_98) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_176;
+                  if(when_RegStackPlugin_l150_92) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_167;
                   end else begin
-                    if(when_RegStackPlugin_l152_98) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_176;
+                    if(when_RegStackPlugin_l152_92) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_167;
                     end else begin
-                      if(when_RegStackPlugin_l154_98) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_176;
+                      if(when_RegStackPlugin_l154_92) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_167;
                       end
                     end
                   end
                 end
               end
             end
-            if(when_RegStackPlugin_l144_99) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_177;
+            if(when_RegStackPlugin_l144_93) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_168;
             end else begin
-              if(when_RegStackPlugin_l146_99) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_177;
+              if(when_RegStackPlugin_l146_93) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_168;
               end else begin
-                if(when_RegStackPlugin_l148_99) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_177;
+                if(when_RegStackPlugin_l148_93) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_168;
                 end else begin
-                  if(when_RegStackPlugin_l150_99) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_177;
+                  if(when_RegStackPlugin_l150_93) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_168;
                   end else begin
-                    if(when_RegStackPlugin_l152_99) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_177;
+                    if(when_RegStackPlugin_l152_93) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_168;
                     end else begin
-                      if(when_RegStackPlugin_l154_99) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_177;
+                      if(when_RegStackPlugin_l154_93) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_168;
                       end
                     end
                   end
@@ -9543,46 +9528,46 @@ module T9000Transputer (
       if(when_ResourcePlugin_l114) begin
         case(switch_ResourcePlugin_l119)
           ResourceOp_GRANT : begin
-            if(when_RegStackPlugin_l144_100) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_185;
+            if(when_RegStackPlugin_l144_94) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_176;
             end else begin
-              if(when_RegStackPlugin_l146_100) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_185;
+              if(when_RegStackPlugin_l146_94) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_176;
               end else begin
-                if(when_RegStackPlugin_l148_100) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_185;
+                if(when_RegStackPlugin_l148_94) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_176;
                 end else begin
-                  if(when_RegStackPlugin_l150_100) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_185;
+                  if(when_RegStackPlugin_l150_94) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_176;
                   end else begin
-                    if(when_RegStackPlugin_l152_100) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_185;
+                    if(when_RegStackPlugin_l152_94) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_176;
                     end else begin
-                      if(when_RegStackPlugin_l154_100) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_185;
+                      if(when_RegStackPlugin_l154_94) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_176;
                       end
                     end
                   end
                 end
               end
             end
-            if(when_RegStackPlugin_l144_101) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_186;
+            if(when_RegStackPlugin_l144_95) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_177;
             end else begin
-              if(when_RegStackPlugin_l146_101) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_186;
+              if(when_RegStackPlugin_l146_95) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_177;
               end else begin
-                if(when_RegStackPlugin_l148_101) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_186;
+                if(when_RegStackPlugin_l148_95) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_177;
                 end else begin
-                  if(when_RegStackPlugin_l150_101) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_186;
+                  if(when_RegStackPlugin_l150_95) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_177;
                   end else begin
-                    if(when_RegStackPlugin_l152_101) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_186;
+                    if(when_RegStackPlugin_l152_95) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_177;
                     end else begin
-                      if(when_RegStackPlugin_l154_101) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_186;
+                      if(when_RegStackPlugin_l154_95) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_177;
                       end
                     end
                   end
@@ -9595,46 +9580,46 @@ module T9000Transputer (
           ResourceOp_DISG : begin
           end
           ResourceOp_MKRC : begin
-            if(when_RegStackPlugin_l144_102) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_187;
+            if(when_RegStackPlugin_l144_96) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_178;
             end else begin
-              if(when_RegStackPlugin_l146_102) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_187;
+              if(when_RegStackPlugin_l146_96) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_178;
               end else begin
-                if(when_RegStackPlugin_l148_102) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_187;
+                if(when_RegStackPlugin_l148_96) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_178;
                 end else begin
-                  if(when_RegStackPlugin_l150_102) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_187;
+                  if(when_RegStackPlugin_l150_96) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_178;
                   end else begin
-                    if(when_RegStackPlugin_l152_102) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_187;
+                    if(when_RegStackPlugin_l152_96) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_178;
                     end else begin
-                      if(when_RegStackPlugin_l154_102) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_187;
+                      if(when_RegStackPlugin_l154_96) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_178;
                       end
                     end
                   end
                 end
               end
             end
-            if(when_RegStackPlugin_l144_103) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_188;
+            if(when_RegStackPlugin_l144_97) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_179;
             end else begin
-              if(when_RegStackPlugin_l146_103) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_188;
+              if(when_RegStackPlugin_l146_97) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_179;
               end else begin
-                if(when_RegStackPlugin_l148_103) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_188;
+                if(when_RegStackPlugin_l148_97) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_179;
                 end else begin
-                  if(when_RegStackPlugin_l150_103) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_188;
+                  if(when_RegStackPlugin_l150_97) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_179;
                   end else begin
-                    if(when_RegStackPlugin_l152_103) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_188;
+                    if(when_RegStackPlugin_l152_97) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_179;
                     end else begin
-                      if(when_RegStackPlugin_l154_103) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_188;
+                      if(when_RegStackPlugin_l154_97) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_179;
                       end
                     end
                   end
@@ -9643,46 +9628,46 @@ module T9000Transputer (
             end
           end
           ResourceOp_UNMKRC : begin
-            if(when_RegStackPlugin_l144_104) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_189;
+            if(when_RegStackPlugin_l144_98) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_180;
             end else begin
-              if(when_RegStackPlugin_l146_104) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_189;
+              if(when_RegStackPlugin_l146_98) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_180;
               end else begin
-                if(when_RegStackPlugin_l148_104) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_189;
+                if(when_RegStackPlugin_l148_98) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_180;
                 end else begin
-                  if(when_RegStackPlugin_l150_104) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_189;
+                  if(when_RegStackPlugin_l150_98) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_180;
                   end else begin
-                    if(when_RegStackPlugin_l152_104) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_189;
+                    if(when_RegStackPlugin_l152_98) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_180;
                     end else begin
-                      if(when_RegStackPlugin_l154_104) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_189;
+                      if(when_RegStackPlugin_l154_98) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_180;
                       end
                     end
                   end
                 end
               end
             end
-            if(when_RegStackPlugin_l144_105) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_190;
+            if(when_RegStackPlugin_l144_99) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_181;
             end else begin
-              if(when_RegStackPlugin_l146_105) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_190;
+              if(when_RegStackPlugin_l146_99) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_181;
               end else begin
-                if(when_RegStackPlugin_l148_105) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_190;
+                if(when_RegStackPlugin_l148_99) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_181;
                 end else begin
-                  if(when_RegStackPlugin_l150_105) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_190;
+                  if(when_RegStackPlugin_l150_99) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_181;
                   end else begin
-                    if(when_RegStackPlugin_l152_105) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_190;
+                    if(when_RegStackPlugin_l152_99) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_181;
                     end else begin
-                      if(when_RegStackPlugin_l154_105) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_190;
+                      if(when_RegStackPlugin_l154_99) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_181;
                       end
                     end
                   end
@@ -9691,46 +9676,46 @@ module T9000Transputer (
             end
           end
           ResourceOp_IRDSQ : begin
-            if(when_RegStackPlugin_l144_106) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_191;
+            if(when_RegStackPlugin_l144_100) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_182;
             end else begin
-              if(when_RegStackPlugin_l146_106) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_191;
+              if(when_RegStackPlugin_l146_100) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_182;
               end else begin
-                if(when_RegStackPlugin_l148_106) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_191;
+                if(when_RegStackPlugin_l148_100) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_182;
                 end else begin
-                  if(when_RegStackPlugin_l150_106) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_191;
+                  if(when_RegStackPlugin_l150_100) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_182;
                   end else begin
-                    if(when_RegStackPlugin_l152_106) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_191;
+                    if(when_RegStackPlugin_l152_100) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_182;
                     end else begin
-                      if(when_RegStackPlugin_l154_106) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_191;
+                      if(when_RegStackPlugin_l154_100) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_182;
                       end
                     end
                   end
                 end
               end
             end
-            if(when_RegStackPlugin_l144_107) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_192;
+            if(when_RegStackPlugin_l144_101) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_183;
             end else begin
-              if(when_RegStackPlugin_l146_107) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_192;
+              if(when_RegStackPlugin_l146_101) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_183;
               end else begin
-                if(when_RegStackPlugin_l148_107) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_192;
+                if(when_RegStackPlugin_l148_101) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_183;
                 end else begin
-                  if(when_RegStackPlugin_l150_107) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_192;
+                  if(when_RegStackPlugin_l150_101) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_183;
                   end else begin
-                    if(when_RegStackPlugin_l152_107) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_192;
+                    if(when_RegStackPlugin_l152_101) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_183;
                     end else begin
-                      if(when_RegStackPlugin_l154_107) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_192;
+                      if(when_RegStackPlugin_l154_101) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_183;
                       end
                     end
                   end
@@ -9741,47 +9726,47 @@ module T9000Transputer (
           ResourceOp_ERDSQ : begin
           end
           ResourceOp_STRESPTR : begin
-            _zz_fpu_fpPipe_ctrl_0_down_RESULT_178 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_180;
-            if(when_RegStackPlugin_l144_108) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_193;
+            _zz_fpu_fpPipe_ctrl_0_down_RESULT_169 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_171;
+            if(when_RegStackPlugin_l144_102) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_184;
             end else begin
-              if(when_RegStackPlugin_l146_108) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_193;
+              if(when_RegStackPlugin_l146_102) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_184;
               end else begin
-                if(when_RegStackPlugin_l148_108) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_193;
+                if(when_RegStackPlugin_l148_102) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_184;
                 end else begin
-                  if(when_RegStackPlugin_l150_108) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_193;
+                  if(when_RegStackPlugin_l150_102) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_184;
                   end else begin
-                    if(when_RegStackPlugin_l152_108) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_193;
+                    if(when_RegStackPlugin_l152_102) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_184;
                     end else begin
-                      if(when_RegStackPlugin_l154_108) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_193;
+                      if(when_RegStackPlugin_l154_102) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_184;
                       end
                     end
                   end
                 end
               end
             end
-            if(when_RegStackPlugin_l144_109) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_194;
+            if(when_RegStackPlugin_l144_103) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_185;
             end else begin
-              if(when_RegStackPlugin_l146_109) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_194;
+              if(when_RegStackPlugin_l146_103) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_185;
               end else begin
-                if(when_RegStackPlugin_l148_109) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_194;
+                if(when_RegStackPlugin_l148_103) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_185;
                 end else begin
-                  if(when_RegStackPlugin_l150_109) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_194;
+                  if(when_RegStackPlugin_l150_103) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_185;
                   end else begin
-                    if(when_RegStackPlugin_l152_109) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_194;
+                    if(when_RegStackPlugin_l152_103) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_185;
                     end else begin
-                      if(when_RegStackPlugin_l154_109) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_194;
+                      if(when_RegStackPlugin_l154_103) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_185;
                       end
                     end
                   end
@@ -9790,69 +9775,69 @@ module T9000Transputer (
             end
           end
           default : begin
-            if(when_RegStackPlugin_l144_110) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_195;
+            if(when_RegStackPlugin_l144_104) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_186;
             end else begin
-              if(when_RegStackPlugin_l146_110) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_195;
+              if(when_RegStackPlugin_l146_104) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_186;
               end else begin
-                if(when_RegStackPlugin_l148_110) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_195;
+                if(when_RegStackPlugin_l148_104) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_186;
                 end else begin
-                  if(when_RegStackPlugin_l150_110) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_195;
+                  if(when_RegStackPlugin_l150_104) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_186;
                   end else begin
-                    if(when_RegStackPlugin_l152_110) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_195;
+                    if(when_RegStackPlugin_l152_104) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_186;
                     end else begin
-                      if(when_RegStackPlugin_l154_110) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_195;
+                      if(when_RegStackPlugin_l154_104) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_186;
                       end
                     end
                   end
                 end
               end
             end
-            if(when_RegStackPlugin_l144_111) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_196;
+            if(when_RegStackPlugin_l144_105) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_187;
             end else begin
-              if(when_RegStackPlugin_l146_111) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_196;
+              if(when_RegStackPlugin_l146_105) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_187;
               end else begin
-                if(when_RegStackPlugin_l148_111) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_196;
+                if(when_RegStackPlugin_l148_105) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_187;
                 end else begin
-                  if(when_RegStackPlugin_l150_111) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_196;
+                  if(when_RegStackPlugin_l150_105) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_187;
                   end else begin
-                    if(when_RegStackPlugin_l152_111) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_196;
+                    if(when_RegStackPlugin_l152_105) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_187;
                     end else begin
-                      if(when_RegStackPlugin_l154_111) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_196;
+                      if(when_RegStackPlugin_l154_105) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_187;
                       end
                     end
                   end
                 end
               end
             end
-            if(when_RegStackPlugin_l144_112) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_197;
+            if(when_RegStackPlugin_l144_106) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_188;
             end else begin
-              if(when_RegStackPlugin_l146_112) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_197;
+              if(when_RegStackPlugin_l146_106) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_188;
               end else begin
-                if(when_RegStackPlugin_l148_112) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_197;
+                if(when_RegStackPlugin_l148_106) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_188;
                 end else begin
-                  if(when_RegStackPlugin_l150_112) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_197;
+                  if(when_RegStackPlugin_l150_106) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_188;
                   end else begin
-                    if(when_RegStackPlugin_l152_112) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_197;
+                    if(when_RegStackPlugin_l152_106) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_188;
                     end else begin
-                      if(when_RegStackPlugin_l154_112) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_197;
+                      if(when_RegStackPlugin_l154_106) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_188;
                       end
                     end
                   end
@@ -9865,69 +9850,69 @@ module T9000Transputer (
       if(when_SystemPlugin_l123) begin
         case(switch_SystemPlugin_l128)
           SystemOp_TESTPRANAL : begin
-            if(when_RegStackPlugin_l144_113) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_206;
+            if(when_RegStackPlugin_l144_107) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_197;
             end else begin
-              if(when_RegStackPlugin_l146_113) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_206;
+              if(when_RegStackPlugin_l146_107) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_197;
               end else begin
-                if(when_RegStackPlugin_l148_113) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_206;
+                if(when_RegStackPlugin_l148_107) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_197;
                 end else begin
-                  if(when_RegStackPlugin_l150_113) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_206;
+                  if(when_RegStackPlugin_l150_107) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_197;
                   end else begin
-                    if(when_RegStackPlugin_l152_113) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_206;
+                    if(when_RegStackPlugin_l152_107) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_197;
                     end else begin
-                      if(when_RegStackPlugin_l154_113) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_206;
+                      if(when_RegStackPlugin_l154_107) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_197;
                       end
                     end
                   end
                 end
               end
             end
-            if(when_RegStackPlugin_l144_114) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_207;
+            if(when_RegStackPlugin_l144_108) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_198;
             end else begin
-              if(when_RegStackPlugin_l146_114) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_207;
+              if(when_RegStackPlugin_l146_108) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_198;
               end else begin
-                if(when_RegStackPlugin_l148_114) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_207;
+                if(when_RegStackPlugin_l148_108) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_198;
                 end else begin
-                  if(when_RegStackPlugin_l150_114) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_207;
+                  if(when_RegStackPlugin_l150_108) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_198;
                   end else begin
-                    if(when_RegStackPlugin_l152_114) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_207;
+                    if(when_RegStackPlugin_l152_108) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_198;
                     end else begin
-                      if(when_RegStackPlugin_l154_114) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_207;
+                      if(when_RegStackPlugin_l154_108) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_198;
                       end
                     end
                   end
                 end
               end
             end
-            if(when_RegStackPlugin_l144_115) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_208;
+            if(when_RegStackPlugin_l144_109) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_199;
             end else begin
-              if(when_RegStackPlugin_l146_115) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_208;
+              if(when_RegStackPlugin_l146_109) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_199;
               end else begin
-                if(when_RegStackPlugin_l148_115) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_208;
+                if(when_RegStackPlugin_l148_109) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_199;
                 end else begin
-                  if(when_RegStackPlugin_l150_115) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_208;
+                  if(when_RegStackPlugin_l150_109) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_199;
                   end else begin
-                    if(when_RegStackPlugin_l152_115) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_208;
+                    if(when_RegStackPlugin_l152_109) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_199;
                     end else begin
-                      if(when_RegStackPlugin_l154_115) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_208;
+                      if(when_RegStackPlugin_l154_109) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_199;
                       end
                     end
                   end
@@ -9936,23 +9921,23 @@ module T9000Transputer (
             end
           end
           SystemOp_LDCONF : begin
-            if(when_RegStackPlugin_l144_116) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_210;
+            if(when_RegStackPlugin_l144_110) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_201;
             end else begin
-              if(when_RegStackPlugin_l146_116) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_210;
+              if(when_RegStackPlugin_l146_110) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_201;
               end else begin
-                if(when_RegStackPlugin_l148_116) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_210;
+                if(when_RegStackPlugin_l148_110) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_201;
                 end else begin
-                  if(when_RegStackPlugin_l150_116) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_210;
+                  if(when_RegStackPlugin_l150_110) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_201;
                   end else begin
-                    if(when_RegStackPlugin_l152_116) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_210;
+                    if(when_RegStackPlugin_l152_110) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_201;
                     end else begin
-                      if(when_RegStackPlugin_l154_116) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_210;
+                      if(when_RegStackPlugin_l154_110) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_201;
                       end
                     end
                   end
@@ -9963,63 +9948,63 @@ module T9000Transputer (
           SystemOp_STCONF : begin
             case(switch_SystemPlugin_l163)
               4'b0000 : begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_199 <= _zz_switch_SystemPlugin_l145_1[7 : 0];
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_190 <= _zz_switch_SystemPlugin_l145_1[7 : 0];
               end
               4'b0001 : begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_200 <= _zz_switch_SystemPlugin_l145_1;
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_191 <= _zz_switch_SystemPlugin_l145_1;
               end
               4'b0010 : begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_201 <= _zz_switch_SystemPlugin_l145_1[15 : 0];
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_192 <= _zz_switch_SystemPlugin_l145_1[15 : 0];
               end
               4'b0011 : begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_202 <= _zz_switch_SystemPlugin_l145_1[15 : 0];
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_193 <= _zz_switch_SystemPlugin_l145_1[15 : 0];
               end
               4'b0100 : begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_203 <= _zz_switch_SystemPlugin_l145_1[15 : 0];
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_194 <= _zz_switch_SystemPlugin_l145_1[15 : 0];
               end
               default : begin
               end
             endcase
-            if(when_RegStackPlugin_l144_117) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_211;
+            if(when_RegStackPlugin_l144_111) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_202;
             end else begin
-              if(when_RegStackPlugin_l146_117) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_211;
+              if(when_RegStackPlugin_l146_111) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_202;
               end else begin
-                if(when_RegStackPlugin_l148_117) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_211;
+                if(when_RegStackPlugin_l148_111) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_202;
                 end else begin
-                  if(when_RegStackPlugin_l150_117) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_211;
+                  if(when_RegStackPlugin_l150_111) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_202;
                   end else begin
-                    if(when_RegStackPlugin_l152_117) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_211;
+                    if(when_RegStackPlugin_l152_111) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_202;
                     end else begin
-                      if(when_RegStackPlugin_l154_117) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_211;
+                      if(when_RegStackPlugin_l154_111) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_202;
                       end
                     end
                   end
                 end
               end
             end
-            if(when_RegStackPlugin_l144_118) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_212;
+            if(when_RegStackPlugin_l144_112) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_203;
             end else begin
-              if(when_RegStackPlugin_l146_118) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_212;
+              if(when_RegStackPlugin_l146_112) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_203;
               end else begin
-                if(when_RegStackPlugin_l148_118) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_212;
+                if(when_RegStackPlugin_l148_112) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_203;
                 end else begin
-                  if(when_RegStackPlugin_l150_118) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_212;
+                  if(when_RegStackPlugin_l150_112) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_203;
                   end else begin
-                    if(when_RegStackPlugin_l152_118) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_212;
+                    if(when_RegStackPlugin_l152_112) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_203;
                     end else begin
-                      if(when_RegStackPlugin_l154_118) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_212;
+                      if(when_RegStackPlugin_l154_112) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_203;
                       end
                     end
                   end
@@ -10028,46 +10013,46 @@ module T9000Transputer (
             end
           end
           SystemOp_SYSREQ : begin
-            if(when_RegStackPlugin_l144_119) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_213;
+            if(when_RegStackPlugin_l144_113) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_204;
             end else begin
-              if(when_RegStackPlugin_l146_119) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_213;
+              if(when_RegStackPlugin_l146_113) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_204;
               end else begin
-                if(when_RegStackPlugin_l148_119) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_213;
+                if(when_RegStackPlugin_l148_113) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_204;
                 end else begin
-                  if(when_RegStackPlugin_l150_119) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_213;
+                  if(when_RegStackPlugin_l150_113) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_204;
                   end else begin
-                    if(when_RegStackPlugin_l152_119) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_213;
+                    if(when_RegStackPlugin_l152_113) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_204;
                     end else begin
-                      if(when_RegStackPlugin_l154_119) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_213;
+                      if(when_RegStackPlugin_l154_113) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_204;
                       end
                     end
                   end
                 end
               end
             end
-            if(when_RegStackPlugin_l144_120) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_214;
+            if(when_RegStackPlugin_l144_114) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_205;
             end else begin
-              if(when_RegStackPlugin_l146_120) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_214;
+              if(when_RegStackPlugin_l146_114) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_205;
               end else begin
-                if(when_RegStackPlugin_l148_120) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_214;
+                if(when_RegStackPlugin_l148_114) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_205;
                 end else begin
-                  if(when_RegStackPlugin_l150_120) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_214;
+                  if(when_RegStackPlugin_l150_114) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_205;
                   end else begin
-                    if(when_RegStackPlugin_l152_120) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_214;
+                    if(when_RegStackPlugin_l152_114) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_205;
                     end else begin
-                      if(when_RegStackPlugin_l154_120) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_214;
+                      if(when_RegStackPlugin_l154_114) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_205;
                       end
                     end
                   end
@@ -10076,46 +10061,46 @@ module T9000Transputer (
             end
           end
           SystemOp_DEVMOVE : begin
-            if(when_RegStackPlugin_l144_121) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_215;
+            if(when_RegStackPlugin_l144_115) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_206;
             end else begin
-              if(when_RegStackPlugin_l146_121) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_215;
+              if(when_RegStackPlugin_l146_115) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_206;
               end else begin
-                if(when_RegStackPlugin_l148_121) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_215;
+                if(when_RegStackPlugin_l148_115) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_206;
                 end else begin
-                  if(when_RegStackPlugin_l150_121) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_215;
+                  if(when_RegStackPlugin_l150_115) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_206;
                   end else begin
-                    if(when_RegStackPlugin_l152_121) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_215;
+                    if(when_RegStackPlugin_l152_115) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_206;
                     end else begin
-                      if(when_RegStackPlugin_l154_121) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_215;
+                      if(when_RegStackPlugin_l154_115) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_206;
                       end
                     end
                   end
                 end
               end
             end
-            if(when_RegStackPlugin_l144_122) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_216;
+            if(when_RegStackPlugin_l144_116) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_207;
             end else begin
-              if(when_RegStackPlugin_l146_122) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_216;
+              if(when_RegStackPlugin_l146_116) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_207;
               end else begin
-                if(when_RegStackPlugin_l148_122) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_216;
+                if(when_RegStackPlugin_l148_116) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_207;
                 end else begin
-                  if(when_RegStackPlugin_l150_122) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_216;
+                  if(when_RegStackPlugin_l150_116) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_207;
                   end else begin
-                    if(when_RegStackPlugin_l152_122) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_216;
+                    if(when_RegStackPlugin_l152_116) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_207;
                     end else begin
-                      if(when_RegStackPlugin_l154_122) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_216;
+                      if(when_RegStackPlugin_l154_116) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_207;
                       end
                     end
                   end
@@ -10124,47 +10109,47 @@ module T9000Transputer (
             end
           end
           SystemOp_SETTIMESLICE : begin
-            _zz_fpu_fpPipe_ctrl_0_down_RESULT_203 <= _zz_switch_SystemPlugin_l145_1[15 : 0];
-            if(when_RegStackPlugin_l144_123) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_217;
+            _zz_fpu_fpPipe_ctrl_0_down_RESULT_194 <= _zz_switch_SystemPlugin_l145_1[15 : 0];
+            if(when_RegStackPlugin_l144_117) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_208;
             end else begin
-              if(when_RegStackPlugin_l146_123) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_217;
+              if(when_RegStackPlugin_l146_117) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_208;
               end else begin
-                if(when_RegStackPlugin_l148_123) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_217;
+                if(when_RegStackPlugin_l148_117) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_208;
                 end else begin
-                  if(when_RegStackPlugin_l150_123) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_217;
+                  if(when_RegStackPlugin_l150_117) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_208;
                   end else begin
-                    if(when_RegStackPlugin_l152_123) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_217;
+                    if(when_RegStackPlugin_l152_117) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_208;
                     end else begin
-                      if(when_RegStackPlugin_l154_123) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_217;
+                      if(when_RegStackPlugin_l154_117) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_208;
                       end
                     end
                   end
                 end
               end
             end
-            if(when_RegStackPlugin_l144_124) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_218;
+            if(when_RegStackPlugin_l144_118) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_209;
             end else begin
-              if(when_RegStackPlugin_l146_124) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_218;
+              if(when_RegStackPlugin_l146_118) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_209;
               end else begin
-                if(when_RegStackPlugin_l148_124) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_218;
+                if(when_RegStackPlugin_l148_118) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_209;
                 end else begin
-                  if(when_RegStackPlugin_l150_124) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_218;
+                  if(when_RegStackPlugin_l150_118) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_209;
                   end else begin
-                    if(when_RegStackPlugin_l152_124) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_218;
+                    if(when_RegStackPlugin_l152_118) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_209;
                     end else begin
-                      if(when_RegStackPlugin_l154_124) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_218;
+                      if(when_RegStackPlugin_l154_118) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_209;
                       end
                     end
                   end
@@ -10173,23 +10158,23 @@ module T9000Transputer (
             end
           end
           default : begin
-            if(when_RegStackPlugin_l144_125) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_220;
+            if(when_RegStackPlugin_l144_119) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_211;
             end else begin
-              if(when_RegStackPlugin_l146_125) begin
-                _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_220;
+              if(when_RegStackPlugin_l146_119) begin
+                _zz_fpu_fpPipe_ctrl_0_down_RESULT_4 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_211;
               end else begin
-                if(when_RegStackPlugin_l148_125) begin
-                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_220;
+                if(when_RegStackPlugin_l148_119) begin
+                  _zz_fpu_fpPipe_ctrl_0_down_RESULT_5 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_211;
                 end else begin
-                  if(when_RegStackPlugin_l150_125) begin
-                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_9 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_220;
+                  if(when_RegStackPlugin_l150_119) begin
+                    _zz_fpu_fpPipe_ctrl_0_down_RESULT_6 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_211;
                   end else begin
-                    if(when_RegStackPlugin_l152_125) begin
-                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_10 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_220;
+                    if(when_RegStackPlugin_l152_119) begin
+                      _zz_fpu_fpPipe_ctrl_0_down_RESULT_7 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_211;
                     end else begin
-                      if(when_RegStackPlugin_l154_125) begin
-                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_11 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_220;
+                      if(when_RegStackPlugin_l154_119) begin
+                        _zz_fpu_fpPipe_ctrl_0_down_RESULT_8 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_211;
                       end
                     end
                   end
@@ -10200,67 +10185,67 @@ module T9000Transputer (
         endcase
       end
       if(fpu_fpPipe_ctrl_0_up_isValid) begin
-        if(!_zz_when) begin
-          if((_zz_6 == 8'h8e)) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_222 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_223;
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_223 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_223;
-          end else if((_zz_6 == 8'h8a)) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_222 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_223;
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_223 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_223;
-          end else if((_zz_6 == 8'haa)) begin
-          end else if((_zz_6 == _zz_111)) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_221 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_222;
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_222 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_221;
-          end else if((_zz_6 == _zz_113)) begin
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_223 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_222;
-              _zz_fpu_fpPipe_ctrl_0_down_RESULT_222 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_221;
-          end else if((_zz_6 == _zz_115)) begin
+        if(!_zz_when_20) begin
+          if((_zz_7 == 8'h8e)) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_213 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_214;
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_214 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_214;
+          end else if((_zz_7 == 8'h8a)) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_213 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_214;
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_214 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_214;
+          end else if((_zz_7 == 8'haa)) begin
+          end else if((_zz_7 == _zz_112)) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_212 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_213;
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_213 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_212;
+          end else if((_zz_7 == _zz_114)) begin
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_214 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_213;
+              _zz_fpu_fpPipe_ctrl_0_down_RESULT_213 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_212;
+          end else if((_zz_7 == _zz_116)) begin
               _zz_switch_Misc_l245_1 <= 2'b00;
-          end else if((_zz_6 == _zz_117)) begin
+          end else if((_zz_7 == _zz_118)) begin
               _zz_switch_Misc_l245_1 <= 2'b01;
-          end else if((_zz_6 == _zz_119)) begin
+          end else if((_zz_7 == _zz_120)) begin
               _zz_switch_Misc_l245_1 <= 2'b10;
-          end else if((_zz_6 == _zz_121)) begin
+          end else if((_zz_7 == _zz_122)) begin
               _zz_switch_Misc_l245_1 <= 2'b11;
-          end else if((_zz_6 == _zz_123) || (_zz_6 == _zz_125) || (_zz_6 == _zz_127) || (_zz_6 == _zz_129) || (_zz_6 == _zz_131) || (_zz_6 == _zz_133) || (_zz_6 == _zz_135)) begin
-          end else if((_zz_6 == _zz_137)) begin
-          end else if((_zz_6 == _zz_139)) begin
-          end else if((_zz_6 == _zz_141)) begin
-          end else if((_zz_6 == _zz_143)) begin
-          end else if((_zz_6 == _zz_145)) begin
-          end else if((_zz_6 == _zz_147)) begin
-          end else if((_zz_6 == _zz_149)) begin
-          end else if((_zz_6 == _zz_151)) begin
-          end else if((_zz_6 == _zz_153)) begin
-          end else if((_zz_6 == _zz_155)) begin
-          end else if((_zz_6 == _zz_157)) begin
-          end else if((_zz_6 == _zz_159)) begin
-          end else if((_zz_6 == _zz_161)) begin
-          end else if((_zz_6 == _zz_163)) begin
-          end else if((_zz_6 == _zz_165)) begin
-          end else if((_zz_6 == _zz_167)) begin
+          end else if((_zz_7 == _zz_124) || (_zz_7 == _zz_126) || (_zz_7 == _zz_128) || (_zz_7 == _zz_130) || (_zz_7 == _zz_132) || (_zz_7 == _zz_134) || (_zz_7 == _zz_136)) begin
+          end else if((_zz_7 == _zz_138)) begin
+          end else if((_zz_7 == _zz_140)) begin
+          end else if((_zz_7 == _zz_142)) begin
+          end else if((_zz_7 == _zz_144)) begin
+          end else if((_zz_7 == _zz_146)) begin
+          end else if((_zz_7 == _zz_148)) begin
+          end else if((_zz_7 == _zz_150)) begin
+          end else if((_zz_7 == _zz_152)) begin
+          end else if((_zz_7 == _zz_154)) begin
+          end else if((_zz_7 == _zz_156)) begin
+          end else if((_zz_7 == _zz_158)) begin
+          end else if((_zz_7 == _zz_160)) begin
+          end else if((_zz_7 == _zz_162)) begin
+          end else if((_zz_7 == _zz_164)) begin
+          end else if((_zz_7 == _zz_166)) begin
+          end else if((_zz_7 == _zz_168)) begin
               _zz_switch_Misc_l245_1 <= 2'b00;
-          end else if((_zz_6 == _zz_169)) begin
+          end else if((_zz_7 == _zz_170)) begin
               _zz_switch_Misc_l245_1 <= 2'b10;
-          end else if((_zz_6 == _zz_171)) begin
+          end else if((_zz_7 == _zz_172)) begin
               _zz_switch_Misc_l245_1 <= 2'b11;
-          end else if((_zz_6 == _zz_173)) begin
+          end else if((_zz_7 == _zz_174)) begin
               _zz_switch_Misc_l245_1 <= 2'b01;
-          end else if((_zz_6 == 8'h41)) begin
-          end else if((_zz_6 == 8'h42)) begin
-          end else if((_zz_6 == 8'h43)) begin
-          end else if((_zz_6 == 8'h5f)) begin
-          end else if((_zz_6 == 8'h90)) begin
+          end else if((_zz_7 == 8'h41)) begin
+          end else if((_zz_7 == 8'h42)) begin
+          end else if((_zz_7 == 8'h43)) begin
+          end else if((_zz_7 == 8'h5f)) begin
+          end else if((_zz_7 == 8'h90)) begin
           end
         end
         if(when_FpuPlugin_l492) begin
-          _zz_fpu_fpPipe_ctrl_0_down_RESULT_221 <= fpu_fpPipe_ctrl_0_down_RESULT;
-          _zz_fpu_fpPipe_ctrl_0_down_RESULT_222 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_223;
-          _zz_fpu_fpPipe_ctrl_0_down_RESULT_223 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_223;
+          _zz_fpu_fpPipe_ctrl_0_down_RESULT_212 <= fpu_fpPipe_ctrl_0_down_RESULT;
+          _zz_fpu_fpPipe_ctrl_0_down_RESULT_213 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_214;
+          _zz_fpu_fpPipe_ctrl_0_down_RESULT_214 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_214;
         end
         if(1'b0) begin
-          _zz_fpu_fpPipe_ctrl_0_down_RESULT_221 <= 64'bxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx;
-          _zz_fpu_fpPipe_ctrl_0_down_RESULT_222 <= 64'bxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx;
+          _zz_fpu_fpPipe_ctrl_0_down_RESULT_212 <= 64'bxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx;
+          _zz_fpu_fpPipe_ctrl_0_down_RESULT_213 <= 64'bxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx;
         end
       end
       if(fpu_fpPipe_ctrl_0_up_isFiring) begin
@@ -10272,32 +10257,32 @@ module T9000Transputer (
           _zz_fpu_fpPipe_ctrl_0_down_CYCLE_CNT <= 10'h0;
         end
       end
-      if(when_SchedulerPlugin_l129) begin
+      if(when_SchedulerPlugin_l131) begin
         if(streamFifo_2_io_pop_valid) begin
-          _zz_when_SchedulerPlugin_l168 <= _zz_when_SchedulerPlugin_l168_1;
-          _zz_when_SchedulerPlugin_l168_1 <= streamFifo_2_io_pop_payload;
-          _zz_when_SchedulerPlugin_l166 <= ProcessState_RUNNING;
-          _zz_when_SchedulerPlugin_l129 <= 1'b0;
-          _zz_when_SchedulerPlugin_l129_1 <= 1'b0;
+          _zz_when_SchedulerPlugin_l170 <= _zz_when_SchedulerPlugin_l170_1;
+          _zz_when_SchedulerPlugin_l170_1 <= streamFifo_2_io_pop_payload;
+          _zz_when_SchedulerPlugin_l168 <= ProcessState_RUNNING;
+          _zz_when_SchedulerPlugin_l131 <= 1'b0;
+          _zz_when_SchedulerPlugin_l131_1 <= 1'b0;
         end else begin
           if(streamFifo_3_io_pop_valid) begin
-            _zz_when_SchedulerPlugin_l168 <= _zz_when_SchedulerPlugin_l168_1;
-            _zz_when_SchedulerPlugin_l168_1 <= streamFifo_3_io_pop_payload;
-            _zz_when_SchedulerPlugin_l166 <= ProcessState_RUNNING;
-            _zz_when_SchedulerPlugin_l129 <= 1'b0;
-            _zz_when_SchedulerPlugin_l129_1 <= 1'b0;
+            _zz_when_SchedulerPlugin_l170 <= _zz_when_SchedulerPlugin_l170_1;
+            _zz_when_SchedulerPlugin_l170_1 <= streamFifo_3_io_pop_payload;
+            _zz_when_SchedulerPlugin_l168 <= ProcessState_RUNNING;
+            _zz_when_SchedulerPlugin_l131 <= 1'b0;
+            _zz_when_SchedulerPlugin_l131_1 <= 1'b0;
           end else begin
-            _zz_when_SchedulerPlugin_l166 <= ProcessState_WAITING;
-            _zz_when_SchedulerPlugin_l129_2 <= 1'b0;
+            _zz_when_SchedulerPlugin_l168 <= ProcessState_WAITING;
+            _zz_when_SchedulerPlugin_l131_2 <= 1'b0;
           end
         end
       end
-      if(when_SchedulerPlugin_l161) begin
-        _zz_when_SchedulerPlugin_l129_2 <= 1'b1;
+      if(when_SchedulerPlugin_l163) begin
+        _zz_when_SchedulerPlugin_l131_2 <= 1'b1;
       end
-      if(when_SchedulerPlugin_l166) begin
-        if(when_SchedulerPlugin_l168) begin
-          _zz_when_SchedulerPlugin_l129_1 <= 1'b1;
+      if(when_SchedulerPlugin_l168) begin
+        if(when_SchedulerPlugin_l170) begin
+          _zz_when_SchedulerPlugin_l131_1 <= 1'b1;
         end
       end
     end
@@ -10508,6 +10493,7 @@ module FpuAdder (
   wire       [11:0]   _zz__zz_pipe_ctrl_1_down_RESULT_9_2;
   wire       [11:0]   _zz__zz_pipe_ctrl_1_down_RESULT_9_3;
   wire       [6:0]    _zz__zz_pipe_ctrl_1_down_RESULT_9_4;
+  wire                _zz_when;
   wire       [11:0]   _zz__zz_pipe_ctrl_1_down_RESULT_13;
   wire       [11:0]   _zz__zz_pipe_ctrl_1_down_RESULT_12;
   wire       [11:0]   _zz__zz_pipe_ctrl_1_down_RESULT_12_1;
@@ -10787,6 +10773,7 @@ module FpuAdder (
   wire                _zz_pipe_ctrl_1_down_RESULT_22;
   wire                when_StageLink_l67;
 
+  assign _zz_when = ($signed(_zz_pipe_ctrl_1_down_RESULT_9) <= $signed(12'h0));
   assign _zz__zz_pipe_ctrl_0_down_MB = (pipe_ctrl_0_down_EA - pipe_ctrl_0_down_EB);
   assign _zz__zz_pipe_ctrl_0_down_MA = (- _zz_pipe_ctrl_0_down_MB);
   assign _zz_pipe_ctrl_0_down_MA_2 = {5'd0, _zz_pipe_ctrl_0_down_MA_1};
@@ -11053,9 +11040,15 @@ module FpuAdder (
   always @(*) begin
     if(when_Adder_l123) begin
       _zz_pipe_ctrl_1_down_RESULT_8 = _zz__zz_pipe_ctrl_1_down_RESULT_8[52:0];
-      _zz_pipe_ctrl_1_down_RESULT_9 = ($signed(_zz__zz_pipe_ctrl_1_down_RESULT_9) - $signed(_zz__zz_pipe_ctrl_1_down_RESULT_9_1));
     end else begin
       _zz_pipe_ctrl_1_down_RESULT_8 = _zz__zz_pipe_ctrl_1_down_RESULT_8_1[52:0];
+    end
+  end
+
+  always @(*) begin
+    if(when_Adder_l123) begin
+      _zz_pipe_ctrl_1_down_RESULT_9 = ($signed(_zz__zz_pipe_ctrl_1_down_RESULT_9) - $signed(_zz__zz_pipe_ctrl_1_down_RESULT_9_1));
+    end else begin
       _zz_pipe_ctrl_1_down_RESULT_9 = ($signed(_zz__zz_pipe_ctrl_1_down_RESULT_9_2) + $signed(_zz__zz_pipe_ctrl_1_down_RESULT_9_3));
     end
   end
@@ -11064,11 +11057,17 @@ module FpuAdder (
   assign _zz_pipe_ctrl_1_down_RESULT_13 = _zz__zz_pipe_ctrl_1_down_RESULT_13;
   assign _zz_pipe_ctrl_1_down_RESULT_14 = 6'h3f;
   always @(*) begin
-    if(($signed(_zz_pipe_ctrl_1_down_RESULT_9) <= $signed(12'h0))) begin
+    if(_zz_when) begin
       _zz_pipe_ctrl_1_down_RESULT_12 = (_zz_pipe_ctrl_1_down_RESULT_8 >>> ((_zz_pipe_ctrl_1_down_RESULT_13 < _zz__zz_pipe_ctrl_1_down_RESULT_12) ? _zz_pipe_ctrl_1_down_RESULT_13 : _zz__zz_pipe_ctrl_1_down_RESULT_12_1));
-      _zz_pipe_ctrl_1_down_RESULT_11 = 11'h0;
     end else begin
       _zz_pipe_ctrl_1_down_RESULT_12 = _zz_pipe_ctrl_1_down_RESULT_8;
+    end
+  end
+
+  always @(*) begin
+    if(_zz_when) begin
+      _zz_pipe_ctrl_1_down_RESULT_11 = 11'h0;
+    end else begin
       _zz_pipe_ctrl_1_down_RESULT_11 = _zz__zz_pipe_ctrl_1_down_RESULT_11[10:0];
     end
   end

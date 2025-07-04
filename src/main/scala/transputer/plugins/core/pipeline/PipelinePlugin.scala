@@ -9,6 +9,7 @@ import transputer.plugins.core.pipeline.PipelineStageService
 
 /** Defines the global CPU pipeline structure and exposes stage handles. */
 class PipelinePlugin extends FiberPlugin with PipelineStageService {
+  override def getDisplayName(): String = "PipelinePlugin"
   setName("pipeline")
   val version = "PipelinePlugin v0.2"
   val elaborationLock = Retainer()

@@ -26,6 +26,8 @@ import transputer.plugins.core.pipeline.{PipelineService, PipelineStageService}
   * GrouperPlugin, and accessing 128-bit system bus via BMB.
   */
 class PrimaryInstrPlugin extends FiberPlugin with PipelineService {
+  override def getDisplayName(): String = "PrimaryInstrPlugin"
+  setName("primaryInstr")
   val version = "PrimaryInstrPlugin v0.6"
 
   during setup new Area {

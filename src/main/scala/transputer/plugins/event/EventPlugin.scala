@@ -10,6 +10,9 @@ import transputer.plugins.event.EventService
   * interrupt handling Based on T9000 hardware reference manual
   */
 class EventPlugin extends FiberPlugin {
+  override def getDisplayName(): String = "EventPlugin"
+  setName("event")
+  
   println(s"[${this.getDisplayName()}] setup start")
 
   // Event System Configuration

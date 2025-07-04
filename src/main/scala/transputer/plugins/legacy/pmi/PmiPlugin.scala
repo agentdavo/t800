@@ -11,7 +11,11 @@ import transputer.plugins.legacy.pmi.PmiService
   * DMA and burst support Based on T9000 hardware reference manual
   */
 class PmiPlugin extends FiberPlugin {
-  println(s"[${this.getDisplayName()}] setup start")
+  override def getDisplayName(): String = "PmiPlugin"
+  setName("pmi")
+
+  during setup new Area {
+    println(s"[${this.getDisplayName()}] setup start")
 
   // PMI Configuration constants
   private val EXTERNAL_ADDR_WIDTH = 32
@@ -323,7 +327,8 @@ class PmiPlugin extends FiberPlugin {
     override def updateRegisters(): Unit = {
       // Registers update automatically in SpinalHDL
     }
-  })
+    })
 
-  println(s"[${this.getDisplayName()}] setup end")
+    println(s"[${this.getDisplayName()}] setup end")
+  }
 }

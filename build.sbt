@@ -1,9 +1,9 @@
-// Simplified SpinalHDL build configuration
+// Simplified SpinalHDL build configuration  
 ThisBuild / organization := "org.example"
 ThisBuild / version := "1.0.0"
 ThisBuild / scalaVersion := "2.13.14"
 
-// Use published SpinalHDL jars (simpler and more stable)
+// Use published SpinalHDL jars (stable and reliable)
 val spinalVersion = "1.12.2"
 
 libraryDependencies ++= Seq(
@@ -16,6 +16,9 @@ libraryDependencies ++= Seq(
 // Simplified settings
 Compile / scalaSource := baseDirectory.value / "src" / "main" / "scala"
 Test / scalaSource := baseDirectory.value / "src" / "test" / "scala"
+
+// Exclude disabled files from compilation
+Compile / unmanagedSources / excludeFilter := "disabled" || HiddenFileFilter
 
 // Fork JVM to avoid memory issues
 Compile / run / fork := true

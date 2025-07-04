@@ -8,6 +8,8 @@ import spinal.lib.misc.pipeline._
   * StageLinks from plugins and passes them to the SpinalHDL pipeline [[Builder]].
   */
 class PipelineBuilderPlugin extends FiberPlugin {
+  override def getDisplayName(): String = "PipelineBuilderPlugin"
+  setName("pipelineBuilder")
   val version = "PipelineBuilderPlugin v0.5"
 
   // Use scala.collection.Seq for compatibility across Scala versions

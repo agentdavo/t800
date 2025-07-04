@@ -10,18 +10,27 @@ import transputer.plugins.analysis.AnalysisService
   * error analysis capabilities Based on T9000 hardware reference manual debugging features
   */
 class AnalysisPlugin extends FiberPlugin {
-  println(s"[${this.getDisplayName()}] setup start")
+  override def getDisplayName(): String = "AnalysisPlugin"
+  setName("analysis")
 
-  // Analysis Configuration
-  private val MAX_BREAKPOINTS = 8
-  private val TRACE_BUFFER_SIZE = 256
-  private val MAX_PERFORMANCE_COUNTERS = 16
+  during setup new Area {
+    println(s"[${this.getDisplayName()}] setup start")
+    println(s"[${this.getDisplayName()}] setup end")
+  }
 
-  // Analysis Control Registers
-  private val analysisEnabledReg = Reg(Bool()) init False
-  private val analysisModeReg = Reg(Bits(8 bits)) init 0
-  private val analysisPausedReg = Reg(Bool()) init False
-  private val analysisTriggeredReg = Reg(Bool()) init False
+  during build new Area {
+    println(s"[${this.getDisplayName()}] build start")
+
+    // Analysis Configuration
+    val MAX_BREAKPOINTS = 8
+    val TRACE_BUFFER_SIZE = 256
+    val MAX_PERFORMANCE_COUNTERS = 16
+
+    // Analysis Control Registers
+    val analysisEnabledReg = Reg(Bool()) init False
+    val analysisModeReg = Reg(Bits(8 bits)) init 0
+    val analysisPausedReg = Reg(Bool()) init False
+    val analysisTriggeredReg = Reg(Bool()) init False
 
   // Breakpoint Management
   private val breakpointAddresses = Vec(Reg(UInt(32 bits)) init 0, MAX_BREAKPOINTS)
@@ -342,7 +351,8 @@ class AnalysisPlugin extends FiberPlugin {
     override def updateRegisters(): Unit = {
       // Registers update automatically in SpinalHDL
     }
-  })
+    })
 
-  println(s"[${this.getDisplayName()}] setup end")
+    println(s"[${this.getDisplayName()}] setup end")
+  }
 }

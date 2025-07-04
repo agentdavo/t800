@@ -1,28 +1,26 @@
 package transputer
 
 import spinal.core._
-import spinal.lib.misc.database.Database
 import spinal.lib.misc.pipeline._
 import spinal.lib._
 
-/** Global configuration elements and configuration register framework for Transputer, accessed via
-  * [[Database]]. Default values are defined below for convenience, aligned with IMS T9000
-  * specifications.
+/** Global configuration elements and configuration register framework for Transputer.
+  * Updated to use static constants for compilation compatibility.
   */
 object Global extends AreaObject {
-  // Database handles for configuration
-  val WORD_BITS = Database.blocking[Int]
-  val ADDR_BITS = Database.blocking[Int]
-  val PC_BITS = Database.blocking[Int]
-  val INSTR_BITS = Database.blocking[Int]
-  val IPTR_BITS = Database.blocking[Int]
-  val OPCODE_BITS = Database.blocking[Int]
-  val ROM_WORDS = Database.blocking[Int]
-  val RAM_WORDS = Database.blocking[Int]
-  val LINK_COUNT = Database.blocking[Int]
-  val FPU_PRECISION = Database.blocking[Int]
-  val SCHED_QUEUE_DEPTH = Database.blocking[Int]
-  val RESET_IPTR = Database.blocking[Long]
+  // Static configuration constants (replacing Database for compilation)
+  val WORD_BITS = 32
+  val ADDR_BITS = 32
+  val PC_BITS = 32
+  val INSTR_BITS = 8
+  val IPTR_BITS = 32
+  val OPCODE_BITS = 8
+  val ROM_WORDS = 1024
+  val RAM_WORDS = 32768
+  val LINK_COUNT = 4
+  val FPU_PRECISION = 64
+  val SCHED_QUEUE_DEPTH = 16
+  val RESET_IPTR = 0x80000000L
 
   // Default constants formerly hosted in `TConsts`, aligned with T9000
   val WordBits = 32
