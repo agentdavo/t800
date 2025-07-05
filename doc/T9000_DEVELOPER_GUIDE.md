@@ -38,6 +38,7 @@ sbt test
 # Generate Verilog
 sbt "runMain transputer.Generate"              # Full T9000
 sbt "runMain transputer.Generate --minimal"    # Bare bones version
+sbt "runMain transputer.Generate --boot-inmos" # With INMOS bootloader
 
 # With options
 sbt "runMain transputer.Generate --enable-fpu true --link-count 4"
@@ -298,6 +299,8 @@ Instructions execute in specific pipeline stages:
 
 ## Assembly Programming
 
+The T9000 includes a full transputer assembler (`TransputerAssembler.scala`) that supports both simplified syntax and official INMOS assembler syntax with `.TRANSPUTER` directive. The assembler generates Intel HEX format output compatible with the boot ROM loader.
+
 ### Instruction Reference
 
 **Primary Instructions**
@@ -325,6 +328,16 @@ startp       ; Start process
 endp         ; End process
 runp         ; Run process
 stopp        ; Stop process
+```
+
+**I/O Instructions**
+```asm
+out          ; Output block (Areg=chan, Breg=addr, Creg=length)
+outbyte      ; Output single byte (Areg=chan, Breg=byte)
+outword      ; Output 32-bit word (Areg=chan, Breg=word)
+in           ; Input block (Areg=chan, Breg=addr, Creg=length)
+inbyte       ; Input single byte (Areg=chan) → Areg
+inword       ; Input 32-bit word (Areg=chan) → Areg
 ```
 
 ### Program Structure
@@ -389,6 +402,97 @@ LoopEnd:
     pop                 ; Clean stack
 ```
 
+### IServer Protocol Programming
+
+The IServer protocol provides host communication for debugging, console I/O, and file operations. The T9000 includes official IServer support with two standard hello world examples.
+
+**IServer Frame Structure**
+```
+2 bytes  - Frame length (excluding this field)
+1 byte   - Request type (REQ_*)
+4 bytes  - Stream ID (little-endian)
+2 bytes  - Data length (little-endian)
+N bytes  - Data payload
+```
+
+**Request Types**
+```asm
+REQ_PUTS        EQU 0x0F    ; Console output
+REQ_GETS        EQU 0x10    ; Console input
+REQ_OPEN        EQU 0x0A    ; File open
+REQ_CLOSE       EQU 0x0B    ; File close
+REQ_READ        EQU 0x0C    ; File read
+REQ_WRITE       EQU 0x0D    ; File write
+```
+
+**Stream IDs**
+```asm
+STDIN_STREAMID  EQU 0x00    ; Standard input
+STDOUT_STREAMID EQU 0x01    ; Standard output
+STDERR_STREAMID EQU 0x02    ; Standard error
+```
+
+**Hello World using IServer (ROM version)**
+```asm
+; hello-iserver-rom.asm - Official INMOS example
+; Sends "hello world" to console via Link 0
+; Designed to run from ROM at 0x7FFFFFFE
+
+putConsolePString:
+    ; Calculate string length
+    call    strlen
+    
+    ; Send frame length (7 + string length)
+    adc     7
+    call    outshort0
+    
+    ; Send request type
+    ldc     LINK0_OUTPUT
+    ldc     REQ_PUTS
+    outbyte
+    
+    ; Send stream ID (4 bytes)
+    ldc     LINK0_OUTPUT
+    ldc     STDOUT_STREAMID
+    outword
+    
+    ; Send data length (2 bytes)
+    ldl     stringlen
+    call    outshort0
+    
+    ; Send string data
+    ldl     stringaddr
+    ldc     LINK0_OUTPUT
+    ldl     stringlen
+    out
+    
+    ret
+
+; Helper to output 16-bit value
+outshort0:
+    ldc     LINK0_OUTPUT
+    ldlp    1           ; Address of value on stack
+    rev
+    ldc     2
+    out
+    ret
+```
+
+**IServer Handler Component**
+```scala
+// IServerHandler.scala - SpinalHDL implementation
+class IServerHandler extends Component {
+  val io = new Bundle {
+    val linkIn = slave(Stream(Bits(8 bits)))
+    val linkOut = master(Stream(Bits(8 bits)))
+    val consoleOut = master(Stream(Bits(8 bits)))
+  }
+  
+  // State machine to parse frames
+  // and dispatch to appropriate handlers
+}
+```
+
 ## Pipeline Visualization
 
 ### Konata Integration
@@ -416,6 +520,44 @@ The T9000 supports pipeline visualization using Konata:
 - **Stalls**: Cache misses, hazards (shown as overlays)
 - **Flushes**: Branch mispredictions (red indicators)
 - **Dependencies**: Data hazards (arrows between instructions)
+
+## Boot ROM Support
+
+The T9000 can boot from ROM at startup:
+
+```bash
+# Boot with INMOS bootloader
+sbt "runMain transputer.Generate --boot-inmos"
+
+# Boot with custom program
+sbt "runMain transputer.TransputerAssembler myboot.asm"
+sbt "runMain transputer.Generate --boot-rom-hex scripts/hex/myboot.hex"
+```
+
+See [BOOT_ROM_USAGE.md](./BOOT_ROM_USAGE.md) for detailed information.
+
+### Official Transputer Examples
+
+The project includes official INMOS transputer code examples in `scripts/asm/`:
+
+**hello-iserver.asm** - Primary bootstrap IServer hello world
+- Fits in 255 bytes (primary bootstrap limit)
+- Sends "hello world" to console via Link 0
+- Uses compact coding techniques
+- Demonstrates IServer protocol implementation
+
+**hello-iserver-rom.asm** - ROM-based IServer hello world  
+- Designed to run from ROM at 0x7FFFFFFE
+- Full initialization sequence
+- More extensive than bootstrap version
+- Shows proper ROM layout with reset vector
+
+These examples use official INMOS assembler syntax (.TRANSPUTER directive) and demonstrate:
+- Processor initialization sequence
+- IServer protocol frame construction
+- Link channel I/O operations
+- Efficient stack manipulation
+- ROM layout for boot code
 
 ## Troubleshooting
 

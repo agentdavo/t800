@@ -38,20 +38,19 @@ case class Param(
     plugins += new transputer.plugins.bus.SystemBusPlugin
     plugins += new transputer.plugins.core.regstack.RegStackPlugin
 
-    
     // Instruction fetch and processing pipeline
     plugins += new transputer.plugins.core.fetch.FetchPlugin
     plugins += new transputer.plugins.core.grouper.InstrGrouperPlugin
-    
+
     // Basic instruction execution
     plugins += new transputer.plugins.arithmetic.ArithmeticPlugin
     plugins += new transputer.plugins.general.GeneralPlugin
 
     // Timers
     plugins += new transputer.plugins.timers.TimerPlugin
-    
+
     // Pipeline builder to connect everything
     plugins += new transputer.plugins.core.pipeline.PipelineBuilderPlugin
-    
+
   }
 }

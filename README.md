@@ -36,16 +36,31 @@ This project implements a complete T9000 Transputer processor using SpinalHDL's 
 git clone https://github.com/agentdavo/t800.git
 cd t800
 
-# Format code (required before commits)
-sbt scalafmtAll
+# Quick start with main scripts
+./scripts/build.sh              # Build T9000 Verilog
+./scripts/test.sh               # Run validation tests
+./scripts/assemble.sh --list    # See example programs
+
+# Build different configurations
+./scripts/build.sh --config standard    # Full T9000 (default)
+./scripts/build.sh --config minimal     # Bare bones version
+./scripts/build.sh --config bootrom     # Boot ROM design
+./scripts/build.sh --config all         # Build all variants
 
 # Run tests
-sbt test
+./scripts/test.sh --type quick          # Quick validation
+./scripts/test.sh --type full           # Comprehensive tests
+./scripts/test.sh --type pipeline       # Pipeline validation
 
-# Generate Verilog
-sbt "runMain transputer.Generate"                    # Full T9000
-sbt "runMain transputer.Generate --minimal"          # Minimal version
-sbt "runMain transputer.Generate --enable-fpu true"  # With options
+# Assemble programs
+./scripts/assemble.sh scripts/asm/hello_world.asm
+./scripts/assemble.sh scripts/asm/bootload.asm -o boot.hex
+
+# Utilities
+./scripts/utils.sh konata --demo        # Pipeline visualization
+./scripts/utils.sh trace --hex boot.hex # Instruction trace
+./scripts/utils.sh clean                # Clean build artifacts
+./scripts/utils.sh info                 # Project status
 ```
 
 ### Testing Workflow
@@ -134,31 +149,65 @@ src/main/scala/transputer/plugins/
 - [Assembly Programming](doc/T9000_DEVELOPER_GUIDE.md#assembly-programming)
 - [Pipeline Visualization](doc/T9000_DEVELOPER_GUIDE.md#pipeline-visualization)
 
-## Testing Infrastructure
+## Development Scripts
 
-### Transputer Assembler
+The project includes four main scripts for streamlined development:
+
+### 1. Build Script (`./scripts/build.sh`)
 
 ```bash
-# Assemble custom program
-sbt "runMain transputer.TransputerAssembler scripts/asm/program.asm"
+# Build configurations
+./scripts/build.sh                      # Default: full T9000
+./scripts/build.sh --config minimal     # Minimal transputer
+./scripts/build.sh --config bootrom     # Boot ROM design
+./scripts/build.sh --config all         # All configurations
 
-# Built-in programs
-sbt "runMain transputer.TransputerAssembler --bootload"  # INMOS bootloader
-sbt "runMain transputer.TransputerAssembler --hello"     # Hello world
+# Custom options
+./scripts/build.sh --word-width 64 --link-count 8 --fpu true
+./scripts/build.sh --output custom_output/
 ```
 
-### Enhanced Testing
+### 2. Test Script (`./scripts/test.sh`)
 
 ```bash
-# Generate with test features
-sbt "runMain transputer.GenerateWithTest --hex test.hex --wave --konata"
+# Test types
+./scripts/test.sh                       # Quick validation
+./scripts/test.sh --type full           # All test suites
+./scripts/test.sh --type pipeline       # Pipeline tests only
+./scripts/test.sh --type integration    # Integration tests
 
-# Options:
-#   --hex <file>    Load hex file
-#   --wave          Enable waveforms
-#   --konata        Pipeline visualization
-#   --pass <addr>   Pass symbol address
-#   --fail <addr>   Fail symbol address
+# Options
+./scripts/test.sh --verbose             # Detailed output
+./scripts/test.sh --no-report           # Skip report generation
+./scripts/test.sh --reports custom_dir/ # Custom report location
+```
+
+### 3. Assembly Script (`./scripts/assemble.sh`)
+
+```bash
+# Basic usage
+./scripts/assemble.sh program.asm       # Assemble to hex
+./scripts/assemble.sh -o output.hex program.asm
+
+# List examples
+./scripts/assemble.sh --list            # Show example programs
+
+# Formats
+./scripts/assemble.sh --format hex program.asm      # Intel HEX (default)
+./scripts/assemble.sh --format bootload boot.asm    # Bootloader format
+```
+
+### 4. Utilities Script (`./scripts/utils.sh`)
+
+```bash
+# Commands
+./scripts/utils.sh konata --demo        # Generate demo visualization
+./scripts/utils.sh konata --hex prog.hex # Visualize program execution
+./scripts/utils.sh trace --hex boot.hex # Instruction trace
+./scripts/utils.sh wave --hex test.hex  # Generate waveforms
+./scripts/utils.sh clean                # Clean all artifacts
+./scripts/utils.sh verilator-fix        # Fix Verilator issues
+./scripts/utils.sh info                 # Project information
 ```
 
 ### Pipeline Visualization

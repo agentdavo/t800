@@ -1,6 +1,7 @@
+*.DS_Store
+*.Identifier
 /ext/SpinalHDL
-/project
 /target
 /simWorkspace
-*.Identifier
-/backup_20250703_192645
+/project/project
+/project/target

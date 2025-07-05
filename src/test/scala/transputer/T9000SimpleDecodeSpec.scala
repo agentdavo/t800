@@ -5,10 +5,9 @@ import spinal.core._
 import spinal.core.sim._
 import spinal.lib._
 
-/**
- * Test specification for T9000 Simple Instruction Decode
- * Tests primary instruction decode with prefix handling
- */
+/** Test specification for T9000 Simple Instruction Decode Tests primary instruction decode with
+  * prefix handling
+  */
 class T9000SimpleDecodeSpec extends AnyFunSuite {
 
   // Test component for instruction decode functionality
@@ -22,23 +21,25 @@ class T9000SimpleDecodeSpec extends AnyFunSuite {
       enableTimers = false,
       enableMmu = false
     )
-    
+
     // Configure globals
     T9000Transputer.configureGlobals(param)
-    
+
     // Create transputer with decode-related plugins
-    val core = Transputer(Seq(
-      new transputer.plugins.core.transputer.TransputerPlugin(),
-      new transputer.plugins.core.pipeline.PipelinePlugin(),
-      new transputer.plugins.core.pipeline.PipelineBuilderPlugin(),
-      new transputer.plugins.core.regstack.RegStackPlugin(),
-      new transputer.plugins.core.fetch.FetchPlugin(),
-      new transputer.plugins.core.grouper.InstrGrouperPlugin(),
-      new transputer.plugins.arithmetic.ArithmeticPlugin(),
-      new transputer.plugins.general.GeneralPlugin(),
-      new transputer.plugins.bus.SystemBusPlugin()
-    ))
-    
+    val core = Transputer(
+      Seq(
+        new transputer.plugins.core.transputer.TransputerPlugin(),
+        new transputer.plugins.core.pipeline.PipelinePlugin(),
+        new transputer.plugins.core.pipeline.PipelineBuilderPlugin(),
+        new transputer.plugins.core.regstack.RegStackPlugin(),
+        new transputer.plugins.core.fetch.FetchPlugin(),
+        new transputer.plugins.core.grouper.InstrGrouperPlugin(),
+        new transputer.plugins.arithmetic.ArithmeticPlugin(),
+        new transputer.plugins.general.GeneralPlugin(),
+        new transputer.plugins.bus.SystemBusPlugin()
+      )
+    )
+
     val systemBus = core.systemBus
   }
 
@@ -49,7 +50,7 @@ class T9000SimpleDecodeSpec extends AnyFunSuite {
       dut.clockDomain.waitSampling(5)
       dut.clockDomain.deassertReset()
       dut.clockDomain.waitSampling(10)
-      
+
       // Decode pipeline instantiation successful
       assert(true, "Instruction decode pipeline instantiated successfully")
     }
@@ -61,19 +62,25 @@ class T9000SimpleDecodeSpec extends AnyFunSuite {
       dut.clockDomain.assertReset()
       dut.clockDomain.waitSampling(10)
       dut.clockDomain.deassertReset()
-      
+
       // Allow fetch and decode to operate
       for (cycle <- 0 until 50) {
         dut.clockDomain.waitSampling()
-        
+
         // Monitor fetch activity on system bus
         if (cycle % 10 == 0) {
           val cmdValid = dut.systemBus.cmd.valid.toBoolean
           val rspValid = dut.systemBus.rsp.valid.toBoolean
-          
+
           // Bus should be operational for fetch
-          assert(cmdValid == true || cmdValid == false, s"cmd.valid should be stable at cycle $cycle")
-          assert(rspValid == true || rspValid == false, s"rsp.valid should be stable at cycle $cycle")
+          assert(
+            cmdValid == true || cmdValid == false,
+            s"cmd.valid should be stable at cycle $cycle"
+          )
+          assert(
+            rspValid == true || rspValid == false,
+            s"rsp.valid should be stable at cycle $cycle"
+          )
         }
       }
     }
@@ -85,24 +92,24 @@ class T9000SimpleDecodeSpec extends AnyFunSuite {
       dut.clockDomain.assertReset()
       dut.clockDomain.waitSampling(10)
       dut.clockDomain.deassertReset()
-      
+
       // Test primary opcode patterns
       val primaryOpcodes = Seq(
         0x4, // LDC
-        0x7, // LDL  
+        0x7, // LDL
         0x8, // ADC
-        0xB, // AJW
-        0xD, // STL
-        0xF  // OPR (secondary)
+        0xb, // AJW
+        0xd, // STL
+        0xf // OPR (secondary)
       )
-      
+
       // Simulate instruction decode for different opcodes
       for (opcode <- primaryOpcodes) {
         for (cycle <- 0 until 10) {
           dut.clockDomain.waitSampling()
         }
       }
-      
+
       assert(true, "Primary opcodes handled successfully")
     }
   }
@@ -113,13 +120,13 @@ class T9000SimpleDecodeSpec extends AnyFunSuite {
       dut.clockDomain.assertReset()
       dut.clockDomain.waitSampling(10)
       dut.clockDomain.deassertReset()
-      
+
       // Test prefix handling (PFIX/NFIX)
       val prefixOpcodes = Seq(
         0x2, // PFIX
-        0x6  // NFIX
+        0x6 // NFIX
       )
-      
+
       // Simulate prefix instruction sequences
       for (prefix <- prefixOpcodes) {
         // Prefix followed by actual instruction
@@ -127,7 +134,7 @@ class T9000SimpleDecodeSpec extends AnyFunSuite {
           dut.clockDomain.waitSampling()
         }
       }
-      
+
       assert(true, "Prefix instructions handled successfully")
     }
   }
@@ -138,13 +145,13 @@ class T9000SimpleDecodeSpec extends AnyFunSuite {
       dut.clockDomain.assertReset()
       dut.clockDomain.waitSampling(10)
       dut.clockDomain.deassertReset()
-      
+
       // Test that arithmetic and general plugins are integrated
       assert(dut.core != null, "Core with arithmetic plugins should be instantiated")
-      
+
       // Run decode with arithmetic operations
       dut.clockDomain.waitSampling(30)
-      
+
       assert(true, "Arithmetic plugins integrated with decode successfully")
     }
   }

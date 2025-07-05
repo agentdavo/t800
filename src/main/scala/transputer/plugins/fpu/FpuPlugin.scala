@@ -36,13 +36,13 @@ class FpuPlugin extends FiberPlugin with PipelineService {
   lazy val T805_STATE = Payload(Bits(64 bits))
 
   during setup new Area {
-    println(s"[${this.getDisplayName()}] setup start")
+    println(s"[${FpuPlugin.this.getDisplayName()}] setup start")
     report(L"Initializing $version")
-    println(s"[${this.getDisplayName()}] setup end")
+    println(s"[${FpuPlugin.this.getDisplayName()}] setup end")
   }
 
   during build new Area {
-    println(s"[${this.getDisplayName()}] build start")
+    println(s"[${FpuPlugin.this.getDisplayName()}] build start")
 
     // Create service flows in build phase where component context is available
     val srvCmd = Flow(FpCmd())
@@ -549,7 +549,7 @@ class FpuPlugin extends FiberPlugin with PipelineService {
 
     fpPipe.build()
 
-    println(s"[${this.getDisplayName()}] build end")
+    println(s"[${FpuPlugin.this.getDisplayName()}] build end")
   }
 
   override def getLinks(): Seq[Link] = Seq()

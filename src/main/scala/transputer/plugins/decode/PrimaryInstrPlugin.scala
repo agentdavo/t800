@@ -31,9 +31,9 @@ class PrimaryInstrPlugin extends FiberPlugin with PipelineService {
   val version = "PrimaryInstrPlugin v0.6"
 
   during setup new Area {
-    println(s"[${this.getDisplayName()}] setup start")
+    println(s"[${PrimaryInstrPlugin.this.getDisplayName()}] setup start")
     report(L"Initializing $version")
-    println(s"[${this.getDisplayName()}] setup end")
+    println(s"[${PrimaryInstrPlugin.this.getDisplayName()}] setup end")
   }
 
   during build new Area {
@@ -295,7 +295,7 @@ class PrimaryInstrPlugin extends FiberPlugin with PipelineService {
       }
     }
 
-    println(s"[${this.getDisplayName()}] build end")
+    println(s"[${PrimaryInstrPlugin.this.getDisplayName()}] build end")
   }
 
   override def getLinks(): Seq[Link] = Seq()

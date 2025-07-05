@@ -4,8 +4,8 @@ import spinal.core._
 import spinal.lib.misc.pipeline._
 import spinal.lib._
 
-/** Global configuration elements and configuration register framework for Transputer.
-  * Updated to use static constants for compilation compatibility.
+/** Global configuration elements and configuration register framework for Transputer. Updated to
+  * use static constants for compilation compatibility.
   */
 object Global extends AreaObject {
   // Static configuration constants (replacing Database for compilation)
@@ -31,7 +31,7 @@ object Global extends AreaObject {
   val LinkCount = 4
   val FpuPrecision = WordBits
   val SchedQueueDepth = LinkCount
-  val ResetIptr = 0x00000000L
+  val ResetIptr = 0x80000000L // Boot from ROM at 0x80000000
 
   // Dynamic getter for systemBusParam and plugins
   // In the current minimal build the database may not contain ADDR_BITS,

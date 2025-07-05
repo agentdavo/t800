@@ -19,16 +19,16 @@ class PipelineBuilderPlugin extends FiberPlugin {
   def buildPipeline(): scala.collection.Seq[Link] = builtLinks
 
   during setup new Area {
-    println(s"[${this.getDisplayName()}] setup start")
+    println(s"[${PipelineBuilderPlugin.this.getDisplayName()}] setup start")
     report(L"Initializing $version")
-    println(s"[${this.getDisplayName()}] setup end")
+    println(s"[${PipelineBuilderPlugin.this.getDisplayName()}] setup end")
   }
 
   during build new Area {
-    println(s"[${this.getDisplayName()}] build start")
+    println(s"[${PipelineBuilderPlugin.this.getDisplayName()}] build start")
     implicit val h: PluginHost = host
     builtLinks = Plugin.list[PipelineService].flatMap(_.getLinks())
     if (builtLinks.nonEmpty) Builder(builtLinks)
-    println(s"[${this.getDisplayName()}] build end")
+    println(s"[${PipelineBuilderPlugin.this.getDisplayName()}] build end")
   }
 }

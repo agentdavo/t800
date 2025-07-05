@@ -38,13 +38,13 @@ class WorkspaceCachePlugin extends FiberPlugin {
   private var dataB: Bits = null
 
   during setup new Area {
-    println(s"[${this.getDisplayName()}] setup start")
+    println(s"[${WorkspaceCachePlugin.this.getDisplayName()}] setup start")
     // Service will be registered in build phase after hardware creation
-    println(s"[${this.getDisplayName()}] setup end")
+    println(s"[${WorkspaceCachePlugin.this.getDisplayName()}] setup end")
   }
 
   during build new Area {
-    println(s"[${this.getDisplayName()}] build start")
+    println(s"[${WorkspaceCachePlugin.this.getDisplayName()}] build start")
     // Initialize triple-ported workspace RAM per T9000 specification
     workspaceRam = Mem(Bits(32 bits), WORKSPACE_SIZE_WORDS)
 
@@ -172,6 +172,6 @@ class WorkspaceCachePlugin extends FiberPlugin {
       override def writePending: Bool = portC.write
     })
 
-    println(s"[${this.getDisplayName()}] build end")
+    println(s"[${WorkspaceCachePlugin.this.getDisplayName()}] build end")
   }
 }

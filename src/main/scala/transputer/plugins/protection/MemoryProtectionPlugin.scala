@@ -48,7 +48,7 @@ class MemoryProtectionPlugin extends FiberPlugin {
   }
 
   during setup new Area {
-    println(s"[${this.getDisplayName()}] setup start")
+    println(s"[${MemoryProtectionPlugin.this.getDisplayName()}] setup start")
 
     addService(new MemoryProtectionService {
       override def translateAddress(logical: UInt, accessType: Bits): UInt = translatedAddr
@@ -70,7 +70,7 @@ class MemoryProtectionPlugin extends FiberPlugin {
       override def getViolationInfo(): (UInt, Bits) = (state.violationAddr, state.violationType)
     })
 
-    println(s"[${this.getDisplayName()}] setup end")
+    println(s"[${MemoryProtectionPlugin.this.getDisplayName()}] setup end")
   }
 
   // Hardware will be created in build phase

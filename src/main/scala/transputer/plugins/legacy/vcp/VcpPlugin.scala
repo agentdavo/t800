@@ -15,12 +15,12 @@ class VcpPlugin extends FiberPlugin {
   setName("vcp")
 
   during setup new Area {
-    println(s"[${this.getDisplayName()}] setup start")
-    println(s"[${this.getDisplayName()}] setup end")
+    println(s"[${VcpPlugin.this.getDisplayName()}] setup start")
+    println(s"[${VcpPlugin.this.getDisplayName()}] setup end")
   }
 
   during build new Area {
-    println(s"[${this.getDisplayName()}] build start")
+    println(s"[${VcpPlugin.this.getDisplayName()}] build start")
 
     // VCP Configuration constants (from T9000 spec)
     val LINK_COUNT = 4
@@ -197,6 +197,6 @@ class VcpPlugin extends FiberPlugin {
       }
     })
 
-    println(s"[${this.getDisplayName()}] build end")
+    println(s"[${VcpPlugin.this.getDisplayName()}] build end")
   }
 }

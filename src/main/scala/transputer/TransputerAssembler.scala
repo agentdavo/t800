@@ -94,33 +94,45 @@ object TransputerAssembler {
   // Track VAL definitions (constants)
   val valDefinitions = mutable.Map[String, Int]()
 
+  // Track EQU definitions (INMOS style constants)
+  val equDefinitions = mutable.Map[String, Int]()
+
+  // Current ORG address
+  var orgAddress = 0x80000000 // Default T9000 start address
+
   def parseAssembly(code: String): List[AssemblyLine] = {
-    var currentAddress = 0
-    val lines = code
-      .split("\n")
-      .zipWithIndex
-      .flatMap { case (line, idx) =>
-        val trimmed = line.trim
-        // Handle both ; and -- comments
-        if (trimmed.isEmpty || trimmed.startsWith(";") || trimmed.startsWith("--")) {
-          None // Skip comments and empty lines
-        } else {
-          val parsed = parseAssemblyLine(trimmed, currentAddress)
-          if (parsed.instruction.isDefined) {
-            currentAddress += estimateInstructionSize(parsed.instruction.get, parsed.operand)
-          }
-          Some(parsed)
+    var currentAddress = orgAddress
+    val result = mutable.ListBuffer[AssemblyLine]()
+
+    code.split("\n").foreach { line =>
+      val trimmed = line.trim
+      // Handle both ; and -- comments
+      if (!trimmed.isEmpty && !trimmed.startsWith(";") && !trimmed.startsWith("--")) {
+        val parsed = parseAssemblyLine(trimmed, currentAddress)
+
+        // Update currentAddress if ORG changed it
+        if (parsed.address != currentAddress) {
+          currentAddress = parsed.address
         }
+
+        if (parsed.instruction.isDefined) {
+          currentAddress += estimateInstructionSize(parsed.instruction.get, parsed.operand)
+        } else if (parsed.label.isDefined) {
+          // Just a label, no address increment
+        }
+
+        result += parsed
       }
-      .toList
-    lines
+    }
+
+    result.toList
   }
 
   def estimateInstructionSize(instr: String, operand: Option[String]): Int = {
-    instr match {
-      case "db" | "byte" => 
+    instr.toLowerCase match {
+      case "db" | "byte" =>
         operand.map(data => parseDataBytes(data, 0, Map.empty)).map(_.length).getOrElse(1)
-      case "align" => 
+      case "align" =>
         4 // Assume align to 4 bytes
       case "global" =>
         0 // No code generated
@@ -152,6 +164,67 @@ object TransputerAssembler {
       return AssemblyLine(address, Some(label), None, None, comment)
     }
 
+    // Handle INMOS directives
+    if (codePart.startsWith(".")) {
+      val directive = codePart.toUpperCase
+      directive match {
+        case ".TRANSPUTER" =>
+          // INMOS transputer mode - already default
+          return AssemblyLine(address, None, None, None, comment)
+        case d if d.startsWith(".CODE") || d.startsWith(".TEXT") =>
+          // Code section - already default
+          return AssemblyLine(address, None, None, None, comment)
+        case _ =>
+          // Ignore other directives for now
+          return AssemblyLine(address, None, None, None, comment)
+      }
+    }
+
+    // Handle TITLE directive
+    if (codePart.toUpperCase.startsWith("TITLE")) {
+      // Just a comment, ignore
+      return AssemblyLine(address, None, None, None, comment)
+    }
+
+    // Handle PAGE directive
+    if (codePart.toUpperCase.startsWith("PAGE")) {
+      // Formatting directive, ignore
+      return AssemblyLine(address, None, None, None, comment)
+    }
+
+    // Handle END directive
+    if (codePart.toUpperCase.startsWith("END")) {
+      // End of assembly, ignore
+      return AssemblyLine(address, None, None, None, comment)
+    }
+
+    // Handle ORG directive
+    if (codePart.toUpperCase.startsWith("ORG")) {
+      val orgPattern = """ORG\s+(.+)$""".r
+      codePart match {
+        case orgPattern(addr) =>
+          val newAddress = parseOperand(addr.trim, address, Map.empty)
+          orgAddress = newAddress
+          return AssemblyLine(newAddress, None, None, None, comment)
+        case _ =>
+          println(s"Warning: Invalid ORG directive: $codePart")
+      }
+    }
+
+    // Handle EQU definitions (INMOS style)
+    if (codePart.contains("EQU")) {
+      val equPattern = """(\w+)\s+EQU\s+(.+)$""".r
+      codePart match {
+        case equPattern(name, value) =>
+          val intValue = parseOperand(value.trim, address, Map.empty)
+          equDefinitions(name) = intValue
+          valDefinitions(name) = intValue // Also store in VAL for compatibility
+          return AssemblyLine(address, None, None, None, comment)
+        case _ =>
+          println(s"Warning: Invalid EQU declaration: $codePart")
+      }
+    }
+
     // Parse instruction and operand
     // Parse VAL definitions
     if (codePart.toUpperCase.startsWith("VAL")) {
@@ -161,12 +234,12 @@ object TransputerAssembler {
         case valPattern(name, value) =>
           val intValue = parseOperand(value.trim, address, Map.empty)
           valDefinitions(name) = intValue
-          return AssemblyLine(address, None, None, None, comment)  // No code generated
+          return AssemblyLine(address, None, None, None, comment) // No code generated
         case _ =>
           println(s"Warning: Invalid VAL declaration: $codePart")
       }
     }
-    
+
     val tokens = codePart.split("\\s+", 2)
     val (instruction, operand) = if (tokens.length >= 2) {
       (tokens(0).toLowerCase, Some(tokens(1).trim))
@@ -180,10 +253,14 @@ object TransputerAssembler {
   def assemble(lines: List[AssemblyLine]): List[Byte] = {
     val labels = mutable.Map[String, Int]()
     val binary = mutable.ListBuffer[Byte]()
-    var currentAddress = 0x80000000  // T9000 default start address
+    var currentAddress = orgAddress
 
     // First pass: collect labels and calculate addresses
     for (line <- lines) {
+      if (line.address != currentAddress) {
+        // ORG directive changed address
+        currentAddress = line.address
+      }
       line.label.foreach(label => labels(label) = currentAddress)
       if (line.instruction.isDefined) {
         val estimatedSize = estimateInstructionSize(line.instruction.get, line.operand)
@@ -191,17 +268,30 @@ object TransputerAssembler {
       }
     }
 
+    // Now resolve any forward-referenced EQU expressions
+    for ((name, expr) <- equDefinitions if expr < 0) {
+      // Negative values might indicate unresolved expressions
+      // Try to resolve them now that we have all labels
+      // This is a simplified approach - a full assembler would need proper expression evaluation
+    }
+
     // Second pass: generate binary
-    currentAddress = 0x80000000
+    currentAddress = orgAddress
     for (line <- lines) {
+      if (line.address != currentAddress) {
+        // ORG directive changed address
+        currentAddress = line.address
+      }
       line.label.foreach(label => {
         // Update label if address changed
         if (labels(label) != currentAddress) {
-          println(s"Warning: Label $label address adjusted from 0x${labels(label).toHexString} to 0x${currentAddress.toHexString}")
+          println(
+            s"Warning: Label $label address adjusted from 0x${labels(label).toHexString} to 0x${currentAddress.toHexString}"
+          )
           labels(label) = currentAddress
         }
       })
-      
+
       line.instruction.foreach { instr =>
         val bytes = assembleInstruction(instr, line.operand, currentAddress, labels.toMap)
         binary ++= bytes
@@ -219,8 +309,8 @@ object TransputerAssembler {
     labels: Map[String, Int]
   ): List[Byte] = {
     def encodeInstruction(opcode: Int, operand: Int): List[Byte] = {
-      val operandBits = operand & 0xFFFFFFFF // Handle as unsigned
-      
+      val operandBits = operand & 0xffffffff // Handle as unsigned
+
       if (operandBits >= 0 && operandBits <= 15) {
         // Direct encoding
         List(((opcode << 4) | operandBits).toByte)
@@ -228,13 +318,13 @@ object TransputerAssembler {
         // Need prefix
         val prefixes = mutable.ListBuffer[Byte]()
         var value = operandBits
-        
+
         // For negative values, use nfix
         val isNegative = operand < 0
         if (isNegative) {
-          value = (~operand) & 0xFFFFFFFF  // Two's complement
+          value = (~operand) & 0xffffffff // Two's complement
         }
-        
+
         val prefixOp = if (isNegative) 0x6 else 0x2 // nfix or pfix
 
         // Generate prefix bytes
@@ -263,7 +353,7 @@ object TransputerAssembler {
           encodeInstruction(0x2, secOp >> 4) ++ encodeInstruction(0xf, secOp & 0xf)
         }
 
-      case "db" | "byte" =>
+      case "db" | "byte" | "DB" =>
         // Data bytes
         operand.map(data => parseDataBytes(data, address, labels)).getOrElse(Nil)
 
@@ -289,12 +379,13 @@ object TransputerAssembler {
 
   def parseOperand(operand: String, address: Int, labels: Map[String, Int]): Int = {
     val trimmed = operand.trim
-    
+
     // Handle special constants first
     trimmed match {
-      case "INITIAL_ADJUSTMENT" => 20  // Common T9000 constant
-      case "_Start" => 0x80000000  // Common start address
-      case name if valDefinitions.contains(name) => valDefinitions(name)  // VAL definitions
+      case "INITIAL_ADJUSTMENT" => 20 // Common T9000 constant
+      case "_Start" => 0x80000000 // Common start address
+      case name if valDefinitions.contains(name) => valDefinitions(name) // VAL definitions
+      case name if equDefinitions.contains(name) => equDefinitions(name) // EQU definitions
       case _ =>
         // Try hex numbers (0x... or #...)
         if (trimmed.startsWith("0x")) {
@@ -318,7 +409,7 @@ object TransputerAssembler {
           }
         } else if (labels.contains(trimmed)) {
           // Label reference - calculate relative offset
-          labels(trimmed) - address - 1  // T9000 uses PC-relative addressing
+          labels(trimmed) - address - 1 // T9000 uses PC-relative addressing
         } else if (trimmed.contains("-") || trimmed.contains("+")) {
           // Expression
           parseExpression(trimmed, address, labels)
@@ -333,51 +424,115 @@ object TransputerAssembler {
   def parseExpression(expr: String, address: Int, labels: Map[String, Int]): Int = {
     // Simple expression parser for "label - label" or "label + offset" etc.
     val trimmed = expr.trim
-    
+
     // Handle subtraction
     if (trimmed.contains("-") && !trimmed.startsWith("-")) {
       val idx = trimmed.indexOf("-")
       val left = trimmed.substring(0, idx).trim
       val right = trimmed.substring(idx + 1).trim
-      
-      val leftVal = if (labels.contains(left)) labels(left)
-                    else if (left == "Addr0") address  // Special case for current address
-                    else parseOperand(left, address, Map.empty)  // Avoid recursion
-      
-      val rightVal = if (labels.contains(right)) labels(right)
-                     else if (right == "Addr0") address
-                     else parseOperand(right, address, Map.empty)
-      
+
+      val leftVal =
+        if (labels.contains(left)) labels(left)
+        else if (left == "Addr0") address // Special case for current address
+        else if (valDefinitions.contains(left)) valDefinitions(left)
+        else if (equDefinitions.contains(left)) equDefinitions(left)
+        else
+          try {
+            if (left.startsWith("0x")) java.lang.Long.parseLong(left.substring(2), 16).toInt
+            else left.toInt
+          } catch {
+            case _: NumberFormatException =>
+              println(s"Warning: Unknown operand '$left'")
+              0
+          }
+
+      val rightVal =
+        if (labels.contains(right)) labels(right)
+        else if (right == "Addr0") address
+        else if (valDefinitions.contains(right)) valDefinitions(right)
+        else if (equDefinitions.contains(right)) equDefinitions(right)
+        else
+          try {
+            if (right.startsWith("0x")) java.lang.Long.parseLong(right.substring(2), 16).toInt
+            else right.toInt
+          } catch {
+            case _: NumberFormatException =>
+              println(s"Warning: Unknown operand '$right'")
+              0
+          }
+
       return leftVal - rightVal
     }
-    
+
     // Handle addition
     if (trimmed.contains("+")) {
       val idx = trimmed.indexOf("+")
       val left = trimmed.substring(0, idx).trim
       val right = trimmed.substring(idx + 1).trim
-      
-      val leftVal = if (labels.contains(left)) labels(left)
-                    else parseOperand(left, address, Map.empty)
-      
-      val rightVal = if (labels.contains(right)) labels(right)
-                     else parseOperand(right, address, Map.empty)
-      
+
+      val leftVal =
+        if (labels.contains(left)) labels(left)
+        else if (valDefinitions.contains(left)) valDefinitions(left)
+        else if (equDefinitions.contains(left)) equDefinitions(left)
+        else
+          try {
+            if (left.startsWith("0x")) java.lang.Long.parseLong(left.substring(2), 16).toInt
+            else left.toInt
+          } catch {
+            case _: NumberFormatException =>
+              println(s"Warning: Unknown operand '$left'")
+              0
+          }
+
+      val rightVal =
+        if (labels.contains(right)) labels(right)
+        else if (valDefinitions.contains(right)) valDefinitions(right)
+        else if (equDefinitions.contains(right)) equDefinitions(right)
+        else
+          try {
+            if (right.startsWith("0x")) java.lang.Long.parseLong(right.substring(2), 16).toInt
+            else right.toInt
+          } catch {
+            case _: NumberFormatException =>
+              println(s"Warning: Unknown operand '$right'")
+              0
+          }
+
       return leftVal + rightVal
     }
-    
-    // No operator, try as simple operand
-    parseOperand(trimmed, address, Map.empty)
+
+    // No operator found - this is a simple value
+    // Don't call parseOperand here as it would lead to infinite recursion
+    if (labels.contains(trimmed)) {
+      labels(trimmed)
+    } else {
+      // Try parsing as number
+      try {
+        if (trimmed.startsWith("0x")) {
+          java.lang.Long.parseLong(trimmed.substring(2), 16).toInt
+        } else {
+          trimmed.toInt
+        }
+      } catch {
+        case _: NumberFormatException =>
+          println(s"Warning: Unknown expression term '$trimmed'")
+          0
+      }
+    }
   }
 
-  def parseDataBytes(data: String, currentAddress: Int = 0, labels: Map[String, Int] = Map.empty): List[Byte] = {
+  def parseDataBytes(
+    data: String,
+    currentAddress: Int = 0,
+    labels: Map[String, Int] = Map.empty
+  ): List[Byte] = {
     // Handle expressions like (Endprimary-Primary)
     if (data.startsWith("(") && data.endsWith(")")) {
       val expr = data.substring(1, data.length - 1)
       val value = parseExpression(expr, currentAddress, labels)
       return List(value.toByte)
     }
-    
+
     // Handle mixed format with strings and hex values
     val parts = data.split(",").map(_.trim).filter(_.nonEmpty)
     parts.flatMap { part =>
@@ -404,28 +559,29 @@ object TransputerAssembler {
 
   def generateHexFile(binary: List[Byte], filename: String, baseAddress: Int = 0x80000000): Unit = {
     import java.io.File
-    
+
     // Ensure scripts/hex directory exists
     val hexDir = new File("scripts/hex")
     if (!hexDir.exists()) {
       hexDir.mkdirs()
     }
-    
+
     val fullPath = s"scripts/hex/$filename"
     val writer = new PrintWriter(new FileWriter(fullPath))
     try {
       // Generate Intel HEX format
       binary.grouped(16).zipWithIndex.foreach { case (chunk, lineNum) =>
-        val addr = (baseAddress + (lineNum * 16)) & 0xFFFFFFFF
-        val addrHigh = (addr >> 16) & 0xFFFF
-        val addrLow = addr & 0xFFFF
-        
+        val addr = (baseAddress + (lineNum * 16)) & 0xffffffff
+        val addrHigh = (addr >> 16) & 0xffff
+        val addrLow = addr & 0xffff
+
         // Extended Linear Address Record if needed
         if (lineNum == 0 && addrHigh != 0) {
-          val extAddrChecksum = (0x100 - ((0x02 + 0x00 + 0x00 + 0x04 + (addrHigh >> 8) + (addrHigh & 0xFF)) & 0xFF)) & 0xFF
+          val extAddrChecksum =
+            (0x100 - ((0x02 + 0x00 + 0x00 + 0x04 + (addrHigh >> 8) + (addrHigh & 0xff)) & 0xff)) & 0xff
           writer.println(f":02000004${addrHigh}%04X${extAddrChecksum}%02X")
         }
-        
+
         val dataHex = chunk.map(b => f"${b & 0xff}%02X").mkString
         val checksum = (0x100 - ((chunk.length + ((addrLow >> 8) & 0xff) + (addrLow & 0xff) + chunk
           .map(_ & 0xff)
@@ -441,15 +597,17 @@ object TransputerAssembler {
 
   def assembleFile(inputFile: String, outputFile: String): Unit = {
     import scala.io.Source
-    
+
     try {
       val source = Source.fromFile(inputFile)
-      val asmCode = try source.mkString finally source.close()
-      
+      val asmCode =
+        try source.mkString
+        finally source.close()
+
       val lines = parseAssembly(asmCode)
       val binary = assemble(lines)
       generateHexFile(binary, outputFile)
-      
+
       println(s"Successfully assembled $inputFile")
       println(s"  Output: scripts/hex/$outputFile")
       println(s"  Size: ${binary.length} bytes")
@@ -574,8 +732,12 @@ putConsolePString:
       println("Transputer Assembler")
       println("Usage:")
       println("  sbt \"runMain transputer.TransputerAssembler <input.asm> [output.hex]\"")
-      println("  sbt \"runMain transputer.TransputerAssembler --hello\"    (generate hello world ROM)")
-      println("  sbt \"runMain transputer.TransputerAssembler --bootload\" (assemble INMOS bootloader)")
+      println(
+        "  sbt \"runMain transputer.TransputerAssembler --hello\"    (generate hello world ROM)"
+      )
+      println(
+        "  sbt \"runMain transputer.TransputerAssembler --bootload\" (assemble INMOS bootloader)"
+      )
       println()
       println("Files are written to scripts/hex/ directory")
       println()
@@ -588,11 +750,12 @@ putConsolePString:
       case "--hello" => assembleHelloWorld()
       case "--bootload" => assembleBootloader()
       case inputFile =>
-        val outputFile = if (args.length > 1) args(1) 
-                        else {
-                          val baseName = new java.io.File(inputFile).getName
-                          baseName.replaceAll("\\.asm$", "") + ".hex"
-                        }
+        val outputFile =
+          if (args.length > 1) args(1)
+          else {
+            val baseName = new java.io.File(inputFile).getName
+            baseName.replaceAll("\\.asm$", "") + ".hex"
+          }
         assembleFile(inputFile, outputFile)
     }
   }

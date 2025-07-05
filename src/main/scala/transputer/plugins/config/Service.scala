@@ -2,10 +2,8 @@ package transputer.plugins.config
 
 import spinal.core._
 
-/**
- * Configuration Access Service
- * Provides access to T9000 configuration registers
- */
+/** Configuration Access Service Provides access to T9000 configuration registers
+  */
 trait ConfigAccessService {
   def readConfig(address: UInt): Bits
   def writeConfig(address: UInt, data: Bits): Unit

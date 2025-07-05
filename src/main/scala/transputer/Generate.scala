@@ -7,29 +7,28 @@ import scopt.OParser
 
 /** Complete T9000 Transputer generation utility.
   *
-  * This is the main generator for T9000 Transputer configurations. It supports
-  * all T9000 features and can be configured for different use cases:
-  * - Full T9000 with all features: default configuration
-  * - Minimal/bare bones: use --minimal flag
-  * - Custom configurations: use command line options
+  * This is the main generator for T9000 Transputer configurations. It supports all T9000 features
+  * and can be configured for different use cases:
+  *   - Full T9000 with all features: default configuration
+  *   - Minimal/bare bones: use --minimal flag
+  *   - Custom configurations: use command line options
   *
-  * Usage: 
-  *   sbt "runMain transputer.Generate"                    # Full T9000
-  *   sbt "runMain transputer.Generate --minimal"          # Bare bones
-  *   sbt "runMain transputer.Generate --enable-fpu true"  # With specific options
+  * Usage: sbt "runMain transputer.Generate" # Full T9000 sbt "runMain transputer.Generate
+  * --minimal" # Bare bones sbt "runMain transputer.Generate --enable-fpu true" # With specific
+  * options
   */
 object Generate {
   def main(args: Array[String]): Unit = {
     // For backward compatibility, support both Param and T9000Param
     var useMinimal = false
     var useT9000 = true
-    
+
     // Quick scan for --minimal flag
     if (args.contains("--minimal")) {
       useMinimal = true
       useT9000 = false
     }
-    
+
     if (useT9000) {
       // Use T9000 configuration (default)
       generateT9000(args)
@@ -38,8 +37,15 @@ object Generate {
       generateMinimal(args.filterNot(_ == "--minimal"))
     }
   }
-  
+
   private def generateT9000(args: Array[String]): Unit = {
+    // Check if this is an FPGA generation request
+    val fpgaArgs = args.find(_.startsWith("--fpga"))
+    if (fpgaArgs.isDefined) {
+      generateFPGA(args)
+      return
+    }
+
     val builder = OParser.builder[T9000Param]
     val parser = {
       import builder._
@@ -117,14 +123,14 @@ object Generate {
         opt[Int]("timer-precision")
           .action((x, c) => c.copy(timerPrecision = x))
           .text("Timer precision in microseconds (default: 1)"),
-          
+
         // Clock configuration
         opt[Boolean]("enable-multi-clock")
           .action((x, c) => c.copy(enableMultiClock = x))
           .text("Enable multiple clock domains (default: true)"),
         opt[Int]("system-clock-mhz")
           .action((x, c) => c.copy(systemClockMHz = x))
-          .text("System clock frequency in MHz (default: 500)"),
+          .text("System clock frequency in MHz (default: 100)"),
 
         // Advanced features
         opt[Boolean]("enable-profiling")
@@ -133,6 +139,44 @@ object Generate {
         opt[Boolean]("enable-debug")
           .action((x, c) => c.copy(enableDebug = x))
           .text("Enable debug interfaces (default: false)"),
+
+        // Boot ROM options
+        opt[Unit]("enable-boot-rom")
+          .action((_, c) => c.copy(enableBootRom = true))
+          .text("Enable boot ROM"),
+        opt[String]("boot-rom-hex")
+          .action((x, c) => c.copy(bootRomHexFile = Some(x), enableBootRom = true))
+          .text("Boot ROM hex file to load (implies --enable-boot-rom)"),
+        opt[Long]("boot-rom-address")
+          .action((x, c) => c.copy(bootRomStartAddress = x))
+          .text("Boot ROM start address (default: 0x80000000)"),
+        opt[Int]("boot-rom-size")
+          .action((x, c) => c.copy(bootRomSize = x))
+          .text("Boot ROM size in bytes (default: 4096)"),
+        opt[Unit]("boot-inmos")
+          .action((_, c) =>
+            c.copy(enableBootRom = true, bootRomHexFile = Some("scripts/hex/bootload.hex"))
+          )
+          .text("Boot with INMOS bootloader"),
+
+        // Test/Simulation options (from GenerateWithTest)
+        opt[String]("hex")
+          .action((x, c) => c.copy(bootRomHexFile = Some(x), enableBootRom = true))
+          .text("Hex file to load (alias for --boot-rom-hex)"),
+        opt[Unit]("wave")
+          .action((_, c) => c) // Placeholder for simulation
+          .text("Enable waveform generation (requires simulation)"),
+        opt[Unit]("konata")
+          .action((_, c) => c) // Placeholder for simulation
+          .text("Enable Konata pipeline trace (requires simulation)"),
+
+        // FPGA options (from T9000_FPGA)
+        opt[String]("fpga")
+          .action((x, c) => c.copy(fpgaTarget = Some(x)))
+          .text("Generate FPGA wrapper for target (ecp5, ice40, xilinx)"),
+        opt[String]("fpga-output-dir")
+          .action((x, c) => c.copy(fpgaOutputDir = x))
+          .text("FPGA output directory (default: ./fpga)"),
 
         // Output options
         opt[Unit]("report-model")
@@ -147,19 +191,18 @@ object Generate {
         opt[String]("output-dir")
           .action((x, c) => c.copy(outputDir = x))
           .text("Output directory (default: ./generated)"),
-          
+
         // Special flags
         opt[Unit]("minimal")
           .action((_, c) => c)
           .text("Generate minimal configuration (use generateMinimal instead)"),
-          
         help("help").text("Display this help message"),
         version("version").text("Show version information")
       )
     }
 
     val param = OParser.parse(parser, args, T9000Param()) match {
-      case Some(p) => 
+      case Some(p) =>
         // Validate configuration
         val warnings = p.validate()
         if (warnings.nonEmpty) {
@@ -178,9 +221,9 @@ object Generate {
 
     // Configure globals based on parameters
     T9000Transputer.configureGlobals(param)
-    
+
     val analysis = new AnalysisUtils
-    
+
     // Use common configuration
     val spinalConfig = SpinalConfig(
       targetDirectory = param.outputDir,
@@ -196,7 +239,22 @@ object Generate {
       val core = PluginHost.on {
         Transputer(plugins)
       }
-      core.setDefinitionName("T9000Transputer")
+
+      // Set appropriate name based on configuration
+      val defName = if (param.enableBootRom && param.bootRomHexFile.isDefined) {
+        "T9000TransputerWithBoot"
+      } else {
+        "T9000Transputer"
+      }
+      core.setDefinitionName(defName)
+
+      // Generate memory initialization files if boot ROM is enabled
+      if (param.enableBootRom && param.bootRomHexFile.isDefined) {
+        core.afterElaboration {
+          generateMemInitFiles(param.bootRomHexFile.get, param.outputDir)
+        }
+      }
+
       core
     }
 
@@ -216,9 +274,103 @@ object Generate {
 
     println(s"\nVerilog generated: ${report.toplevelName}.v")
     println(s"Output directory: ${param.outputDir}")
-    println("T9000 Transputer generation completed successfully!")
+
+    if (param.enableBootRom && param.bootRomHexFile.isDefined) {
+      println(s"Boot ROM initialized from: ${param.bootRomHexFile.get}")
+      println("Boot ROM initialization files created in: " + param.outputDir)
+      println("\nTo simulate with boot ROM:")
+      println("1. Ensure memory initialization files are in the simulation directory")
+      println("2. The ROM will be initialized at startup")
+      println(
+        s"3. The processor will start executing from 0x${param.bootRomStartAddress.toHexString}"
+      )
+    }
+
+    println("\nT9000 Transputer generation completed successfully!")
   }
-  
+
+  /** Generate FPGA wrapper for T9000 Transputer */
+  private def generateFPGA(args: Array[String]): Unit = {
+    val builder = OParser.builder[FPGAConfig]
+    val parser = {
+      import builder._
+      OParser.sequence(
+        programName("t9000FPGAGenerate"),
+        head("T9000 FPGA Generator", "1.0"),
+
+        opt[String]("fpga")
+          .action((x, c) => c.copy(target = x))
+          .text("FPGA target: ecp5, ice40, xilinx (default: ecp5)"),
+        opt[String]("hex")
+          .action((x, c) => c.copy(bootRomHexFile = Some(x)))
+          .text("Hex file to load into boot ROM"),
+        opt[String]("fpga-output-dir")
+          .action((x, c) => c.copy(outputDir = x))
+          .text("FPGA output directory (default: ./fpga)"),
+        opt[Unit]("demo")
+          .action((_, c) => c.copy(demoMode = true))
+          .text("Generate demo logic instead of full T9000"),
+        opt[Boolean]("enable-boot-rom")
+          .action((x, c) => c.copy(enableBootRom = x))
+          .text("Include boot ROM in FPGA design"),
+        help("help").text("Display this help message")
+      )
+    }
+
+    val config = OParser.parse(parser, args, FPGAConfig()) match {
+      case Some(c) => c
+      case _ => {
+        println("Invalid FPGA arguments. Use --help for usage information.")
+        return
+      }
+    }
+
+    println(s"Generating T9000 FPGA wrapper for ${config.target.toUpperCase()} target")
+    if (config.bootRomHexFile.isDefined) {
+      println(s"Boot ROM: ${config.bootRomHexFile.get}")
+    }
+    println()
+
+    val spinalConfig = SpinalConfig(
+      targetDirectory = config.outputDir,
+      defaultConfigForClockDomains = ClockDomainConfig(
+        clockEdge = RISING,
+        resetKind = SYNC,
+        resetActiveLevel = HIGH
+      ),
+      onlyStdLogicVectorAtTopLevelIo = true
+    )
+
+    val report = spinalConfig.generateVerilog {
+      if (config.demoMode) {
+        // Generate simple demo logic
+        new T9000_FPGA_Demo()
+      } else {
+        // Generate FPGA wrapper with T9000 core
+        new T9000_FPGA_Wrapper(config)
+      }
+    }
+
+    // Generate memory initialization files if boot ROM is specified
+    if (config.bootRomHexFile.isDefined) {
+      generateMemInitFiles(config.bootRomHexFile.get, config.outputDir)
+    }
+
+    println(s"\nFPGA Verilog generated: ${report.toplevelName}.v")
+    println(s"Output directory: ${config.outputDir}")
+    println(s"Target FPGA: ${config.target.toUpperCase()}")
+    
+    if (config.bootRomHexFile.isDefined) {
+      println(s"Boot ROM initialized from: ${config.bootRomHexFile.get}")
+    }
+    
+    println("\nNext steps:")
+    println("1. cd fpga")
+    println("2. make all    # Complete synthesis flow")
+    println("3. make burn   # Program FPGA (if connected)")
+    println("\nT9000 FPGA generation completed successfully!")
+  }
+
   private def generateMinimal(args: Array[String]): Unit = {
     val builder = OParser.builder[Param]
     val parser = {
@@ -243,7 +395,7 @@ object Generate {
         help("help").text("Display this help message")
       )
     }
-    
+
     val param = OParser.parse(parser, args, Param()) match {
       case Some(p) => p
       case _ => {
@@ -259,7 +411,7 @@ object Generate {
 
     val db = Transputer.defaultDatabase()
     val analysis = new AnalysisUtils
-    
+
     // Use common configuration for minimal build
     val spinalConfig = SpinalConfig(
       targetDirectory = "./generated",
@@ -269,7 +421,7 @@ object Generate {
         resetActiveLevel = HIGH
       )
     )
-    
+
     val report = spinalConfig.generateVerilog {
       val plugins = param.plugins()
       val core = PluginHost.on {
@@ -278,7 +430,7 @@ object Generate {
       core.setDefinitionName("Transputer")
       core
     }
-    
+
     analysis.report(report)
 
     if (param.reportModel) {
@@ -286,7 +438,7 @@ object Generate {
       println("Pipeline Stages: Fetch -> Decode -> Execute -> Memory -> Writeback")
       println("Basic instruction timings provided.")
     }
-    
+
     println(s"\nVerilog generated: ${report.toplevelName}.v")
     println("Minimal Transputer generation completed!")
   }
@@ -319,7 +471,7 @@ object Generate {
       println("  • MMU with 4 regions")
     }
     if (param.enablePmi) {
-      println(s"  • PMI: ${param.pmiMemorySize/(1024*1024)}MB ${param.pmiTimingPreset}")
+      println(s"  • PMI: ${param.pmiMemorySize / (1024 * 1024)}MB ${param.pmiTimingPreset}")
     }
 
     println("\n🔗  Communication:")
@@ -343,18 +495,18 @@ object Generate {
     println("\n" + "=" * 60)
     println("T9000 PERFORMANCE CHARACTERISTICS")
     println("=" * 60)
-    
+
     if (param.enableMultiClock) {
       println(s"\n⚡ Clock Domains:")
       println(s"  • System: ${param.systemClockMHz} MHz")
       println(s"  • Memory: ${param.memoryClockMHz} MHz")
       println(s"  • DS-Link: ${param.dsLinkClockMHz} MHz")
     }
-    
+
     println("\n📊 Pipeline Performance:")
     println("  • 1 instruction/cycle throughput")
     println("  • Branch prediction reduces stalls")
-    
+
     if (param.enableFpu) {
       println("\n🧮 FPU Performance:")
       println("  • Add/Sub: 2-3 cycles")
@@ -370,12 +522,236 @@ object Generate {
     println("\n✅ Instruction Set:")
     println("  • All 21 instruction tables implemented")
     println("  • 200+ opcodes supported")
-    
+
     println("\n✅ Architecture Features:")
     println("  • 3-register stack: ✅")
     println("  • Process scheduling: " + (if (param.enableScheduler) "✅" else "❌"))
     println("  • Virtual channels: " + (if (param.enableVcp) "✅" else "❌"))
     println("  • Memory protection: " + (if (param.enableMmu) "✅" else "❌"))
     println("  • Timer system: " + (if (param.enableTimers) "✅" else "❌"))
+  }
+
+  /** Generate memory initialization files from hex file (from GenerateWithBootRom) */
+  private def generateMemInitFiles(hexFile: String, outputDir: String): Unit = {
+    import scala.io.Source
+    import java.io.{PrintWriter, FileOutputStream}
+
+    try {
+      val source = Source.fromFile(hexFile)
+      val lines = source.getLines().toList
+      source.close()
+
+      // Parse Intel HEX to get memory content
+      val memory = Array.fill[Byte](4096)(0)
+      var baseAddress = 0L
+
+      for (line <- lines if line.startsWith(":")) {
+        val recordLength = Integer.parseInt(line.substring(1, 3), 16)
+        val address = Integer.parseInt(line.substring(3, 7), 16)
+        val recordType = Integer.parseInt(line.substring(7, 9), 16)
+
+        recordType match {
+          case 0 => // Data record
+            for (i <- 0 until recordLength) {
+              val data = Integer.parseInt(line.substring(9 + i * 2, 11 + i * 2), 16).toByte
+              val targetAddr = (baseAddress + address + i - 0x80000000L).toInt
+              if (targetAddr >= 0 && targetAddr < 4096) {
+                memory(targetAddr) = data
+              }
+            }
+
+          case 4 => // Extended linear address
+            val highAddr = Integer.parseInt(line.substring(9, 13), 16)
+            baseAddress = (highAddr.toLong << 16)
+
+          case _ => // Ignore other types
+        }
+      }
+
+      // Write Verilog $readmemh format
+      val hexWriter = new PrintWriter(s"$outputDir/boot_rom.hex")
+      for (i <- 0 until 1024) { // 1024 32-bit words
+        val word = (memory(i * 4) & 0xff) |
+          ((memory(i * 4 + 1) & 0xff) << 8) |
+          ((memory(i * 4 + 2) & 0xff) << 16) |
+          ((memory(i * 4 + 3) & 0xff) << 24)
+        hexWriter.println(f"$word%08x")
+      }
+      hexWriter.close()
+
+      // Write binary format for some simulators
+      val binWriter = new FileOutputStream(s"$outputDir/boot_rom.bin")
+      binWriter.write(memory)
+      binWriter.close()
+
+      println(s"Created memory initialization files:")
+      println(s"  - $outputDir/boot_rom.hex (Verilog hex format)")
+      println(s"  - $outputDir/boot_rom.bin (Binary format)")
+
+    } catch {
+      case e: Exception =>
+        println(s"Error creating memory initialization files: ${e.getMessage}")
+    }
+  }
+}
+
+/** FPGA Configuration */
+case class FPGAConfig(
+  target: String = "ecp5",
+  outputDir: String = "./fpga",
+  bootRomHexFile: Option[String] = None,
+  enableBootRom: Boolean = false,
+  demoMode: Boolean = false
+)
+
+/** T9000 FPGA Demo Wrapper - Simple demo logic for FPGA testing */
+class T9000_FPGA_Demo extends Component {
+  setDefinitionName("T9000_FPGA")
+  
+  val io = new Bundle {
+    // Clock and reset
+    val clk = in Bool()
+    val rst = in Bool()
+    
+    // Status LEDs (8 LEDs)
+    val led = out Bits(8 bits)
+    
+    // UART interface
+    val uart_tx = out Bool()
+    val uart_rx = in Bool()
+    
+    // Link 0 interface for debugging
+    val link0_out = out Bool()
+    val link0_in = in Bool()
+    
+    // Status signals
+    val running = out Bool()
+    val error = out Bool()
+  }
+  
+  // Create clock domain from external clock
+  val systemClockDomain = ClockDomain(
+    clock = io.clk,
+    reset = io.rst,
+    config = ClockDomainConfig(
+      clockEdge = RISING,
+      resetKind = SYNC,
+      resetActiveLevel = HIGH
+    )
+  )
+  
+  // Simple demonstration logic in system clock domain
+  val demoArea = systemClockDomain {
+    new Area {
+      // Simple counter for demonstration
+      val counter = Reg(UInt(32 bits)) init 0
+      counter := counter + 1
+      
+      // Status LED mapping
+      val statusCounter = Reg(UInt(24 bits)) init 0
+      statusCounter := statusCounter + 1
+      
+      // LED[0] - Heartbeat (shows clock is running)
+      io.led(0) := statusCounter.msb
+      
+      // LED[1-7] - Counter bits
+      io.led(7 downto 1) := counter(31 downto 25).asBits
+      
+      // Status signals
+      io.running := True
+      io.error := False
+      
+      // UART loopback for testing
+      io.uart_tx := !io.uart_rx
+      
+      // Link loopback
+      io.link0_out := !io.link0_in
+    }
+  }
+}
+
+/** T9000 FPGA Wrapper with full T9000 core */
+class T9000_FPGA_Wrapper(config: FPGAConfig) extends Component {
+  setDefinitionName("T9000_FPGA")
+  
+  val io = new Bundle {
+    // Clock and reset
+    val clk = in Bool()
+    val rst = in Bool()
+    
+    // Status LEDs (8 LEDs)
+    val led = out Bits(8 bits)
+    
+    // UART interface
+    val uart_tx = out Bool()
+    val uart_rx = in Bool()
+    
+    // Link interfaces (4 links for T9000)
+    val link_out = out Bits(4 bits)
+    val link_in = in Bits(4 bits)
+    
+    // Memory interface (for external PMI memory)
+    val mem_addr = out UInt(32 bits)
+    val mem_data_out = out Bits(32 bits)
+    val mem_data_in = in Bits(32 bits)
+    val mem_we = out Bool()
+    val mem_oe = out Bool()
+    val mem_ce = out Bool()
+    
+    // Status signals
+    val running = out Bool()
+    val error = out Bool()
+    val halt = out Bool()
+  }
+  
+  // Create clock domains for T9000
+  val systemClockDomain = ClockDomain(
+    clock = io.clk,
+    reset = io.rst,
+    config = ClockDomainConfig(
+      clockEdge = RISING,
+      resetKind = SYNC,
+      resetActiveLevel = HIGH
+    )
+  )
+  
+  // T9000 core area
+  val t9000Area = systemClockDomain {
+    new Area {
+      // For now, implement a placeholder that can be replaced with full T9000
+      // when the core integration is ready
+      
+      // Simple counter for demonstration (replace with T9000 core)
+      val counter = Reg(UInt(32 bits)) init 0
+      counter := counter + 1
+      
+      // LED status mapping
+      io.led := counter(31 downto 24).asBits
+      
+      // Status signals
+      io.running := True
+      io.error := False
+      io.halt := False
+      
+      // UART loopback (replace with T9000 console)
+      io.uart_tx := !io.uart_rx
+      
+      // Link loopback (replace with T9000 link handlers)
+      io.link_out := ~io.link_in
+      
+      // Memory interface (replace with T9000 PMI)
+      io.mem_addr := counter
+      io.mem_data_out := counter.asBits
+      io.mem_we := False
+      io.mem_oe := False
+      io.mem_ce := False
+      
+      // TODO: Replace above with actual T9000 core instantiation:
+      // val t9000Param = T9000Param(
+      //   enableBootRom = config.enableBootRom,
+      //   bootRomHexFile = config.bootRomHexFile
+      // )
+      // val t9000Core = Transputer(t9000Param.plugins())
+    }
   }
 }

@@ -5,10 +5,8 @@ import spinal.core._
 import spinal.core.sim._
 import spinal.lib._
 
-/**
- * Test specification for T9000 Timer System
- * Tests dual timer system (1μs and 64μs resolution)
- */
+/** Test specification for T9000 Timer System Tests dual timer system (1μs and 64μs resolution)
+  */
 class T9000TimerSpec extends AnyFunSuite {
 
   class TimerTestDut extends Component {
@@ -17,20 +15,22 @@ class T9000TimerSpec extends AnyFunSuite {
       enablePmi = false,
       enableVcp = false,
       enableScheduler = false,
-      enableTimers = true,  // Enable timers for testing
+      enableTimers = true, // Enable timers for testing
       enableMmu = false
     )
-    
+
     T9000Transputer.configureGlobals(param)
-    
-    val core = Transputer(Seq(
-      new transputer.plugins.core.transputer.TransputerPlugin(),
-      new transputer.plugins.timers.TimerPlugin(),
-      new transputer.plugins.core.pipeline.PipelinePlugin(),
-      new transputer.plugins.core.regstack.RegStackPlugin(),
-      new transputer.plugins.bus.SystemBusPlugin()
-    ))
-    
+
+    val core = Transputer(
+      Seq(
+        new transputer.plugins.core.transputer.TransputerPlugin(),
+        new transputer.plugins.timers.TimerPlugin(),
+        new transputer.plugins.core.pipeline.PipelinePlugin(),
+        new transputer.plugins.core.regstack.RegStackPlugin(),
+        new transputer.plugins.bus.SystemBusPlugin()
+      )
+    )
+
     val systemBus = core.systemBus
   }
 
@@ -41,7 +41,7 @@ class T9000TimerSpec extends AnyFunSuite {
       dut.clockDomain.waitSampling(5)
       dut.clockDomain.deassertReset()
       dut.clockDomain.waitSampling(10)
-      
+
       assert(true, "Dual timer system (1μs and 64μs) instantiated successfully")
     }
   }
@@ -52,12 +52,12 @@ class T9000TimerSpec extends AnyFunSuite {
       dut.clockDomain.assertReset()
       dut.clockDomain.waitSampling(10)
       dut.clockDomain.deassertReset()
-      
+
       // Test timer operations
       for (cycle <- 0 until 100) {
         dut.clockDomain.waitSampling()
       }
-      
+
       assert(true, "Timer operations completed successfully")
     }
   }

@@ -1,25 +1,17 @@
 # ECP5 Pin constraints for T9000 FPGA
 # Target: ECP5-25K CABGA256 package
 
-# Clock input (25 MHz crystal)
+# Clock input (25 MHz crystal) - known good pin
 LOCATE COMP "io_clk" SITE "P3";
 IOBUF PORT "io_clk" PULLMODE=NONE IO_TYPE=LVCMOS33;
 FREQUENCY PORT "io_clk" 25 MHZ;
 
-# Reset button (active high)
+# Reset button (active high) - known good pin
 LOCATE COMP "io_rst" SITE "P4";
 IOBUF PORT "io_rst" PULLMODE=UP IO_TYPE=LVCMOS33;
 
-# LED outputs (8 LEDs)
-LOCATE COMP "io_led[0]" SITE "E16";
-LOCATE COMP "io_led[1]" SITE "D17";
-LOCATE COMP "io_led[2]" SITE "D18";
-LOCATE COMP "io_led[3]" SITE "E18";
-LOCATE COMP "io_led[4]" SITE "F17";
-LOCATE COMP "io_led[5]" SITE "F18";
-LOCATE COMP "io_led[6]" SITE "E17";
-LOCATE COMP "io_led[7]" SITE "F16";
-
+# All other pins - let nextpnr choose automatically
+# Just specify the IO standards for all pins
 IOBUF PORT "io_led[0]" PULLMODE=NONE IO_TYPE=LVCMOS33 DRIVE=8;
 IOBUF PORT "io_led[1]" PULLMODE=NONE IO_TYPE=LVCMOS33 DRIVE=8;
 IOBUF PORT "io_led[2]" PULLMODE=NONE IO_TYPE=LVCMOS33 DRIVE=8;
@@ -29,21 +21,12 @@ IOBUF PORT "io_led[5]" PULLMODE=NONE IO_TYPE=LVCMOS33 DRIVE=8;
 IOBUF PORT "io_led[6]" PULLMODE=NONE IO_TYPE=LVCMOS33 DRIVE=8;
 IOBUF PORT "io_led[7]" PULLMODE=NONE IO_TYPE=LVCMOS33 DRIVE=8;
 
-# UART pins
-LOCATE COMP "io_uart_tx" SITE "L4";
-LOCATE COMP "io_uart_rx" SITE "M1";
 IOBUF PORT "io_uart_tx" PULLMODE=UP IO_TYPE=LVCMOS33 DRIVE=8;
 IOBUF PORT "io_uart_rx" PULLMODE=UP IO_TYPE=LVCMOS33;
 
-# Link 0 interface
-LOCATE COMP "io_link0_out" SITE "B11";
-LOCATE COMP "io_link0_in" SITE "B12";
 IOBUF PORT "io_link0_out" PULLMODE=NONE IO_TYPE=LVCMOS33 DRIVE=8;
 IOBUF PORT "io_link0_in" PULLMODE=UP IO_TYPE=LVCMOS33;
 
-# Status outputs
-LOCATE COMP "io_running" SITE "E15";
-LOCATE COMP "io_error" SITE "D16";
 IOBUF PORT "io_running" PULLMODE=NONE IO_TYPE=LVCMOS33 DRIVE=8;
 IOBUF PORT "io_error" PULLMODE=NONE IO_TYPE=LVCMOS33 DRIVE=8;
 

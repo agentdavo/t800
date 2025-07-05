@@ -57,11 +57,12 @@ class ArithmeticPlugin extends FiberPlugin {
     aluOperation = AluOp()
 
     // Try to get pipeline service - if not available, create standalone ALU
-    val pipeOpt = try {
-      Some(host[transputer.plugins.core.pipeline.PipelineStageService])
-    } catch {
-      case _: Exception => None
-    }
+    val pipeOpt =
+      try {
+        Some(host[transputer.plugins.core.pipeline.PipelineStageService])
+      } catch {
+        case _: Exception => None
+      }
 
     pipeOpt match {
       case Some(pipe) =>
@@ -103,11 +104,12 @@ class ArithmeticPlugin extends FiberPlugin {
           }
 
           // Get register stack service if available
-          val regStackOpt = try {
-            Some(host[transputer.plugins.core.regstack.RegStackService])
-          } catch {
-            case _: Exception => None
-          }
+          val regStackOpt =
+            try {
+              Some(host[transputer.plugins.core.regstack.RegStackService])
+            } catch {
+              case _: Exception => None
+            }
 
           // Execute ALU operations
           when(isBasicAlu) {
@@ -121,7 +123,7 @@ class ArithmeticPlugin extends FiberPlugin {
               case None =>
                 // Standalone mode - create dummy inputs
                 val areg = U(0, 32 bits)
-                val breg = U(0, 32 bits) 
+                val breg = U(0, 32 bits)
                 val creg = U(0, 32 bits)
                 executeAluOperationStandalone(areg, breg, creg)
             }
@@ -130,7 +132,9 @@ class ArithmeticPlugin extends FiberPlugin {
 
       case None =>
         // Standalone ALU for testing
-        println(s"[${ArithmeticPlugin.this.getDisplayName()}] Creating standalone ALU (no pipeline)")
+        println(
+          s"[${ArithmeticPlugin.this.getDisplayName()}] Creating standalone ALU (no pipeline)"
+        )
         isAluOperation := False
         aluOperation := AluOp.ADD
         aluResult.result := U(0, 32 bits)
@@ -141,7 +145,12 @@ class ArithmeticPlugin extends FiberPlugin {
         aluResult.negative := False
     }
 
-    def executeAluOperation(areg: UInt, breg: UInt, creg: UInt, regStack: transputer.plugins.core.regstack.RegStackService): Unit = {
+    def executeAluOperation(
+      areg: UInt,
+      breg: UInt,
+      creg: UInt,
+      regStack: transputer.plugins.core.regstack.RegStackService
+    ): Unit = {
       // Execute operation
       aluResult.result := areg // Default
       aluResult.overflow := False

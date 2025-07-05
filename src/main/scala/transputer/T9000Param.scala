@@ -37,7 +37,7 @@ case class T9000Param(
   vcpChannelBufferSize: Int = 2048,
   vcpPacketBufferDepth: Int = 32,
   vcpFlowControl: Boolean = true,
-  
+
   // Clock domain configuration
   enableMultiClock: Boolean = true,
   systemClockMHz: Int = 500,
@@ -45,7 +45,6 @@ case class T9000Param(
   dsLinkClockMHz: Int = 100,
   timerClockMHz: Int = 1,
   debugClockMHz: Int = 50,
-  
   spiDdrLinks: Boolean = true,
 
   // Process management
@@ -67,10 +66,21 @@ case class T9000Param(
   reportCompliance: Boolean = false,
   outputDir: String = "./generated",
 
+  // Boot ROM configuration
+  enableBootRom: Boolean = false,
+  bootRomHexFile: Option[String] = None,
+  bootRomStartAddress: Long = 0x80000000L,
+  bootRomSize: Int = 4096,
+
+  // FPGA configuration
+  fpgaTarget: Option[String] = None,
+  fpgaOutputDir: String = "./fpga",
+
   // Custom plugin override
   customPlugins: Option[Seq[Hostable]] = None
 ) {
   import transputer._
+  import transputer.plugins.boot.BootRomPlugin
 
   /** Returns the complete sequence of T9000 plugins based on configuration. This creates the full
     * T9000 architecture with all enhanced features.
@@ -95,6 +105,8 @@ case class T9000Param(
     // Clock domain management (must be first)
     if (enableMultiClock) {
       plugins += new T9000ClockServicePlugin()
+      // NOTE: For general use, you can use the extracted plugin instead:
+      // plugins += new transputer.plugins.clock.ClockServicePlugin()
     }
 
     // Base transputer core with T9000 configuration
@@ -108,6 +120,16 @@ case class T9000Param(
 
     // System bus arbitration
     plugins += new transputer.plugins.bus.SystemBusPlugin()
+
+    // Boot ROM (if enabled)
+    if (enableBootRom) {
+      bootRomHexFile match {
+        case Some(hexFile) =>
+          plugins += BootRomPlugin.withHex(hexFile, bootRomStartAddress, bootRomSize)
+        case None =>
+          plugins += new BootRomPlugin(bootRomStartAddress, bootRomSize)
+      }
+    }
 
     // ========================================
     // T9000 INSTRUCTION PIPELINE
@@ -199,8 +221,25 @@ case class T9000Param(
     }
 
     // ========================================
+    // BOOT ROM SUPPORT
+    // ========================================
+
+    // Boot ROM for initial program loading
+    if (enableBootRom) {
+      plugins += new BootRomPlugin(
+        startAddress = bootRomStartAddress,
+        size = bootRomSize,
+        hexFile = bootRomHexFile
+      )
+    }
+
+    // ========================================
     // ENHANCED FEATURES
     // ========================================
+
+    // Clock domain management (optional)
+    // Provides multi-clock domain support for advanced configurations
+    // plugins += new transputer.plugins.clock.ClocksPlugin()
 
     // Performance profiling and monitoring
     if (enableProfiling) {
@@ -251,7 +290,7 @@ case class T9000Param(
     // Validate PMI configuration
     if (enablePmi) {
       if (pmiMemorySize < 1024 * 1024 || pmiMemorySize > 4L * 1024 * 1024 * 1024) {
-        warnings += s"PMI memory size ${pmiMemorySize / (1024*1024)}MB may be outside supported range (1MB-4GB)"
+        warnings += s"PMI memory size ${pmiMemorySize / (1024 * 1024)}MB may be outside supported range (1MB-4GB)"
       }
       if (!Set("sram", "dram", "flash").contains(pmiTimingPreset)) {
         warnings += s"PMI timing preset '$pmiTimingPreset' is not supported (use sram, dram, or flash)"
@@ -260,7 +299,7 @@ case class T9000Param(
         warnings += s"PMI burst length $pmiMaxBurstLength may be outside supported range (1-256)"
       }
     }
-    
+
     // Validate VCP configuration
     if (enableVcp) {
       if (vcpMaxChannels < 1 || vcpMaxChannels > 256) {
@@ -273,7 +312,7 @@ case class T9000Param(
         warnings += s"VCP channel buffer size $vcpChannelBufferSize may be outside optimal range (256-8192 bytes)"
       }
     }
-    
+
     // Validate clock configuration
     if (enableMultiClock) {
       if (systemClockMHz < 100 || systemClockMHz > 1000) {
@@ -314,10 +353,15 @@ case class T9000Param(
     sb.append(s"  FPU: ${if (enableFpu) s"${fpuPrecision}-bit IEEE 754" else "disabled"}\n")
     sb.append(s"  Cache: ${mainCacheKb}KB + ${wsCacheWords}W workspace\n")
     sb.append(
-      s"  Memory: MMU=${enableMmu}, PMI=${if (enablePmi) s"${pmiMemorySize/(1024*1024)}MB ${pmiTimingPreset}" else "disabled"}\n"
+      s"  Memory: MMU=${enableMmu}, PMI=${if (enablePmi) s"${pmiMemorySize / (1024 * 1024)}MB ${pmiTimingPreset}"
+        else "disabled"}\n"
     )
-    sb.append(s"  Comm: VCP=${if (enableVcp) s"${vcpMaxChannels}ch/${vcpPhysicalLinks}links" else "disabled"}, SPI DDR=${spiDdrLinks}\n")
-    sb.append(s"  Clocks: ${if (enableMultiClock) s"System=${systemClockMHz}MHz, Memory=${memoryClockMHz}MHz, DS-Link=${dsLinkClockMHz}MHz" else "single domain"}\n")
+    sb.append(s"  Comm: VCP=${if (enableVcp) s"${vcpMaxChannels}ch/${vcpPhysicalLinks}links"
+      else "disabled"}, SPI DDR=${spiDdrLinks}\n")
+    sb.append(
+      s"  Clocks: ${if (enableMultiClock) s"System=${systemClockMHz}MHz, Memory=${memoryClockMHz}MHz, DS-Link=${dsLinkClockMHz}MHz"
+        else "single domain"}\n"
+    )
     sb.append(s"  Process: Scheduler=${enableScheduler}, Timers=${enableTimers}\n")
     sb.append(
       s"  Advanced: Profiling=${enableProfiling}, Debug=${enableDebug}, Test=${enableTestFramework}"

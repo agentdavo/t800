@@ -1,0 +1,7 @@
+[info] welcome to sbt 1.10.0 (Eclipse Adoptium Java 17.0.14)
+[info] loading project definition from /Users/davidsmith/Documents/GitHub/t800/project/project
+[info] loading settings for project t800-build from metals.sbt,plugins.sbt ...
+[info] loading project definition from /Users/davidsmith/Documents/GitHub/t800/project
+[info] loading settings for project t800 from build.sbt ...
+[info] set current project to t800 (in build file:/Users/davidsmith/Documents/GitHub/t800/)
+[success] Total time: 5 s, completed 5 Jul 2025, 23:06:55

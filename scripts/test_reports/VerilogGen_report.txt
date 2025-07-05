@@ -1,0 +1,52 @@
+[info] welcome to sbt 1.10.0 (Eclipse Adoptium Java 17.0.14)
+[info] loading project definition from /Users/davidsmith/Documents/GitHub/t800/project/project
+[info] loading settings for project t800-build from metals.sbt,plugins.sbt ...
+[info] loading project definition from /Users/davidsmith/Documents/GitHub/t800/project
+[info] loading settings for project t800 from build.sbt ...
+[info] set current project to t800 (in build file:/Users/davidsmith/Documents/GitHub/t800/)
+[info] compiling 107 Scala sources to /Users/davidsmith/Documents/GitHub/t800/target/scala-2.13/classes ...
+[warn] /Users/davidsmith/Documents/GitHub/t800/src/main/scala/transputer/plugins/pmi/PmiPlugin.scala:62:18: reference to getDisplayName is ambiguous;
+[warn] it is both defined in the enclosing class PmiPlugin and inherited in the enclosing anonymous class as method getDisplayName (defined in trait Nameable, inherited through parent trait Area)
+[warn] In Scala 2, symbols inherited from a superclass shadow symbols defined in an outer scope.
+[warn] Such references are ambiguous in Scala 3. To continue using the inherited symbol, write `this.getDisplayName`.
+[warn] Or use `-Wconf:msg=legacy-binding:s` to silence this warning. [quickfixable]
+[warn]     println(s"[${getDisplayName()}] Setup starting...")
+[warn]                  ^
+[warn] /Users/davidsmith/Documents/GitHub/t800/src/main/scala/transputer/plugins/pmi/PmiPlugin.scala:72:18: reference to getDisplayName is ambiguous;
+[warn] it is both defined in the enclosing class PmiPlugin and inherited in the enclosing anonymous class as method getDisplayName (defined in trait Nameable, inherited through parent trait Area)
+[warn] In Scala 2, symbols inherited from a superclass shadow symbols defined in an outer scope.
+[warn] Such references are ambiguous in Scala 3. To continue using the inherited symbol, write `this.getDisplayName`.
+[warn] Or use `-Wconf:msg=legacy-binding:s` to silence this warning. [quickfixable]
+[warn]     println(s"[${getDisplayName()}] Configuration:")
+[warn]                  ^
+[warn] /Users/davidsmith/Documents/GitHub/t800/src/main/scala/transputer/plugins/pmi/PmiPlugin.scala:78:18: reference to getDisplayName is ambiguous;
+[warn] it is both defined in the enclosing class PmiPlugin and inherited in the enclosing anonymous class as method getDisplayName (defined in trait Nameable, inherited through parent trait Area)
+[warn] In Scala 2, symbols inherited from a superclass shadow symbols defined in an outer scope.
+[warn] Such references are ambiguous in Scala 3. To continue using the inherited symbol, write `this.getDisplayName`.
+[warn] Or use `-Wconf:msg=legacy-binding:s` to silence this warning. [quickfixable]
+[warn]     println(s"[${getDisplayName()}] Setup complete")
+[warn]                  ^
+[warn] /Users/davidsmith/Documents/GitHub/t800/src/main/scala/transputer/plugins/pmi/PmiPlugin.scala:82:18: reference to getDisplayName is ambiguous;
+[warn] it is both defined in the enclosing class PmiPlugin and inherited in the enclosing anonymous class as method getDisplayName (defined in trait Nameable, inherited through parent trait Area)
+[warn] In Scala 2, symbols inherited from a superclass shadow symbols defined in an outer scope.
+[warn] Such references are ambiguous in Scala 3. To continue using the inherited symbol, write `this.getDisplayName`.
+[warn] Or use `-Wconf:msg=legacy-binding:s` to silence this warning. [quickfixable]
+[warn]     println(s"[${getDisplayName()}] Build starting...")
+[warn]                  ^
+[warn] /Users/davidsmith/Documents/GitHub/t800/src/main/scala/transputer/plugins/pmi/PmiPlugin.scala:388:18: reference to getDisplayName is ambiguous;
+[warn] it is both defined in the enclosing class PmiPlugin and inherited in the enclosing anonymous class as method getDisplayName (defined in trait Nameable, inherited through parent trait Area)
+[warn] In Scala 2, symbols inherited from a superclass shadow symbols defined in an outer scope.
+[warn] Such references are ambiguous in Scala 3. To continue using the inherited symbol, write `this.getDisplayName`.
+[warn] Or use `-Wconf:msg=legacy-binding:s` to silence this warning. [quickfixable]
+[warn]     println(s"[${getDisplayName()}] Build complete")
+[warn]                  ^
+[warn] 1 deprecation (since 2.13.3); re-run with -deprecation for details
+[warn] 2 feature warnings; re-run with -feature for details
+[warn] 7 warnings found
+[info] done compiling
+[info] running (fork) transputer.T9000Generate 
+[error] Error: Could not find or load main class transputer.T9000Generate
+[error] Caused by: java.lang.ClassNotFoundException: transputer.T9000Generate
+[error] Nonzero exit code returned from runner: 1
+[error] (Compile / runMain) Nonzero exit code returned from runner: 1
+[error] Total time: 127 s (02:07), completed 5 Jul 2025, 23:09:21

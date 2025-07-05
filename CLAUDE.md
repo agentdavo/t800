@@ -23,46 +23,75 @@ sbt scalafmtAll                         # Format code (run before commits)
 sbt test                                # Run full test suite
 
 # Verilog generation
-sbt "runMain transputer.Generate"       # Full T9000 with all features
-sbt "runMain transputer.Generate --minimal"  # Bare bones minimal config
-sbt "runMain transputer.Generate --enable-fpu true --link-count 4"  # Custom options
+sbt "runMain transputer.Generate"                    # Full T9000 with all features (T9000Transputer.v)
+sbt "runMain transputer.Generate --minimal"          # Bare bones minimal config (Transputer.v)
+sbt "runMain transputer.Generate --hex hello.hex"    # T9000 with boot ROM
 
-# Testing with enhanced features
-sbt "runMain transputer.GenerateWithTest"  # Basic RTL generation
-sbt "runMain transputer.GenerateWithTest --hex scripts/hex/test.hex --wave --konata"
+# T9000 with custom options
+sbt "runMain transputer.Generate --word-width 32 --link-count 4 --enable-fpu true"
 
-# Assembler
-sbt "runMain transputer.TransputerAssembler scripts/asm/test.asm"  # Assemble file
-sbt "runMain transputer.TransputerAssembler --bootload"  # INMOS bootloader
-sbt "runMain transputer.TransputerAssembler --hello"     # Hello world
+# FPGA generation (NEW: Unified with Generate.scala)
+sbt "runMain transputer.Generate --fpga=ecp5 --demo"                        # Demo FPGA for testing
+sbt "runMain transputer.Generate --fpga=ecp5 --hex scripts/hex/hello.hex"   # FPGA with boot ROM
+sbt "runMain transputer.Generate --fpga=ice40 --demo"                       # Target ICE40 FPGA
+sbt "runMain transputer.Generate --fpga=xilinx --hex scripts/hex/boot.hex"  # Target Xilinx FPGA
+
+# Main development scripts (from project root)
+./scripts/build.sh                      # Build T9000 Verilog (various configs)
+./scripts/test.sh                       # Run test suites with reports
+./scripts/assemble.sh                   # Assemble transputer programs
+./scripts/utils.sh                      # Development utilities
+
+# Script examples
+./scripts/build.sh --config all         # Build all configurations
+./scripts/build.sh --config minimal     # Build minimal transputer
+./scripts/test.sh --type full           # Run comprehensive test suite
+./scripts/test.sh --type quick          # Quick validation tests
+./scripts/assemble.sh scripts/asm/hello_world.asm  # Assemble to hex
+./scripts/utils.sh konata --demo        # Generate demo Konata visualization
+./scripts/utils.sh clean                # Clean all build artifacts
 
 # Specific test execution
 sbt "testOnly transputer.T9000*"         # Run T9000-specific tests
-sbt "testOnly transputer.KonataTest"     # Konata visualization test
+sbt "testOnly transputer.T9000StackSpec" # Stack operations test
+sbt bareBonesTest                        # Minimal config tests
 
-# Build scripts (from project root)
-./scripts/build_t9000_system.sh         # Build all configurations
-./scripts/validate_t9000_system.sh      # Quick validation
-./scripts/build_t9000_tests.sh          # Comprehensive test suite
+# FPGA synthesis (ECP5 using open-source toolchain)
+cd fpga && make all                     # Complete FPGA flow: Verilog → synthesis → place & route → bitstream
+cd fpga && make test                    # Test Verilog generation only
+cd fpga && make burn                    # Program FPGA (if connected)
+cd fpga && make stats                   # Show synthesis statistics
+
+# Simulation
+sbt "test:runMain transputer.T9000CoreSim"      # Interactive simulation
+sbt "test:runMain transputer.BootRomFetchSim"   # Boot ROM simulation
 ```
+
+### Build Configuration Details
+- **Dual build modes**: Source-based (SpinalHDL submodule) vs Published JAR dependencies
+- **Generator variants**: `T9000Generate` (full) vs `Generate` (minimal/bare bones)
+- **Fork JVM**: Enabled for memory management during compilation
+- **Test isolation**: Separate test suites per configuration
 
 ### Build Output Locations
 ```bash
 generated/                              # Verilog output files
 ├── T9000Transputer.v                   # Full T9000 system
 ├── Transputer.v                        # Bare bones version
-└── example.kanata                      # Example pipeline trace
+└── T9000BootRomDesign.v               # Boot ROM design
 
-scripts/                                # Assembly and hex files
-├── asm/                               # Assembly source files
-│   ├── bootload.asm                   # INMOS bootloader
-│   └── *.asm                          # Test programs
-└── hex/                               # Assembled hex files
-    └── *.hex                          # Intel HEX format
+scripts/test_reports/                   # Test report outputs
+├── master_test_report.txt              # Comprehensive test summary
+├── T9000_Pipeline_Validation_Report.md # Pipeline validation report
+└── [component]_report.txt              # Individual test reports
 
-simWorkspace/                          # Simulation artifacts
-├── wave.fst                          # Waveform file
-└── konata.log                        # Pipeline trace
+hello_world_rom.hex                     # Boot ROM hex file (project root)
+```
+
+### Environment Variables
+```bash
+SPINALHDL_FROM_SOURCE=1                 # Use git submodule instead of published jars
+SPINALSIM_WORKSPACE=/tmp                # Redirect simulation workspace
 ```
 
 ## Architecture Deep Dive

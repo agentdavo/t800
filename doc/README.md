@@ -33,6 +33,9 @@ Current project status including:
 - Known limitations
 - Future enhancements
 
+### Additional Guides
+- [`BOOT_ROM_USAGE.md`](./BOOT_ROM_USAGE.md) - Boot ROM configuration and usage
+
 ### Related Files
 - [`../CLAUDE.md`](../CLAUDE.md) - AI assistant guidance for development
 - [`../README.md`](../README.md) - Main project README

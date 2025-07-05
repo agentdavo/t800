@@ -51,7 +51,7 @@ class TransputerPlugin(
           }
       }
     }
-    */
+     */
 
     // Safely set Database keys only if context allows
     // Temporarily disabled for build compatibility
@@ -78,8 +78,8 @@ class TransputerPlugin(
       case _: Exception =>
         println(s"[TransputerPlugin] Running in test mode - skipping database configuration")
     }
-    */
-    
+     */
+
     println(s"[TransputerPlugin] Setup complete - using hardcoded values for build compatibility")
   }
 }
