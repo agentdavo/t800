@@ -92,25 +92,3 @@ object TransputerCoreVerilog {
   }
 }
 
-/** T9000 Transputer specific utilities. */
-object T9000Transputer {
-
-  /** Configure global constants based on T9000 parameters. This is a simplified approach that
-    * doesn't use Database.
-    */
-  def configureGlobals(param: T9000Param): Unit = {
-    // The globals are compile-time constants in this implementation
-    // In a full implementation, these would be set via Database
-    println(s"[T9000] Configuring with:")
-    println(s"  Word Width: ${param.wordWidth} bits")
-    println(s"  Address Width: ${param.addrWidth} bits")
-    println(s"  Link Count: ${param.linkCount}")
-    println(s"  FPU Precision: ${param.fpuPrecision} bits")
-    println(s"  Cache: ${param.mainCacheKb}KB main + ${param.wsCacheWords}-word workspace")
-  }
-
-  /** Create T9000 Transputer with plugins. */
-  def apply(plugins: scala.collection.Seq[Hostable]): Transputer = {
-    Transputer(plugins)
-  }
-}

@@ -31,56 +31,171 @@ object TransputerAssembler {
 
   // Secondary operations (when primary opcode is 0xF)
   val secondaryOps = Map(
+    // Basic operations (0x00-0x0F)
     "rev" -> 0x00, // reverse
     "lb" -> 0x01, // load byte
     "bsub" -> 0x02, // byte subscript
     "endp" -> 0x03, // end process
     "diff" -> 0x04, // difference
     "add" -> 0x05, // add
-    "dup" -> 0x06, // duplicate
-    "gcall" -> 0x07, // general call
-    "in" -> 0x08, // input
-    "prod" -> 0x09, // product
-    "gt" -> 0x0a, // greater than
-    "wsub" -> 0x0b, // word subscript
-    "out" -> 0x0c, // output
-    "sub" -> 0x0d, // subtract
-    "startp" -> 0x0e, // start process
-    "outbyte" -> 0x0f, // output byte
-    "outword" -> 0x10, // output word
-    "seterr" -> 0x11, // set error flag
-    "mint" -> 0x42, // minimum integer
-    "sthf" -> 0x18, // set high priority queue front
-    "stlf" -> 0x19, // set low priority queue front
-    "sttimer" -> 0x54, // set timer
-    "testerr" -> 0x29, // test error flag
-    "clrhalterr" -> 0x57, // clear halt on error
-    "sethalterr" -> 0x58, // set halt on error
-    "fptesterr" -> 0x9c, // floating point test error
+    "gcall" -> 0x06, // general call
+    "in" -> 0x07, // input
+    "prod" -> 0x08, // product
+    "gt" -> 0x09, // greater than
+    "wsub" -> 0x0a, // word subscript
+    "out" -> 0x0b, // output
+    "sub" -> 0x0c, // subtract
+    "startp" -> 0x0d, // start process
+    "outbyte" -> 0x0e, // output byte
+    "outword" -> 0x0f, // output word
+
+    // Extended operations (0x10-0x1F)
+    "seterr" -> 0x10, // set error flag
+    "resetch" -> 0x12, // reset channel
+    "csub0" -> 0x13, // check subscript 0
+    "stopp" -> 0x15, // stop process
+    "ladd" -> 0x16, // long add
+    "stlb" -> 0x17, // store low byte
+    "sthf" -> 0x18, // store high priority front pointer
+    "norm" -> 0x19, // normalize
+    "ldiv" -> 0x1a, // long divide
     "ldpi" -> 0x1b, // load pointer to instruction
-    "gajw" -> 0x3c, // general adjust workspace
+    "stlf" -> 0x1c, // store low priority front pointer
+    "xdble" -> 0x1d, // extend to double
+    "ldpri" -> 0x1e, // load current priority
+    "rem" -> 0x1f, // remainder
+
+    // Control operations (0x20-0x2F)
     "ret" -> 0x20, // return
     "lend" -> 0x21, // loop end
     "ldtimer" -> 0x22, // load timer
-    "pop" -> 0x79, // pop processor stack
-    "terminate" -> 0x2f, // terminate
+    "testlds" -> 0x23, // test load and set
+    "testlde" -> 0x24, // test load end
+    "testldd" -> 0x25, // test load double
+    "teststs" -> 0x26, // test store test set
+    "testste" -> 0x27, // test store test end
+    "teststd" -> 0x28, // test store test double
+    "testerr" -> 0x29, // test error flag
+    "testpranal" -> 0x2a, // test processor analysing
+    "tin" -> 0x2b, // timer input
+    "div" -> 0x2c, // divide
+    "testhardchan" -> 0x2d, // test hard channel
+    "dist" -> 0x2e, // disable timer
+    "disc" -> 0x2f, // disable channel
+
+    // More operations (0x30-0x3F)
+    "diss" -> 0x30, // disable skip
+    "lmul" -> 0x31, // long multiply
+    "not" -> 0x32, // bitwise not
     "xor" -> 0x33, // exclusive or
     "bcnt" -> 0x34, // byte count
-    "wcnt" -> 0x3f, // word count
-    "or" -> 0x4b, // bitwise or
-    "and" -> 0x46, // bitwise and
-    "not" -> 0x32, // bitwise not
-    "shl" -> 0x41, // shift left
-    "shr" -> 0x40, // shift right
-    "ladd" -> 0x16, // long add
+    "lshr" -> 0x35, // long shift right
+    "lshl" -> 0x36, // long shift left
+    "lsum" -> 0x37, // long sum
     "lsub" -> 0x38, // long subtract
-    "lsum" -> 0x52, // long sum
+    "runp" -> 0x39, // run process
+    "xword" -> 0x3a, // extend to word
+    "sb" -> 0x3b, // store byte
+    "gajw" -> 0x3c, // general adjust workspace
+    "savel" -> 0x3d, // save low registers
+    "saveh" -> 0x3e, // save high registers
+    "wcnt" -> 0x3f, // word count
+
+    // Shift and logic (0x40-0x4F)
+    "shr" -> 0x40, // shift right
+    "shl" -> 0x41, // shift left
+    "mint" -> 0x42, // minimum integer
+    "alt" -> 0x43, // alt start
+    "altwt" -> 0x44, // alt wait
+    "altend" -> 0x45, // alt end
+    "and" -> 0x46, // bitwise and
+    "enbt" -> 0x47, // enable timer
+    "enbc" -> 0x48, // enable channel
+    "enbs" -> 0x49, // enable skip
+    "move" -> 0x4a, // move message
+    "or" -> 0x4b, // bitwise or
+    "csngl" -> 0x4c, // check single
+    "ccnt1" -> 0x4d, // check count from 1
+    "talt" -> 0x4e, // timer alt start
     "ldiff" -> 0x4f, // long difference
-    "lmul" -> 0x31, // long multiply
-    "ldiv" -> 0x1a, // long divide
-    "rem" -> 0x1f, // remainder
-    "xdble" -> 0x1d, // extend to double
-    "norm" -> 0x1c // normalize
+
+    // More operations (0x50-0x5F)
+    "sthb" -> 0x50, // store high byte
+    "taltwt" -> 0x51, // timer alt wait
+    "sum" -> 0x52, // sum
+    "mul" -> 0x53, // multiply
+    "sttimer" -> 0x54, // set timer
+    "stoperr" -> 0x55, // stop on error
+    "cword" -> 0x56, // check word
+    "clrhalterr" -> 0x57, // clear halt on error
+    "sethalterr" -> 0x58, // set halt on error
+    "testhalterr" -> 0x59, // test halt on error
+    "dup" -> 0x5a, // duplicate
+    "move2dinit" -> 0x5b, // 2D block move init
+    "move2dall" -> 0x5c, // 2D block move all
+    "move2dnonzero" -> 0x5d, // 2D block move non-zero
+    "move2dzero" -> 0x5e, // 2D block move zero
+    "gtu" -> 0x5f, // greater than unsigned
+
+    // Extended operations (0x60-0x6F)
+    "unpacksn" -> 0x63, // unpack single length fp number
+    "postnormsn" -> 0x6c, // post-normalize correction of single length fp number
+    "roundsn" -> 0x6d, // round single length fp number
+    "pack" -> 0x6e, // pack
+    "ldinf" -> 0x71, // load single length infinity
+    "fmul" -> 0x72, // fast multiply
+    "cflerr" -> 0x73, // check floating point error
+    "crcword" -> 0x74, // calculate CRC on word
+    "crcbyte" -> 0x75, // calculate CRC on byte
+    "bitcnt" -> 0x76, // count bits set in word
+    "bitrevword" -> 0x77, // reverse bits in word
+    "bitrevnbits" -> 0x78, // reverse bottom n bits
+    "pop" -> 0x79, // pop integer stack
+    "settimeslice" -> 0x7b, // set timeslicing status
+
+    // More operations (0x80-0x8F)
+    "ldflags" -> 0x84, // load value of StatusReg
+    "stflags" -> 0x85, // store value into StatusReg
+    "xbword" -> 0x86, // sign extend byte to word
+    "lbx" -> 0x87, // load byte and sign extend
+    "cb" -> 0x88, // check byte
+    "cbu" -> 0x89, // check byte unsigned
+    "insphdr" -> 0x8c, // insert packet header
+    "readbfr" -> 0x8d, // read buffer
+    "ldconf" -> 0x8e, // load configuration
+    "stconf" -> 0x8f, // store configuration
+    "ldcnt" -> 0x90, // load count
+    "ssub" -> 0x91, // sixteen subscript
+    "ldth" -> 0x92, // load trap handler
+    "ldchstatus" -> 0x93, // load channel status
+    "intdis" -> 0x94, // interrupt disable
+    "intenb" -> 0x95, // interrupt enable
+    "ldtrapped" -> 0x96, // load trapped process
+    "cir" -> 0x97, // check in range
+    "ss" -> 0x98, // store sixteen
+    "chantype" -> 0x99, // channel type
+    "ls" -> 0x9a, // load sixteen
+    "fpseterr" -> 0x9b, // set FP error flag
+    "fptesterr" -> 0x9c, // test FP error flag
+    "fppop" -> 0x9d, // pop floating point stack
+    "ciru" -> 0x9f, // check in range unsigned
+
+    // Device operations (0xF0-0xF7)
+    "devlb" -> 0xf0, // device load byte
+    "devsb" -> 0xf1, // device store byte
+    "devls" -> 0xf2, // device load sixteen
+    "devss" -> 0xf3, // device store sixteen
+    "devlw" -> 0xf4, // device load word
+    "devsw" -> 0xf5, // device store word
+    "xsword" -> 0xf6, // sign extend sixteen to word
+    "lsx" -> 0xf7, // load sixteen and sign extend
+    "cs" -> 0xf8, // check sixteen
+    "csu" -> 0xf9, // check sixteen unsigned
+    "vin" -> 0xfa, // virtual in
+    "vout" -> 0xfb, // virtual out
+    "swapbfr" -> 0xfc, // swap buffer
+    "swapt" -> 0xfd, // swap timer
+    "terminate" -> 0x2ff // terminate - special encoding
   )
 
   case class AssemblyLine(
@@ -89,6 +204,158 @@ object TransputerAssembler {
     instruction: Option[String],
     operand: Option[String],
     comment: Option[String]
+  )
+
+  // Negative operations (prefix with 0x02, 0x60)
+  val negativeOps = Map(
+    "fpstall" -> 0x00, // FPU store all
+    "fpldall" -> 0x01, // FPU load all
+    "stshadow" -> 0x02, // store shadow registers
+    "ldshadow" -> 0x03, // load shadow registers
+    "tret" -> 0x05, // trap return
+    "goprot" -> 0x06, // go protected
+    "selth" -> 0x07, // select trap handler
+    "syscall" -> 0x08, // system call
+    "swapgstatus" -> 0x0a, // swap G and GStatus
+    "swaptimer" -> 0x0b, // swap timer priority
+    "insertqueue" -> 0x0c, // insert at queue head
+    "timeslice" -> 0x0d, // timeslice
+    "signal" -> 0x0e, // signal on semaphore
+    "wait" -> 0x0f, // wait on semaphore
+    "trapenb" -> 0x10, // trap enable
+    "trapdis" -> 0x11, // trap disable
+    "trcenb" -> 0x12, // trace enable
+    "trcdis" -> 0x13, // trace disable
+    "cbctl" -> 0x14, // control block operation
+    "mrg" -> 0x17, // merge
+    "swapbfr" -> 0x18, // swap buffers
+    "sethdr" -> 0x19, // set header
+    "setchmode" -> 0x1a, // set channel mode
+    "initvlcb" -> 0x1b, // initialize virtual link control block
+    "writehdr" -> 0x1c, // write header
+    "readhdr" -> 0x1d, // read header
+    "disg" -> 0x1e, // disable guards
+    "enbg" -> 0x1f, // enable guards
+    "grant" -> 0x20, // grant resource
+    "stmove2dinit" -> 0x21, // store 2D block move parameters and initialize
+    "causeerror" -> 0x22, // cause error
+    "unmkrc" -> 0x23, // unmark resource channel
+    "mkrc" -> 0x24, // mark resource channel
+    "irdsq" -> 0x25, // insert ready to deferred queue
+    "erdsq" -> 0x26, // enable ready to scheduled queue
+    "stresptr" -> 0x27, // store resource pointer
+    "ldresptr" -> 0x28, // load resource pointer
+    "devmove" -> 0x2a, // device move
+    "icl" -> 0x2b, // invalidate cache line
+    "fdcl" -> 0x2c, // flush and disable cache line
+    "ica" -> 0x2d, // invalidate cache all
+    "fdca" -> 0x2e, // flush and disable cache all
+    "nop" -> 0x2f, // no operation
+    "ldmemstartval" -> 0x30, // load value of MemStart
+    "pop" -> 0x31, // pop processor stack
+    "lddevid" -> 0x32, // load device identity
+    "antiwdesc" -> 0x35, // anti-write descriptor
+    "antiwd" -> 0x36, // anti-write data
+    "swapqueue" -> 0x37, // swap scheduler queue
+    "swapcr" -> 0x38, // swap ClockReg
+    "jalterb" -> 0x39, // jump alternation branch
+    "enbc3" -> 0x3a, // enable channel word 3
+    "getpri" -> 0x3b, // get priority
+    "getaff" -> 0x3c, // get affinity
+    "setaff" -> 0x3d, // set affinity
+    "stime" -> 0x3e, // store time
+    "sethpri" -> 0x40, // set high priority
+    "setnpri" -> 0x41, // set normal priority
+    "ldclock" -> 0x42, // load clock
+    "stclock" -> 0x43, // store clock
+    "getpas" -> 0x44, // get priority and swap
+    "antialtwt" -> 0x45, // anti-alt wait
+    "alt3enb" -> 0x46, // alt 3 enable
+    "alt3dis" -> 0x47, // alt 3 disable
+    "alt4enb" -> 0x48, // alt 4 enable
+    "alt4dis" -> 0x49, // alt 4 disable
+    "alt5enb" -> 0x4a, // alt 5 enable
+    "alt5dis" -> 0x4b, // alt 5 disable
+    "alt6enb" -> 0x4c, // alt 6 enable
+    "alt6dis" -> 0x4d, // alt 6 disable
+    "clockenb" -> 0x4e, // clock interrupt enable
+    "clockdis" -> 0x4f, // clock interrupt disable
+    "reboot" -> 0x50 // reboot
+  )
+
+  // FPU extended operations (prefix with 0x20000)
+  // These are T9000 extended FPU operations that require special encoding
+  // They are NOT the same as the regular FPU operations in fpuOps
+  val fpuExtendedOps = Map[String, Int](
+    // Currently empty - T9000 extended FPU operations would go here
+    // Most FPU operations use standard encoding through fpuOps
+  )
+
+  // Standard FPU operations (prefix with 0x8xxx)
+  val fpuOps = Map(
+    "fpldnldbi" -> 0x8a, // FP load non-local double indirect
+    "fpchkerr" -> 0x8b, // check FP error
+    "fpstnldb" -> 0x8c, // FP store non-local double
+    "fpldnlsni" -> 0x8e, // FP load non-local single indirect
+    "fpadd" -> 0x8f, // FP add
+    "fpstnlsn" -> 0x90, // FP store non-local single
+    "fpsub" -> 0x91, // FP subtract
+    "fpldnldb" -> 0x92, // FP load non-local double
+    "fpmul" -> 0x93, // FP multiply
+    "fpdiv" -> 0x94, // FP divide
+    "fprange" -> 0x9a, // FP range check
+    "fpldnlsn" -> 0x9b, // FP load non-local single
+    "fpldnlmuldb" -> 0x9c, // FP load non-local multiple double
+    "fpldnladddb" -> 0x9e, // FP load non-local add double
+    "fpldnlmulsn" -> 0x9f, // FP load non-local multiple single
+    "fpentry" -> 0xa0, // FP unit entry
+    "fpldnladdsn" -> 0xa2, // FP load non-local add single
+    "fpusqrtfirst" -> 0xa3, // FP square root first step
+    "fpusqrtstep" -> 0xa4, // FP square root step
+    "fpusqrtlast" -> 0xa5, // FP square root last step
+    "fprem" -> 0xa6, // FP remainder
+    "fpnan" -> 0xa7, // FP not a number
+    "fpordered" -> 0xa8, // FP ordered
+    "fpnotfinite" -> 0xa9, // FP not finite
+    "fpgt" -> 0xaa, // FP greater than
+    "fpeq" -> 0xab, // FP equal
+    "fpi32tor32" -> 0xac, // FP int32 to real32
+    "fpge" -> 0xc5, // FP greater or equal
+    "fpi32tor64" -> 0xc6, // FP int32 to real64
+    "fpb32tor64" -> 0xc7, // FP real32 to real64
+    "fprtoi32" -> 0xc9, // FP real to int32
+    "fpr32tor64" -> 0xca, // FP real32 to real64
+    "fpr64toi32" -> 0xcb, // FP real64 to int32
+    "fpexpdec32" -> 0xcc, // FP exponent decrease 32
+    "fpr64tor32" -> 0xcd, // FP real64 to real32
+    "fptesterr" -> 0xce, // FP test error flag
+    "fpdup" -> 0xcf, // FP duplicate
+    "fprev" -> 0xd0, // FP reverse
+    "fpldnladddb" -> 0xd2, // FP load non-local add double
+    "fpldnlmuldb" -> 0xd3, // FP load non-local multiply double
+    "fpldnladdsn" -> 0xd5, // FP load non-local add single
+    "fpentry3" -> 0xd6, // FP entry 3
+    "fpldnlmulsn" -> 0xd7, // FP load non-local multiply single
+    "fpuseterr" -> 0x200, // FP set error (special encoding)
+    "fpuclrerr" -> 0x201 // FP clear error (special encoding)
+  )
+
+  // Additional T9000 instructions that don't fit in other categories
+  val specialOps = Map(
+    "restart" -> (0x2600 + 0x00), // restart
+    "getpatch" -> (0x2600 + 0x05), // get patch
+    "testchan" -> (0x2600 + 0x06), // test channel
+    "subcarry" -> (0x2600 + 0x07), // subtract with carry
+    "addc" -> (0x2600 + 0x08), // add with carry
+    "subc" -> (0x2600 + 0x09), // subtract with carry
+    "ci" -> (0x2600 + 0x10), // check in
+    "dw" -> (0x2600 + 0x11), // data word directive
+    "fpint" -> (0x2600 + 0x12), // FP integer
+    "ldab" -> (0x2600 + 0x13), // load and add byte
+    "ldaddw" -> (0x2600 + 0x14), // load and add word
+    "fprtoi64" -> (0x2600 + 0x15), // FP real to int64
+    "fpsttest" -> (0x2600 + 0x17), // FP status test
+    "wsubword" -> (0x2600 + 0x18) // word subscript word
   )
 
   // Track VAL definitions (constants)
@@ -136,8 +403,36 @@ object TransputerAssembler {
         4 // Assume align to 4 bytes
       case "global" =>
         0 // No code generated
+      case op if negativeOps.contains(op) =>
+        // Negative operations are at least 3 bytes
+        val negOp = negativeOps(op)
+        if (negOp > 15) 4 else 3
+      case op if fpuExtendedOps.contains(op) =>
+        // FPU extended operations are 6-7 bytes
+        val extOp = fpuExtendedOps(op)
+        if (extOp > 15) 7 else 6
+      case op if fpuOps.contains(op) =>
+        // Standard FPU operations
+        val fpOp = fpuOps(op)
+        if (fpOp <= 15) 1
+        else if (fpOp <= 0xff) 2
+        else 3 // For extended encodings like 0x200
+      case op if secondaryOps.contains(op) =>
+        val secOp = secondaryOps(op)
+        if (secOp <= 15) 1
+        else if (secOp <= 0xff) 2
+        else 3 // For extended encodings like terminate (0x2ff)
+      case op if opcodes.contains(op) =>
+        // Primary opcodes with operands
+        if (operand.isEmpty) 1
+        else {
+          val value = operand.map(parseOperand(_, 0, Map.empty)).getOrElse(0)
+          if (value >= 0 && value <= 15) 1
+          else if (value >= -16 && value <= -1) 1 // nfix covers negative immediates
+          else 4 // Conservative estimate for prefixed values
+        }
       case _ =>
-        // Most instructions are 1-4 bytes
+        // Unknown instruction, conservative estimate
         4
     }
   }
@@ -348,10 +643,77 @@ object TransputerAssembler {
         val secOp = secondaryOps(op)
         if (secOp <= 15) {
           encodeInstruction(0xf, secOp)
-        } else {
+        } else if (secOp <= 0xff) {
           // Need prefix for secondary operation
           encodeInstruction(0x2, secOp >> 4) ++ encodeInstruction(0xf, secOp & 0xf)
+        } else {
+          // Special multi-byte encoding for extended operations like terminate (0x2ff)
+          val prefixes = mutable.ListBuffer[Byte]()
+          var value = secOp
+          while (value > 15) {
+            prefixes += ((0x2 << 4) | (value & 0xf)).toByte
+            value >>= 4
+          }
+          prefixes.toList :+ ((0xf << 4) | (value & 0xf)).toByte
         }
+
+      case op if negativeOps.contains(op) =>
+        // Negative operations: pfix #2, pfix #6, opr #operand
+        val negOp = negativeOps(op)
+        List(
+          ((0x2 << 4) | 0x2).toByte, // pfix #2
+          ((0x2 << 4) | 0x6).toByte, // pfix #6
+          ((0xf << 4) | (negOp & 0xf)).toByte // opr with low nibble
+        ) ++ (if (negOp > 15) List(((0x2 << 4) | (negOp >> 4)).toByte) else Nil)
+
+      case op if fpuOps.contains(op) =>
+        // Standard FPU operations with 0x8xxx encoding
+        val fpOp = fpuOps(op)
+        if (fpOp <= 0xff) {
+          // Simple FPU operation
+          encodeInstruction(0x2, fpOp >> 4) ++ encodeInstruction(0xf, fpOp & 0xf)
+        } else {
+          // Extended FPU operation (e.g., 0x200)
+          val prefixes = mutable.ListBuffer[Byte]()
+          var value = fpOp
+          while (value > 15) {
+            prefixes += ((0x2 << 4) | (value & 0xf)).toByte
+            value >>= 4
+          }
+          prefixes.toList :+ ((0xf << 4) | (value & 0xf)).toByte
+        }
+
+      case op if fpuExtendedOps.contains(op) =>
+        // FPU extended operations use encoding 0x20000 + operand
+        // This encodes as the prefix sequence for 0x20000 followed by opr with the specific operand
+        val extOp = fpuExtendedOps(op)
+        // 0x20000 = 0b10_0000_0000_0000_0000
+        // Encoded as: pfix 0, pfix 0, pfix 0, pfix 0, pfix 2, opr operand
+        val prefixes = List(
+          ((0x2 << 4) | 0x0).toByte, // pfix #0
+          ((0x2 << 4) | 0x0).toByte, // pfix #0
+          ((0x2 << 4) | 0x0).toByte, // pfix #0
+          ((0x2 << 4) | 0x0).toByte, // pfix #0
+          ((0x2 << 4) | 0x2).toByte // pfix #2
+        )
+        if (extOp <= 15) {
+          prefixes :+ ((0xf << 4) | extOp).toByte // opr with operand
+        } else {
+          // Need additional prefix for operand > 15
+          prefixes ++ encodeInstruction(0x2, extOp >> 4) :+ ((0xf << 4) | (extOp & 0xf)).toByte
+        }
+
+      case op if specialOps.contains(op) =>
+        // Special T9000 operations with 0x2600 + operand encoding
+        val specOp = specialOps(op)
+        val operand = specOp & 0xff
+        val prefix = (specOp >> 8) & 0xff
+        // Encode as pfix #2, pfix #6, opr #operand
+        List(
+          ((0x2 << 4) | ((prefix >> 4) & 0xf)).toByte, // pfix high nibble
+          ((0x2 << 4) | (prefix & 0xf)).toByte, // pfix low nibble
+          ((0xf << 4) | (operand & 0xf)).toByte // opr with operand
+        ) ++ (if (operand > 15) encodeInstruction(0x2, operand >> 4) else Nil)
 
       case "db" | "byte" | "DB" =>
         // Data bytes

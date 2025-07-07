@@ -57,7 +57,7 @@ sbt: $(VERILOG_SRC)
 
 $(VERILOG_SRC): $(SCALA_SRC)
 	@echo "=== Generating Verilog from Scala ==="
-	cd .. && $(SBT) "runMain transputer.Generate --fpga=ecp5 --demo"
+	cd .. && $(SBT) "runMain transputer.Generate --fpga=ecp5 --hex scripts/hex/hello-iserver-rom.hex"
 	@echo "Looking for generated Verilog file..."
 	@if [ -f "$(TOP_MODULE).v" ]; then \
 		echo "Verilog generation completed: $(VERILOG_SRC)"; \

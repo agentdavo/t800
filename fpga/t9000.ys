@@ -10,10 +10,10 @@ hierarchy -top T9000_FPGA
 # Show design stats before synthesis
 stat
 
-# High-level synthesis
-proc; opt; fsm; opt; memory; opt
+# High-level synthesis (minimal optimization to see true T9000 size)
+proc; fsm; memory
 
-# Technology mapping for ECP5
+# Technology mapping for ECP5 (reduced optimization)
 synth_ecp5 -top T9000_FPGA -json t9000.json
 
 # Show final stats

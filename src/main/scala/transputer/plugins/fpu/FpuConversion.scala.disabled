@@ -1,0 +1,315 @@
+package transputer.plugins.fpu
+
+import spinal.core._
+import spinal.lib._
+import spinal.lib.misc.pipeline._
+
+/** FPU Conversion Unit using AFix
+  *
+  * Implements all T9000 FPU conversion operations:
+  *   - FPI32TOR32/R64: Convert 32-bit integer to single/double float
+  *   - FPR32/R64TOI32: Convert single/double float to 32-bit integer
+  *   - FPR32TOR64: Convert single to double precision
+  *   - FPR64TOR32: Convert double to single precision
+  *   - FPINT: Convert to integer using current rounding mode
+  *   - FPNINT: Round to nearest integer value (as float)
+  *
+  * Features:
+  *   - Full IEEE 754 rounding mode support
+  *   - Overflow/underflow detection
+  *   - NaN and infinity handling
+  *   - AFix for automatic precision management
+  */
+class FpuConversion extends Component {
+  val io = new Bundle {
+    val cmd = slave Stream (ConversionCmd())
+    val rsp = master Flow (ConversionRsp())
+  }
+
+  // Pipeline stages for conversion
+  val pipe = new StageCtrlPipeline
+  val s0 = pipe.ctrl(0) // Decode and setup
+  val s1 = pipe.ctrl(1) // Convert and round
+
+  // Payloads
+  val OPERAND = Payload(Bits(64 bits))
+  val OPERATION = Payload(ConversionOp())
+  val ROUNDING = Payload(Bits(2 bits))
+  val IS_DOUBLE = Payload(Bool())
+  val RESULT = Payload(Bits(64 bits))
+  val EXCEPTIONS = Payload(Bits(5 bits))
+
+  // Stage 0: Decode and setup
+  s0.up.driveFrom(io.cmd) { (stage, cmd) =>
+    stage(OPERAND) := cmd.operand
+    stage(OPERATION) := cmd.op
+    stage(ROUNDING) := cmd.rounding
+    stage(IS_DOUBLE) := cmd.isDouble
+  }
+
+  new s0.Area {
+    // Parse input based on operation type
+    val fpNumber = FpNumber()
+    val intValue = s0(OPERAND)(31 downto 0).asSInt
+
+    // Determine input format
+    val isIntToFloat = s0(OPERATION) === ConversionOp.I32TOR32 ||
+      s0(OPERATION) === ConversionOp.I32TOR64
+
+    when(!isIntToFloat) {
+      // Float input - parse IEEE 754
+      val inputIsDouble = s0(OPERATION) === ConversionOp.R64TOI32 ||
+        s0(OPERATION) === ConversionOp.R64TOR32
+      fpNumber.fromBits(s0(OPERAND), inputIsDouble)
+    }
+  }
+
+  // Stage 1: Conversion and rounding
+  new s1.Area {
+    val operation = s1(OPERATION)
+    val operand = s1(OPERAND)
+    val rounding = s1(ROUNDING)
+    val isDouble = s1(IS_DOUBLE)
+
+    // Result registers
+    val result = Bits(64 bits)
+    val exceptions = Bits(5 bits)
+
+    result := 0
+    exceptions := 0
+
+    // Get rounding mode - use helper from Utils
+    val roundMode = FpuUtils.IEEERounding.toRoundType(rounding)
+
+    switch(operation) {
+      // Integer to float conversions
+      is(ConversionOp.I32TOR32, ConversionOp.I32TOR64) {
+        val intVal = operand(31 downto 0).asSInt
+        val targetDouble = operation === ConversionOp.I32TOR64
+
+        when(intVal === 0) {
+          // Zero stays zero
+          result := B(0, 64 bits)
+        } otherwise {
+          // Convert to normalized float
+          val sign = intVal.msb
+          val absVal = Mux(sign, (-intVal).asUInt, intVal.asUInt)
+
+          // Find leading one position
+          val leadingZeros = LeadingZeros(absVal.asBits)
+          val shift = U(31) - leadingZeros
+
+          // Normalize mantissa
+          val normalizedMant = (absVal << (leadingZeros + 1))(30 downto 0)
+
+          when(targetDouble) {
+            // Convert to double
+            val exponent = (shift + 1023).resize(11)
+            result := sign ## exponent.asBits ## normalizedMant ## B(0, 21 bits)
+          } otherwise {
+            // Convert to single
+            val exponent = (shift + 127).resize(8)
+            val mantissa = normalizedMant(30 downto 8) // Take top 23 bits
+            result := sign ## B(0, 32 bits) ## exponent.asBits ## mantissa
+          }
+        }
+      }
+
+      // Float to integer conversions
+      is(ConversionOp.R32TOI32, ConversionOp.R64TOI32) {
+        val fp = FpNumber()
+        val inputDouble = operation === ConversionOp.R64TOI32
+        fp.fromBits(operand, inputDouble)
+
+        when(fp.isNaN) {
+          // NaN converts to 0 with invalid exception
+          result := B(0, 64 bits)
+          exceptions := B"10000" // Invalid
+        } elsewhen (fp.isInf) {
+          // Infinity saturates to max/min int
+          result := Mux(
+            fp.sign,
+            B(0x80000000L, 64 bits), // INT_MIN
+            B(0x7fffffffL, 64 bits) // INT_MAX
+          )
+          exceptions := B"10000" // Invalid
+        } elsewhen (fp.isZero) {
+          result := B(0, 64 bits)
+        } otherwise {
+          // Normal conversion with rounding
+          val expBias = Mux(inputDouble, S(1023, 11 bits), S(127, 8 bits))
+          val actualExp = fp.exponent.asSInt
+
+          when(actualExp > 30) {
+            // Overflow - saturate
+            result := Mux(
+              fp.sign,
+              B(0x80000000L, 64 bits), // INT_MIN
+              B(0x7fffffffL, 64 bits) // INT_MAX
+            )
+            exceptions := B"10000" // Invalid
+          } elsewhen (actualExp < 0) {
+            // Fractional value - round to 0 or ±1
+            val roundToOne = roundMode.mux(
+              RoundType.ROUNDTOEVEN -> (actualExp === -1 && fp.mantissa(51)),
+              RoundType.ROUNDTOZERO -> False,
+              RoundType.ROUNDTOINF -> (!fp.sign),
+              RoundType.ROUNDDOWN -> fp.sign
+            )
+            result := Mux(
+              roundToOne,
+              Mux(fp.sign, B(0xffffffffL, 64 bits), B(1, 64 bits)),
+              B(0, 64 bits)
+            )
+            exceptions := B"00001" // Inexact
+          } otherwise {
+            // Normal range - shift mantissa
+            val shiftAmount = (U(52) - actualExp.asUInt).resize(6)
+            val shiftedMant = (fp.mantissa.asBits.asUInt |<< 11) >> shiftAmount
+            val intResult = Mux(fp.sign, -(shiftedMant.asSInt), shiftedMant.asSInt)
+            result := intResult.resize(64).asBits
+
+            // Check for inexact
+            when(shiftAmount > 0 && fp.mantissa.asBits(shiftAmount - 1 downto 0) =/= 0) {
+              exceptions := B"00001" // Inexact
+            }
+          }
+        }
+      }
+
+      // Precision conversions
+      is(ConversionOp.R32TOR64) {
+        // Single to double - handled in FpuLoadStore.formatToDouble
+        val single = operand(31 downto 0)
+        result := formatToDouble(single)
+      }
+
+      is(ConversionOp.R64TOR32) {
+        // Double to single - handled in FpuLoadStore.formatToSingle
+        result := B(0, 32 bits) ## formatToSingle(operand)
+
+        // Check for overflow/underflow
+        val fp = FpNumber()
+        fp.fromBits(operand, True)
+        when(fp.exponent > AFix(127)) {
+          exceptions := B"00100" // Overflow
+        } elsewhen (fp.exponent < AFix(-126) && !fp.isZero) {
+          exceptions := B"00010" // Underflow
+        }
+      }
+
+      // Rounding to integer operations
+      is(ConversionOp.INT, ConversionOp.NINT) {
+        val fp = FpNumber()
+        fp.fromBits(operand, isDouble)
+
+        when(fp.isNaN || fp.isInf) {
+          // Special values pass through
+          result := operand
+        } elsewhen (fp.exponent >= AFix(52)) {
+          // Already an integer
+          result := operand
+        } otherwise {
+          // Round to integer
+          val fracBits = Mux(fp.exponent >= AFix(0), U(52) - fp.exponent.asUInt, U(52))
+
+          // Mask off fractional bits
+          val mask = ~((U(1) << fracBits) - 1)
+          val intPart = operand & mask.resize(64).asBits
+
+          // Determine if rounding up is needed
+          val roundUp = operation === ConversionOp.NINT || roundMode =/= RoundType.ROUNDTOZERO.asBits
+
+          when(roundUp && fracBits < 52 && operand(fracBits)) {
+            // Round up
+            val increment = U(1) << fracBits
+            result := (intPart.asUInt + increment).asBits
+          } otherwise {
+            result := intPart
+          }
+
+          // Set inexact if fractional bits present
+          when(fracBits < 52 && operand(fracBits - 1 downto 0) =/= 0) {
+            exceptions := B"00001" // Inexact
+          }
+        }
+      }
+    }
+
+    s1(RESULT) := result
+    s1(EXCEPTIONS) := exceptions
+  }
+
+  // Connect output
+  s1.down.driveTo(io.rsp) { (stream, payload) =>
+    stream.result := payload(RESULT)
+    stream.exceptions := payload(EXCEPTIONS)
+  }
+
+  pipe.build()
+
+  // Helper functions (reuse from FpuLoadStore)
+  def formatToSingle(double: Bits): Bits = {
+    val sign = double(63)
+    val exponent = double(62 downto 52).asUInt
+    val mantissa = double(51 downto 0)
+
+    val singleBits = Bits(32 bits)
+
+    when(exponent === 0x7ff) {
+      // Infinity or NaN
+      when(mantissa === 0) {
+        singleBits := sign ## B(0xff, 8 bits) ## B(0, 23 bits)
+      } otherwise {
+        singleBits := sign ## B(0xff, 8 bits) ## B"1" ## mantissa(50 downto 29)
+      }
+    } elsewhen (exponent === 0) {
+      singleBits := sign ## B(0, 31 bits)
+    } otherwise {
+      val adjustedExp = (exponent - 1023 + 127).resize(11)
+      when(adjustedExp > 254) {
+        singleBits := sign ## B(0xff, 8 bits) ## B(0, 23 bits)
+      } elsewhen (adjustedExp <= 0) {
+        singleBits := sign ## B(0, 31 bits)
+      } otherwise {
+        singleBits := sign ## adjustedExp(7 downto 0).asBits ## mantissa(51 downto 29)
+      }
+    }
+    singleBits
+  }
+
+  def formatToDouble(single: Bits): Bits = {
+    val sign = single(31)
+    val exponent = single(30 downto 23).asUInt
+    val mantissa = single(22 downto 0)
+
+    val doubleBits = Bits(64 bits)
+
+    when(exponent === 0xff) {
+      when(mantissa === 0) {
+        doubleBits := sign ## B(0x7ff, 11 bits) ## B(0, 52 bits)
+      } otherwise {
+        doubleBits := sign ## B(0x7ff, 11 bits) ## mantissa ## B(0, 29 bits)
+      }
+    } elsewhen (exponent === 0) {
+      doubleBits := sign ## B(0, 63 bits)
+    } otherwise {
+      val adjustedExp = (exponent - 127 + 1023).resize(11).asBits
+      doubleBits := sign ## adjustedExp ## mantissa ## B(0, 29 bits)
+    }
+    doubleBits
+  }
+
+  def LeadingZeros(bits: Bits): UInt = {
+    val width = bits.getWidth
+    val zeros = UInt(log2Up(width + 1) bits)
+    zeros := width
+
+    for (i <- 0 until width) {
+      when(bits(width - 1 - i)) {
+        zeros := U(i)
+      }
+    }
+    zeros
+  }
+}

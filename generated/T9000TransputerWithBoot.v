@@ -1,6 +1,6 @@
 // Generator : SpinalHDL v1.12.2    git head : f25edbcee624ef41548345cfb91c42060e33313f
 // Component : T9000TransputerWithBoot
-// Git hash  : b948a2fbad2daff59189098e1675e03fea3ed5e4
+// Git hash  : 3e7cc9e1babbc090674147415474973da6786efc
 
 `timescale 1ns/1ps
 
@@ -2912,7 +2912,7 @@ module T9000TransputerWithBoot (
   wire                _zz_io_input_rsp_ready;
   reg        [31:0]   _zz_io_input_cmd_payload_fragment_address;
   reg                 _zz_io_input_cmd_valid_2;
-  reg        [4:0]    switch_ArithmeticPlugin_l151;
+  reg        [4:0]    switch_ArithmeticPlugin_l160;
   wire       [3:0]    _zz_1027;
   wire       [5:0]    switch_Misc_l245;
   reg        [31:0]   _zz_fpu_fpPipe_ctrl_0_down_RESULT_9;
@@ -4022,7 +4022,7 @@ module T9000TransputerWithBoot (
   wire                when_SchedulerPlugin_l168;
   wire                when_SchedulerPlugin_l170;
   `ifndef SYNTHESIS
-  reg [39:0] switch_ArithmeticPlugin_l151_string;
+  reg [39:0] switch_ArithmeticPlugin_l160_string;
   reg [95:0] switch_Misc_l245_string;
   reg [95:0] switch_Misc_l245_1_string;
   reg [95:0] switch_Misc_l245_2_string;
@@ -4547,27 +4547,27 @@ module T9000TransputerWithBoot (
 
   `ifndef SYNTHESIS
   always @(*) begin
-    case(switch_ArithmeticPlugin_l151)
-      AluOp_ADD : switch_ArithmeticPlugin_l151_string = "ADD  ";
-      AluOp_SUB : switch_ArithmeticPlugin_l151_string = "SUB  ";
-      AluOp_MUL : switch_ArithmeticPlugin_l151_string = "MUL  ";
-      AluOp_DIV : switch_ArithmeticPlugin_l151_string = "DIV  ";
-      AluOp_REM_1 : switch_ArithmeticPlugin_l151_string = "REM_1";
-      AluOp_AND_1 : switch_ArithmeticPlugin_l151_string = "AND_1";
-      AluOp_OR_1 : switch_ArithmeticPlugin_l151_string = "OR_1 ";
-      AluOp_XOR_1 : switch_ArithmeticPlugin_l151_string = "XOR_1";
-      AluOp_NOT_1 : switch_ArithmeticPlugin_l151_string = "NOT_1";
-      AluOp_SHL : switch_ArithmeticPlugin_l151_string = "SHL  ";
-      AluOp_SHR : switch_ArithmeticPlugin_l151_string = "SHR  ";
-      AluOp_GT : switch_ArithmeticPlugin_l151_string = "GT   ";
-      AluOp_GTU : switch_ArithmeticPlugin_l151_string = "GTU  ";
-      AluOp_DIFF : switch_ArithmeticPlugin_l151_string = "DIFF ";
-      AluOp_SUM : switch_ArithmeticPlugin_l151_string = "SUM  ";
-      AluOp_PROD : switch_ArithmeticPlugin_l151_string = "PROD ";
-      AluOp_REV : switch_ArithmeticPlugin_l151_string = "REV  ";
-      AluOp_DUP : switch_ArithmeticPlugin_l151_string = "DUP  ";
-      AluOp_FMUL : switch_ArithmeticPlugin_l151_string = "FMUL ";
-      default : switch_ArithmeticPlugin_l151_string = "?????";
+    case(switch_ArithmeticPlugin_l160)
+      AluOp_ADD : switch_ArithmeticPlugin_l160_string = "ADD  ";
+      AluOp_SUB : switch_ArithmeticPlugin_l160_string = "SUB  ";
+      AluOp_MUL : switch_ArithmeticPlugin_l160_string = "MUL  ";
+      AluOp_DIV : switch_ArithmeticPlugin_l160_string = "DIV  ";
+      AluOp_REM_1 : switch_ArithmeticPlugin_l160_string = "REM_1";
+      AluOp_AND_1 : switch_ArithmeticPlugin_l160_string = "AND_1";
+      AluOp_OR_1 : switch_ArithmeticPlugin_l160_string = "OR_1 ";
+      AluOp_XOR_1 : switch_ArithmeticPlugin_l160_string = "XOR_1";
+      AluOp_NOT_1 : switch_ArithmeticPlugin_l160_string = "NOT_1";
+      AluOp_SHL : switch_ArithmeticPlugin_l160_string = "SHL  ";
+      AluOp_SHR : switch_ArithmeticPlugin_l160_string = "SHR  ";
+      AluOp_GT : switch_ArithmeticPlugin_l160_string = "GT   ";
+      AluOp_GTU : switch_ArithmeticPlugin_l160_string = "GTU  ";
+      AluOp_DIFF : switch_ArithmeticPlugin_l160_string = "DIFF ";
+      AluOp_SUM : switch_ArithmeticPlugin_l160_string = "SUM  ";
+      AluOp_PROD : switch_ArithmeticPlugin_l160_string = "PROD ";
+      AluOp_REV : switch_ArithmeticPlugin_l160_string = "REV  ";
+      AluOp_DUP : switch_ArithmeticPlugin_l160_string = "DUP  ";
+      AluOp_FMUL : switch_ArithmeticPlugin_l160_string = "FMUL ";
+      default : switch_ArithmeticPlugin_l160_string = "?????";
     endcase
   end
   always @(*) begin
@@ -7195,27 +7195,27 @@ module T9000TransputerWithBoot (
   assign _zz_io_input_rsp_ready = _zz_io_input_cmd_valid;
   assign _zz_1027 = _zz_2[3 : 0];
   always @(*) begin
-    switch_ArithmeticPlugin_l151 = AluOp_ADD;
+    switch_ArithmeticPlugin_l160 = AluOp_ADD;
     if((_zz_1027 == _zz_2056)) begin
-        switch_ArithmeticPlugin_l151 = AluOp_ADD;
+        switch_ArithmeticPlugin_l160 = AluOp_ADD;
     end else if((_zz_1027 == _zz_2058)) begin
-        switch_ArithmeticPlugin_l151 = AluOp_SUB;
+        switch_ArithmeticPlugin_l160 = AluOp_SUB;
     end else if((_zz_1027 == _zz_2060)) begin
-        switch_ArithmeticPlugin_l151 = AluOp_AND_1;
+        switch_ArithmeticPlugin_l160 = AluOp_AND_1;
     end else if((_zz_1027 == _zz_2062)) begin
-        switch_ArithmeticPlugin_l151 = AluOp_OR_1;
+        switch_ArithmeticPlugin_l160 = AluOp_OR_1;
     end else if((_zz_1027 == _zz_2064)) begin
-        switch_ArithmeticPlugin_l151 = AluOp_XOR_1;
+        switch_ArithmeticPlugin_l160 = AluOp_XOR_1;
     end else if((_zz_1027 == _zz_2066)) begin
-        switch_ArithmeticPlugin_l151 = AluOp_NOT_1;
+        switch_ArithmeticPlugin_l160 = AluOp_NOT_1;
     end else if((_zz_1027 == _zz_2068)) begin
-        switch_ArithmeticPlugin_l151 = AluOp_SHL;
+        switch_ArithmeticPlugin_l160 = AluOp_SHL;
     end else if((_zz_1027 == _zz_2070)) begin
-        switch_ArithmeticPlugin_l151 = AluOp_SHR;
+        switch_ArithmeticPlugin_l160 = AluOp_SHR;
     end else if((_zz_1027 == _zz_2072)) begin
-        switch_ArithmeticPlugin_l151 = AluOp_GT;
+        switch_ArithmeticPlugin_l160 = AluOp_GT;
     end else if((_zz_1027 == _zz_2074)) begin
-        switch_ArithmeticPlugin_l151 = AluOp_REV;
+        switch_ArithmeticPlugin_l160 = AluOp_REV;
     end
   end
 
@@ -11139,7 +11139,7 @@ module T9000TransputerWithBoot (
         _zz_io_input_cmd_valid_2 <= 1'b0;
       end
       if(((_zz_2[7 : 4] == PrimaryOpcode_OPR) && ((((((((((_zz_1027 == _zz_when) || (_zz_1027 == _zz_when_2)) || (_zz_1027 == _zz_when_4)) || (_zz_1027 == _zz_when_6)) || (_zz_1027 == _zz_when_8)) || (_zz_1027 == _zz_when_10)) || (_zz_1027 == _zz_when_12)) || (_zz_1027 == _zz_when_14)) || (_zz_1027 == _zz_when_16)) || (_zz_1027 == _zz_when_18)))) begin
-        case(switch_ArithmeticPlugin_l151)
+        case(switch_ArithmeticPlugin_l160)
           AluOp_ADD : begin
             if(when_RegStackPlugin_l144) begin
               _zz_fpu_fpPipe_ctrl_0_down_RESULT_3 <= _zz_fpu_fpPipe_ctrl_0_down_RESULT_15;

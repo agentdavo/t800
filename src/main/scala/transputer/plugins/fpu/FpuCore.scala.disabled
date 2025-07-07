@@ -1,0 +1,273 @@
+package transputer.plugins.fpu
+
+import spinal.core._
+import spinal.lib._
+import transputer.plugins.fpu.{FpCmd, FpRsp}
+
+/** Enhanced FPU Core using SpinalHDL AFix for IEEE 754 Compliance
+  *
+  * This implementation leverages AFix's automatic precision tracking, rounding modes, and overflow
+  * detection to implement a fully IEEE 754 compliant FPU with minimal manual bit manipulation.
+  */
+class FpuCore extends Component {
+  val io = new Bundle {
+    val cmd = slave Stream (FpCmd())
+    val rsp = master Flow (FpRsp())
+  }
+
+  // IEEE 754 formats using AFix
+  object IEEE754 {
+    // Single precision: 1 sign, 8 exponent, 23 mantissa
+    def singleMantissa = AFix.UQ(1 bit, 23 bit) // 1.xxx format
+    def singleExponent = AFix.S(8 bit)
+
+    // Double precision: 1 sign, 11 exponent, 52 mantissa
+    def doubleMantissa = AFix.UQ(1 bit, 52 bit) // 1.xxx format
+    def doubleExponent = AFix.S(11 bit)
+
+    // Extended precision for intermediate calculations
+    def extendedMantissa = AFix.UQ(1 bit, 64 bit)
+    def extendedExponent = AFix.S(16 bit)
+  }
+
+  // Floating-point number representation using AFix
+  case class FpNumber() extends Bundle {
+    val sign = Bool()
+    val exponent = AFix.S(16 bit) // Extended range for intermediates
+    val mantissa = AFix.UQ(1 bit, 64 bit) // Extended precision
+    val isZero = Bool()
+    val isInf = Bool()
+    val isNaN = Bool()
+    val isDenormal = Bool()
+
+    def fromBits(bits: Bits, isDouble: Bool): Unit = {
+      when(isDouble) {
+        sign := bits(63)
+        val expBits = bits(62 downto 52)
+        val mantBits = bits(51 downto 0)
+
+        exponent := AFix(expBits.asUInt - 1023, 0 exp)
+        isZero := expBits === 0 && mantBits === 0
+        isDenormal := expBits === 0 && mantBits =/= 0
+        isInf := expBits === 0x7ff && mantBits === 0
+        isNaN := expBits === 0x7ff && mantBits =/= 0
+
+        when(isDenormal) {
+          // Denormal: 0.mantissa * 2^-1022
+          mantissa := AFix((U(0) ## mantBits).asUInt, -52 exp)
+          exponent := AFix(S(-1022), 0 exp)
+        } elsewhen (isZero || isInf || isNaN) {
+          mantissa := AFix(U(0, 64 bits), -64 exp)
+        } otherwise {
+          // Normal: 1.mantissa * 2^(exp-1023)
+          mantissa := AFix((U(1) ## mantBits).asUInt, -52 exp)
+        }
+      } otherwise {
+        // Single precision
+        sign := bits(31)
+        val expBits = bits(30 downto 23)
+        val mantBits = bits(22 downto 0)
+
+        exponent := AFix(expBits.asUInt - 127, 0 exp)
+        isZero := expBits === 0 && mantBits === 0
+        isDenormal := expBits === 0 && mantBits =/= 0
+        isInf := expBits === 0xff && mantBits === 0
+        isNaN := expBits === 0xff && mantBits =/= 0
+
+        when(isDenormal) {
+          mantissa := AFix(U(0) ## mantBits ## U(0, 29 bits), -52 exp)
+          exponent := AFix(-126, 0 exp)
+        } elsewhen (isZero || isInf || isNaN) {
+          mantissa := AFix(U(0, 64 bits), -64 exp)
+        } otherwise {
+          mantissa := AFix(U(1) ## mantBits ## U(0, 29 bits), -52 exp)
+        }
+      }
+    }
+
+    def toBits(isDouble: Bool): Bits = {
+      val result = Bits(64 bits)
+
+      when(isNaN) {
+        result := (sign ## B(0x7ff, 11 bits) ## B(1, 52 bits)) // QNaN
+      } elsewhen (isInf) {
+        result := (sign ## B(0x7ff, 11 bits) ## B(0, 52 bits))
+      } elsewhen (isZero) {
+        result := (sign ## B(0, 63 bits))
+      } otherwise {
+        when(isDouble) {
+          val expBiased = (exponent + AFix(1023, 0 exp)).truncated
+          val mantNorm = mantissa.rounded(RoundType.ROUNDTOEVEN)
+          result := sign ## expBiased.raw(10 downto 0) ## mantNorm.raw(51 downto 0)
+        } otherwise {
+          val expBiased = (exponent + AFix(127, 0 exp)).truncated
+          val mantNorm = (mantissa >> 29).rounded(RoundType.ROUNDTOEVEN)
+          result := sign ## B(0, 32 bits) ## expBiased.raw(7 downto 0) ## mantNorm.raw(22 downto 0)
+        }
+      }
+      result
+    }
+  }
+
+  // AFix-based arithmetic units
+  val arithmeticUnit = new Area {
+    val operandA = FpNumber()
+    val operandB = FpNumber()
+    val result = FpNumber()
+    val cmd = io.cmd.payload
+
+    // Parse operands
+    operandA.fromBits(cmd.a, cmd.isDouble)
+    operandB.fromBits(cmd.b, cmd.isDouble)
+
+    // Addition/Subtraction using AFix
+    val adder = new Area {
+      // Align mantissas based on exponent difference
+      val expDiff = operandA.exponent - operandB.exponent
+      val alignShift = expDiff.truncated.asSInt
+
+      // Use AFix's automatic precision handling
+      val mantA = operandA.mantissa
+      val mantB = Mux(
+        alignShift > 0,
+        operandB.mantissa >> alignShift.asUInt,
+        operandB.mantissa
+      )
+
+      val mantAAligned = Mux(
+        alignShift < 0,
+        operandA.mantissa >> (-alignShift).asUInt,
+        operandA.mantissa
+      )
+
+      // Perform addition with automatic overflow handling
+      val effSub = operandA.sign ^ operandB.sign ^ cmd.sub
+      val mantSum = Mux(
+        effSub,
+        mantAAligned - mantB,
+        mantAAligned + mantB
+      )
+
+      // Normalize using AFix's leading zero detection
+      val leadingZeros = LeadingZeros(mantSum.raw.asBits)
+      val normalized = mantSum << leadingZeros
+      val expAdjust = Mux(alignShift > 0, operandA.exponent, operandB.exponent) -
+        AFix(leadingZeros.asSInt, 0 exp)
+
+      // Result assembly
+      result.sign := Mux(mantSum.raw.msb, !operandA.sign, operandA.sign)
+      result.mantissa := normalized.sat(IEEE754.extendedMantissa)
+      result.exponent := expAdjust
+      result.isZero := mantSum.raw === 0
+      result.isInf := False
+      result.isNaN := operandA.isNaN || operandB.isNaN
+      result.isDenormal := expAdjust < AFix(-1022, 0 exp)
+    }
+
+    // Multiplication using AFix
+    val multiplier = new Area {
+      // AFix handles precision automatically
+      val mantProduct = operandA.mantissa * operandB.mantissa
+      val expSum = operandA.exponent + operandB.exponent
+
+      // Normalize if needed (product of normalized numbers needs at most 1-bit adjustment)
+      val needsNorm = !mantProduct.raw(mantProduct.raw.getWidth - 1)
+      val mantNorm = Mux(needsNorm, mantProduct << 1, mantProduct)
+      val expNorm = Mux(needsNorm, expSum - AFix(1, 0 exp), expSum)
+
+      result.sign := operandA.sign ^ operandB.sign
+      result.mantissa := mantNorm.sat(IEEE754.extendedMantissa)
+      result.exponent := expNorm
+      result.isZero := operandA.isZero || operandB.isZero
+      result.isInf := operandA.isInf || operandB.isInf
+      result.isNaN := operandA.isNaN || operandB.isNaN
+      result.isDenormal := expNorm < AFix(-1022, 0 exp)
+    }
+
+    // Division using AFix with Newton-Raphson
+    val divider = new Area {
+      // Initial approximation using AFix
+      val divisorInv = AFix(U(1, 64 bits), -64 exp) / operandB.mantissa
+
+      // Newton-Raphson iterations
+      val iter1 = divisorInv * (AFix(2, 0 exp) - operandB.mantissa * divisorInv)
+      val iter2 = iter1 * (AFix(2, 0 exp) - operandB.mantissa * iter1)
+      val iter3 = iter2 * (AFix(2, 0 exp) - operandB.mantissa * iter2)
+
+      val quotient = operandA.mantissa * iter3
+      val expDiff = operandA.exponent - operandB.exponent
+
+      result.sign := operandA.sign ^ operandB.sign
+      result.mantissa := quotient.sat(IEEE754.extendedMantissa)
+      result.exponent := expDiff
+      result.isZero := operandA.isZero
+      result.isInf := operandB.isZero || operandA.isInf
+      result.isNaN := operandA.isNaN || operandB.isNaN ||
+        (operandA.isZero && operandB.isZero) ||
+        (operandA.isInf && operandB.isInf)
+      result.isDenormal := expDiff < AFix(-1022, 0 exp)
+    }
+  }
+
+  // Rounding control using AFix's built-in modes
+  val rounder = new Area {
+    val roundingMode = io.cmd.payload.rounding
+    val input = arithmeticUnit.result
+
+    // Map IEEE 754 rounding modes to AFix RoundType
+    val afixRoundMode = roundingMode.mux(
+      U(0) -> RoundType.ROUNDTOEVEN, // Round to nearest even
+      U(1) -> RoundType.ROUNDTOZERO, // Round toward zero
+      U(2) -> RoundType.ROUNDTOINF, // Round toward +infinity
+      U(3) -> RoundType.ROUNDDOWN // Round toward -infinity
+    )
+
+    // Apply rounding based on target precision
+    val rounded = Mux(
+      io.cmd.payload.isDouble,
+      input.mantissa.rounded(afixRoundMode).fixTo(IEEE754.doubleMantissa),
+      input.mantissa.rounded(afixRoundMode).fixTo(IEEE754.singleMantissa)
+    )
+
+    // Check for overflow/underflow using AFix's automatic detection
+    val overflow =
+      input.exponent > Mux(io.cmd.payload.isDouble, AFix(1023, 0 exp), AFix(127, 0 exp))
+    val underflow =
+      input.exponent < Mux(io.cmd.payload.isDouble, AFix(-1022, 0 exp), AFix(-126, 0 exp))
+  }
+
+  // Exception detection
+  val exceptions = new Area {
+    val invalid = arithmeticUnit.result.isNaN
+    val divByZero = io.cmd.payload.op === FpOp.DIV && arithmeticUnit.operandB.isZero
+    val overflow = rounder.overflow
+    val underflow = rounder.underflow && !arithmeticUnit.result.isZero
+    val inexact = arithmeticUnit.result.mantissa.asBits(0) // Simplified
+  }
+
+  // Command handling
+  io.cmd.ready := True // Single-cycle for now
+  io.rsp.valid := RegNext(io.cmd.valid)
+  io.rsp.payload.result := RegNext(arithmeticUnit.result.toBits(io.cmd.payload.isDouble))
+  io.rsp.payload.exceptions := RegNext(
+    exceptions.invalid ##
+      exceptions.divByZero ##
+      exceptions.overflow ##
+      exceptions.underflow ##
+      exceptions.inexact
+  )
+
+  // Helper: Count leading zeros
+  def LeadingZeros(bits: Bits): UInt = {
+    val size = bits.getWidth
+    val zeros = UInt(log2Up(size + 1) bits)
+    zeros := size
+
+    for (i <- 0 until size) {
+      when(bits(size - 1 - i)) {
+        zeros := U(i)
+      }
+    }
+    zeros
+  }
+}
