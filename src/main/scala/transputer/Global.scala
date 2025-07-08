@@ -1,28 +1,26 @@
 package transputer
 
 import spinal.core._
-import spinal.lib.misc.database.Database
 import spinal.lib.misc.pipeline._
 import spinal.lib._
 
-/** Global configuration elements and configuration register framework for Transputer, accessed via
-  * [[Database]]. Default values are defined below for convenience, aligned with IMS T9000
-  * specifications.
+/** Global configuration elements and configuration register framework for Transputer. Updated to
+  * use static constants for compilation compatibility.
   */
 object Global extends AreaObject {
-  // Database handles for configuration
-  val WORD_BITS = Database.blocking[Int]
-  val ADDR_BITS = Database.blocking[Int]
-  val PC_BITS = Database.blocking[Int]
-  val INSTR_BITS = Database.blocking[Int]
-  val IPTR_BITS = Database.blocking[Int]
-  val OPCODE_BITS = Database.blocking[Int]
-  val ROM_WORDS = Database.blocking[Int]
-  val RAM_WORDS = Database.blocking[Int]
-  val LINK_COUNT = Database.blocking[Int]
-  val FPU_PRECISION = Database.blocking[Int]
-  val SCHED_QUEUE_DEPTH = Database.blocking[Int]
-  val RESET_IPTR = Database.blocking[Long]
+  // Static configuration constants (replacing Database for compilation)
+  val WORD_BITS = 32
+  val ADDR_BITS = 32
+  val PC_BITS = 32
+  val INSTR_BITS = 8
+  val IPTR_BITS = 32
+  val OPCODE_BITS = 8
+  val ROM_WORDS = 1024
+  val RAM_WORDS = 32768
+  val LINK_COUNT = 4
+  val FPU_PRECISION = 64
+  val SCHED_QUEUE_DEPTH = 16
+  val RESET_IPTR = 0x80000000L
 
   // Default constants formerly hosted in `TConsts`, aligned with T9000
   val WordBits = 32
@@ -33,7 +31,7 @@ object Global extends AreaObject {
   val LinkCount = 4
   val FpuPrecision = WordBits
   val SchedQueueDepth = LinkCount
-  val ResetIptr = 0x00000000L
+  val ResetIptr = 0x80000000L // Boot from ROM at 0x80000000
 
   // Dynamic getter for systemBusParam and plugins
   // In the current minimal build the database may not contain ADDR_BITS,
@@ -73,10 +71,50 @@ object Global extends AreaObject {
   def MEM_ADDR: Payload[UInt] = Payload(UInt(AddrBitsValue bits))
   def MEM_DATA: Payload[Bits] = Payload(Bits(WordBits bits))
 
+  // T9000 pipeline payloads
+  def OPERAND: Payload[Bits] = Payload(Bits(WordBits bits))
+  def GROUPED_INSTR: Payload[Bits] = Payload(Bits(64 bits)) // Up to 2 instructions
+  def AREG_VALUE: Payload[UInt] = Payload(UInt(WordBits bits))
+  def BREG_VALUE: Payload[UInt] = Payload(UInt(WordBits bits))
+  def CREG_VALUE: Payload[UInt] = Payload(UInt(WordBits bits))
+  def MEM_WRITE: Payload[Bool] = Payload(Bool())
+  def ALU_RESULT: Payload[UInt] = Payload(UInt(WordBits bits))
+  def FPU_RESULT: Payload[Bits] = Payload(Bits(64 bits)) // Double precision
+  def STACK_OP: Payload[Bits] = Payload(Bits(3 bits)) // Stack operation type
+  def BRANCH_TARGET: Payload[UInt] = Payload(UInt(AddrBitsValue bits))
+  def BRANCH_TAKEN: Payload[Bool] = Payload(Bool())
+  def TRAP_CAUSE: Payload[Bits] = Payload(Bits(8 bits))
+  def TRAP_ENABLE: Payload[Bool] = Payload(Bool())
+
+  // ALU command payload for pipeline communication
+  def ALU_CMD: Payload[AluCmd] = Payload(AluCmd())
+  def ALU_CMD_VALID: Payload[Bool] = Payload(Bool())
+
+  // FPU command payload for pipeline communication
+  def FPU_CMD: Payload[FpuCmd] = Payload(FpuCmd())
+  def FPU_CMD_VALID: Payload[Bool] = Payload(Bool())
+
+  // Command structure for ALU operations
+  case class AluCmd() extends Bundle {
+    val op = Bits(4 bits) // ALU operation code
+    val srcA = UInt(WordBits bits) // First operand
+    val srcB = UInt(WordBits bits) // Second operand
+    val srcC = UInt(WordBits bits) // Third operand (for 3-operand instructions)
+  }
+
+  // Command structure for FPU operations
+  case class FpuCmd() extends Bundle {
+    val op = Bits(8 bits) // FPU operation code (T9000 secondary opcode)
+    val srcA = Bits(64 bits) // First FP operand (FPA)
+    val srcB = Bits(64 bits) // Second FP operand (FPB)
+    val srcC = Bits(64 bits) // Third FP operand (FPC)
+    val roundingMode = Bits(2 bits) // IEEE 754 rounding mode
+  }
+
   // Memory command definitions, aligned with T9000
   case class MemRead[T <: Data](
-    payloadType: HardType[T] = HardType(Bits(WORD_BITS bits)),
-    depth: Int = 1 << AddrBits
+    payloadType: HardType[T] = HardType(Bits(WordBits bits)),
+    depth: Int = 1 << AddrBitsValue
   ) extends Bundle
       with IMasterSlave {
     val cmd = Flow(UInt(log2Up(depth) bits))
@@ -274,11 +312,11 @@ object Global extends AreaObject {
 }
 
 // Minimal memory command bundles used across services
-case class MemWriteCmd(depth: Int = 1 << Global.AddrBits) extends Bundle {
+case class MemWriteCmd(depth: Int = 1 << Global.AddrBitsValue) extends Bundle {
   val address = UInt(log2Up(depth) bits)
-  val data = Bits(Global.WORD_BITS bits)
+  val data = Bits(Global.WordBits bits)
 }
 
-case class MemReadCmd(depth: Int = 1 << Global.AddrBits) extends Bundle {
+case class MemReadCmd(depth: Int = 1 << Global.AddrBitsValue) extends Bundle {
   val address = UInt(log2Up(depth) bits)
 }

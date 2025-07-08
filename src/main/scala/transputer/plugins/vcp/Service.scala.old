@@ -1,0 +1,31 @@
+package transputer.plugins.vcp
+
+import spinal.core._
+import spinal.lib._
+
+// Memory access commands for VCP
+case class MemWriteCmd() extends Bundle {
+  val address = UInt(32 bits)
+  val data = Bits(32 bits)
+  val mask = Bits(4 bits)
+}
+
+case class MemReadCmd() extends Bundle {
+  val address = UInt(32 bits)
+  val size = UInt(2 bits)
+}
+
+/**
+ * Virtual Channel Processor Service
+ * Manages DS-Link virtual channels and packet routing
+ */
+trait VcpService {
+  def sendPacket(channel: UInt, data: Bits): Bool
+  def receivePacket(channel: UInt): Bits
+  def channelReady(channel: UInt): Bool
+  def packetAvailable(channel: UInt): Bool
+  def setChannelMode(channel: UInt, mode: Bits): Unit
+  def setVcpCommand(command: Bits): Unit
+  def updateChannelHeader(channel: UInt, header: Bits): Unit
+  def getChannelState(channel: UInt): Bits
+}

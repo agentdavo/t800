@@ -1,5 +1,7 @@
+*.DS_Store
+*.Identifier
 /ext/SpinalHDL
-/project
 /target
 /simWorkspace
-*.Identifier
+/project/project
+/project/target

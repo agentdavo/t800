@@ -21,19 +21,36 @@ case class Param(
   def plugins(hartId: Int = 0): Seq[FiberPlugin] =
     pluginsArea(hartId).plugins.collect { case p: FiberPlugin => p }.toSeq
 
-  /** Creates an area to manage plugin instances. */
+  /** Creates an area to manage plugin instances. Ideal T9000-inspired pipeline: systemBus ->
+    * FetchPlugin -> GrouperPlugin -> PrimaryInstrPlugin -> SecondaryInstrPlugin
+    */
   def pluginsArea(hartId: Int = 0) = new Area {
     val plugins = ArrayBuffer[Hostable]()
-    plugins += new transputer.plugins.transputer.TransputerPlugin(
+
+    // Core plugins - essential for basic operation
+    plugins += new transputer.plugins.core.transputer.TransputerPlugin(
       wordBits = wordWidth,
       linkCount = linkCount
     )
-    if (enableFpu)
-      plugins += new transputer.plugins.fpu.FpuPlugin
-    plugins += new transputer.plugins.pipeline.PipelinePlugin
-    plugins += new transputer.plugins.registers.RegFilePlugin
-    plugins += new transputer.plugins.mmu.MemoryManagementPlugin
-    plugins += new transputer.plugins.cache.MainCachePlugin
-    plugins += new transputer.plugins.cache.WorkspaceCachePlugin
+
+    // Barebones
+    plugins += new transputer.plugins.core.pipeline.PipelinePlugin
+    plugins += new transputer.plugins.bus.SystemBusPlugin
+    plugins += new transputer.plugins.core.regstack.RegStackPlugin
+
+    // Instruction fetch and processing pipeline
+    plugins += new transputer.plugins.core.fetch.FetchPlugin
+    plugins += new transputer.plugins.core.grouper.InstrGrouperPlugin
+
+    // Basic instruction execution
+    plugins += new transputer.plugins.arithmetic.ArithmeticPlugin
+    plugins += new transputer.plugins.general.GeneralPlugin
+
+    // Timers
+    plugins += new transputer.plugins.timers.TimerPlugin
+
+    // Pipeline builder to connect everything
+    plugins += new transputer.plugins.core.pipeline.PipelineBuilderPlugin
+
   }
 }
